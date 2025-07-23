@@ -2,6 +2,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import Sidebar from '@/components/Sidebar'
+import Navbar from '@/components/Navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,11 +21,19 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="flex min-h-screen bg-gray-50">
           <Sidebar />
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
+          <div className="flex-1">
+            <Navbar 
+              onNewSale={() => console.log('New Sale clicked')}
+              onSearch={() => console.log('Search clicked')}
+              onNotification={() => console.log('Notification clicked')}
+            />
+            <main className="overflow-auto" style={{ height: 'calc(100vh - 88px)' }}>
+              {children}
+            </main>
+          </div>
         </div>
       </body>
     </html>
   )
 }
+
