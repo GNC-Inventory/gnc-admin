@@ -9,6 +9,10 @@ import AverageSalesCard from '@/components/dashboard/AverageSalesCard';
 import TaxDueCard from '@/components/dashboard/TaxDueCard';
 import SalesGraph from '@/components/dashboard/SalesGraph';
 import SalesByProduct from '@/components/dashboard/SalesByProduct';
+import TopPerformingStaff from '@/components/dashboard/TopPerformingStaff';
+import LowInStock from '@/components/dashboard/LowInStock';
+import TotalAmountReturned from '@/components/dashboard/TotalAmountReturned';
+import TotalReturnedItems from '@/components/dashboard/TotalReturnedItems';
 
 const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
@@ -178,8 +182,7 @@ const Dashboard: React.FC = () => {
               gap: '16px'
             }}
           >
-            {/* Top Performing Staff Component will go here */}
-            <div className="text-center text-gray-500 text-xs">Top Performing Staff</div>
+            <TopPerformingStaff period={selectedPeriod.toLowerCase()} />
           </div>
 
           {/* Low in Stock */}
@@ -191,8 +194,7 @@ const Dashboard: React.FC = () => {
               gap: '16px'
             }}
           >
-            {/* Low in Stock Component will go here */}
-            <div className="text-center text-gray-500 text-xs">Low in Stock</div>
+            <LowInStock period={selectedPeriod.toLowerCase()} />
           </div>
 
           {/* Total Amount Returned */}
@@ -204,8 +206,7 @@ const Dashboard: React.FC = () => {
               gap: '16px'
             }}
           >
-            {/* Total Amount Returned Component will go here */}
-            <div className="text-center text-gray-500 text-xs">Total Amount Returned</div>
+            <TotalAmountReturned period={selectedPeriod.toLowerCase()} />
           </div>
 
           {/* Total Returned Items */}
@@ -217,8 +218,7 @@ const Dashboard: React.FC = () => {
               gap: '16px'
             }}
           >
-            {/* Total Returned Items Component will go here */}
-            <div className="text-center text-gray-500 text-xs">Total Returned Items</div>
+            <TotalReturnedItems period={selectedPeriod.toLowerCase()} />
           </div>
         </div>
       </div>
