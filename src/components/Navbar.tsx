@@ -5,12 +5,6 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Search, Bell, Plus } from 'lucide-react';
 
-interface NavbarProps {
-  onNewSale?: () => void;
-  onSearch?: () => void;
-  onNotification?: () => void;
-}
-
 // Define page configurations
 const pageConfigs = {
   '/dashboard': {
@@ -63,23 +57,38 @@ const pageConfigs = {
   }
 };
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  onNewSale, 
-  onSearch, 
-  onNotification 
-}) => {
+const Navbar: React.FC = () => {
   const pathname = usePathname();
   
   // Get current page config or default to dashboard
   const currentConfig = pageConfigs[pathname as keyof typeof pageConfigs] || pageConfigs['/dashboard'];
 
   const handleButtonClick = () => {
-    if (pathname === '/dashboard' && onNewSale) {
-      onNewSale();
-    } else {
-      // Handle other button actions based on current page
-      console.log(`${currentConfig.buttonText} clicked for ${pathname}`);
+    console.log(`${currentConfig.buttonText} clicked for ${pathname}`);
+    // Add specific actions based on current page
+    switch(pathname) {
+      case '/dashboard':
+        console.log('Opening new sale modal...');
+        break;
+      case '/inventory':
+        console.log('Opening add product modal...');
+        break;
+      case '/transactions':
+        console.log('Opening new transaction modal...');
+        break;
+      default:
+        console.log('Action clicked');
     }
+  };
+
+  const handleSearch = () => {
+    console.log('Search clicked');
+    // Add search functionality here
+  };
+
+  const handleNotification = () => {
+    console.log('Notification clicked');
+    // Add notification functionality here
   };
 
   return (
@@ -132,7 +141,7 @@ const Navbar: React.FC<NavbarProps> = ({
       <div className="flex items-center gap-4">
         {/* Search Icon */}
         <button
-          onClick={onSearch}
+          onClick={handleSearch}
           className="flex items-center justify-center hover:bg-gray-50 rounded-md transition-colors"
           style={{
             width: '20px',
@@ -150,7 +159,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Notification Icon */}
         <button
-          onClick={onNotification}
+          onClick={handleNotification}
           className="relative flex items-center justify-center hover:bg-gray-50 rounded-md transition-colors"
           style={{
             width: '20px',

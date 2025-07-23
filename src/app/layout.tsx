@@ -22,11 +22,7 @@ export default function RootLayout({
         <div className="flex min-h-screen bg-gray-50">
           <Sidebar />
           <div className="flex-1">
-            <Navbar 
-              onNewSale={() => console.log('New Sale clicked')}
-              onSearch={() => console.log('Search clicked')}
-              onNotification={() => console.log('Notification clicked')}
-            />
+            <Navbar />
             <main className="overflow-auto" style={{ height: 'calc(100vh - 88px)' }}>
               {children}
             </main>
