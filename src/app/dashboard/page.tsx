@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import SalesCard from '@/components/dashboard/SalesCard';
 import TransactionsCard from '@/components/dashboard/TransactionsCard';
 import AverageSalesCard from '@/components/dashboard/AverageSalesCard';
+import TaxDueCard from '@/components/dashboard/TaxDueCard';
 
 const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
@@ -134,8 +135,7 @@ const Dashboard: React.FC = () => {
             gap: '16px'
           }}
         >
-          {/* Tax Due Component will go here */}
-          <div className="text-center text-gray-500">Tax Due Component</div>
+          <TaxDueCard amount={853129} period="today" />
         </div>
       </div>
 
