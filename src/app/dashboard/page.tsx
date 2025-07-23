@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SalesCard from '@/components/dashboard/SalesCard';
+import TransactionsCard from '@/components/dashboard/TransactionsCard';
 
 const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
@@ -108,8 +109,7 @@ const Dashboard: React.FC = () => {
             gap: '16px'
           }}
         >
-          {/* Transactions Component will go here */}
-          <div className="text-center text-gray-500">Transactions Component</div>
+          <TransactionsCard count={156} period="today" />
         </div>
 
         {/* Average Sales Card */}
