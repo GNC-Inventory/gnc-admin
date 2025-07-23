@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex items-center gap-3 px-6 py-4">
         <div className="w-8 h-8 relative">
           <Image
-            src="/logo.png" // Replace with your actual logo path
+            src="/logo.png"
             alt="Apex Logo"
             width={32}
             height={32}
