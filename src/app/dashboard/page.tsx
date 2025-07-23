@@ -8,6 +8,7 @@ import TransactionsCard from '@/components/dashboard/TransactionsCard';
 import AverageSalesCard from '@/components/dashboard/AverageSalesCard';
 import TaxDueCard from '@/components/dashboard/TaxDueCard';
 import SalesGraph from '@/components/dashboard/SalesGraph';
+import SalesByProduct from '@/components/dashboard/SalesByProduct';
 
 const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
@@ -163,10 +164,7 @@ const Dashboard: React.FC = () => {
             gap: '14px'
           }}
         >
-          {/* Sales by Product Component will go here */}
-          <div className="text-center text-gray-500 flex items-center justify-center h-full">
-            Sales by Product Component
-          </div>
+          <SalesByProduct period={selectedPeriod.toLowerCase()} />
         </div>
 
         {/* Bottom Stats Grid */}
