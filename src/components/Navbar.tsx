@@ -93,24 +93,22 @@ const Navbar: React.FC = () => {
 
   return (
     <div 
-      className="w-[1168px] h-[88px] bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between"
+      className="w-full h-[88px] bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between"
       style={{ 
-        marginLeft: '272px',
         gap: '12px'
       }}
     >
       {/* Left Section - Title and Subtitle */}
       <div 
-        className="flex flex-col gap-1"
+        className="flex flex-col gap-1 flex-1"
         style={{ 
-          width: '874px',
+          maxWidth: '874px',
           height: '48px'
         }}
       >
         <h4 
           className="text-[#0A0D14] font-medium"
           style={{
-            width: '874px',
             height: '24px',
             fontFamily: 'Geist, sans-serif',
             fontWeight: 500,
@@ -124,7 +122,6 @@ const Navbar: React.FC = () => {
         <p 
           className="text-[#525866]"
           style={{
-            width: '874px',
             height: '20px',
             fontFamily: 'Sora, sans-serif',
             fontWeight: 400,
