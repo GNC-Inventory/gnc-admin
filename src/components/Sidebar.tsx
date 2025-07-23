@@ -1,99 +1,173 @@
-'use client'
+// components/Sidebar.tsx
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, 
-  Package, 
-  ArrowLeftRight, 
-  RotateCcw, 
-  FileText, 
-  Users, 
-  Settings, 
-  HelpCircle 
-} from 'lucide-react'
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Package,
+  CreditCard,
+  RotateCcw,
+  BarChart3,
+  Users,
+  Settings,
+  HelpCircle
+} from 'lucide-react';
 
-interface MenuItem {
-  name: string
-  href: string
-  icon: React.ElementType
+interface SidebarProps {
+  userEmail?: string;
+  userName?: string;
 }
 
-const mainMenuItems: MenuItem[] = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Inventory', href: '/inventory', icon: Package },
-  { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
-  { name: 'Returns Management', href: '/returns', icon: RotateCcw },
-  { name: 'Sales Reports', href: '/sales-reports', icon: FileText },
-  { name: 'User Management', href: '/user-management', icon: Users },
-]
+const Sidebar: React.FC<SidebarProps> = ({ 
+  userEmail = "joseph@gnc.com", 
+  userName = "Joseph Okoye" 
+}) => {
+  const pathname = usePathname();
 
-const otherMenuItems: MenuItem[] = [
-  { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Support', href: '/support', icon: HelpCircle },
-]
+  const mainMenuItems = [
+    {
+      name: 'Dashboard',
+      icon: LayoutDashboard,
+      href: '/dashboard'
+    },
+    {
+      name: 'Inventory',
+      icon: Package,
+      href: '/inventory'
+    },
+    {
+      name: 'Transactions',
+      icon: CreditCard,
+      href: '/transactions'
+    },
+    {
+      name: 'Returns Management',
+      icon: RotateCcw,
+      href: '/returns'
+    },
+    {
+      name: 'Sales Reports',
+      icon: BarChart3,
+      href: '/sales-reports'
+    },
+    {
+      name: 'User Management',
+      icon: Users,
+      href: '/user-management'
+    }
+  ];
 
-export default function Sidebar() {
-  const pathname = usePathname()
+  const otherMenuItems = [
+    {
+      name: 'Settings',
+      icon: Settings,
+      href: '/settings'
+    },
+    {
+      name: 'Support',
+      icon: HelpCircle,
+      href: '/support'
+    }
+  ];
+
+  const isActive = (href: string) => pathname === href;
 
   return (
-    <div className="w-[272px] h-full bg-white border-r border-gray-200 flex flex-col">
-      {/* Main Menu Section */}
-      <div className="pt-6 px-6">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-          MAIN
-        </h3>
-        <nav className="space-y-1">
-          {mainMenuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {item.name}
-              </Link>
-            )
-          })}
-        </nav>
+    <div className="w-[272px] h-[900px] max-w-[272px] bg-white border-r border-[#E2E4E9] flex flex-col">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-6 py-4">
+        <div className="w-8 h-8 relative">
+          <Image
+            src="/logo.png" // Replace with your actual logo path
+            alt="Apex Logo"
+            width={32}
+            height={32}
+            className="object-contain"
+          />
+        </div>
+        <h1 className="text-lg font-semibold text-gray-900">Apex Manager</h1>
       </div>
 
-      {/* Other Menu Section */}
-      <div className="mt-8 px-6">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-          OTHER
-        </h3>
-        <nav className="space-y-1">
-          {otherMenuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {item.name}
-              </Link>
-            )
-          })}
-        </nav>
+      {/* Horizontal line */}
+      <div className="border-b border-[#E2E4E9] mx-6"></div>
+
+      {/* Main Section */}
+      <div className="flex-1 px-4 py-6">
+        <div className="mb-6">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 px-2">
+            MAIN
+          </p>
+          <nav className="space-y-2">
+            {mainMenuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Other Section */}
+        <div className="mb-6">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 px-2">
+            OTHER
+          </p>
+          <nav className="space-y-2">
+            {otherMenuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* User Profile Section */}
+      <div className="border-t border-[#E2E4E9] p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-sm font-medium">
+              {userName.split(' ').map(n => n[0]).join('')}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {userName}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {userEmail}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Sidebar;
