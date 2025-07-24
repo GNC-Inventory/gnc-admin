@@ -60,7 +60,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({ period = 'today' }) => {
               top: 10,
               right: 30,
               left: 20,
-              bottom: 10,
+              bottom: 25,
             }}
           >
             <XAxis 
