@@ -21,9 +21,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="flex min-h-screen bg-gray-50">
           <Sidebar />
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col">
             <Navbar />
-            <main className="overflow-auto p-0" style={{ height: 'calc(100vh - 88px)' }}>
+            <main className="flex-1 overflow-auto">
               {children}
             </main>
           </div>
@@ -32,3 +32,4 @@ export default function RootLayout({
     </html>
   )
 }
+
