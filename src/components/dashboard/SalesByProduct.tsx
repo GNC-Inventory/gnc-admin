@@ -50,7 +50,7 @@ const SalesByProduct: React.FC<SalesByProductProps> = ({ period = 'today' }) => 
       </div>
 
       {/* Content Container */}
-      <div className="flex-1 flex gap-6">
+      <div className="flex-1 flex gap-6 pb-4">
         {/* Left Side - Product List */}
         <div className="flex-1">
           <div className="grid grid-cols-2 gap-y-3 gap-x-4">
