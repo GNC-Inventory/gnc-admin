@@ -23,7 +23,7 @@ export default function RootLayout({
           <Sidebar />
           <div className="flex-1">
             <Navbar />
-            <main className="overflow-auto" style={{ height: 'calc(100vh - 88px)' }}>
+            <main className="overflow-auto p-0" style={{ height: 'calc(100vh - 88px)' }}>
               {children}
             </main>
           </div>
@@ -32,4 +32,3 @@ export default function RootLayout({
     </html>
   )
 }
-
