@@ -76,9 +76,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isActive = (href: string) => pathname === href;
 
   return (
-    <div className="w-[272px] h-[900px] max-w-[272px] bg-white border-r border-[#E2E4E9] flex flex-col">
+    <div className="w-[320px] min-h-screen max-w-[320px] bg-white border-r border-[#E2E4E9] flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4">
+      <div className="flex items-center gap-3 px-8 py-6">
         <div className="w-8 h-8 relative">
           <Image
             src="/logo.png"
@@ -92,10 +92,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Horizontal line */}
-      <div className="border-b border-[#E2E4E9] mx-6"></div>
+      <div className="border-b border-[#E2E4E9] mx-8"></div>
 
       {/* Main Section */}
-      <div className="flex-1 px-4 py-6">
+      <div className="flex-1 px-6 py-8">
         <div className="mb-6">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 px-2">
             MAIN
@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* User Profile Section */}
-      <div className="border-t border-[#E2E4E9] p-4">
+      <div className="border-t border-[#E2E4E9] p-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-medium">
