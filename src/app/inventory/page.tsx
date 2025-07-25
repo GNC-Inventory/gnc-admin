@@ -1,4 +1,4 @@
-// app/products/page.tsx
+// app/inventory/page.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -17,7 +17,7 @@ interface InventoryItem {
   amount: number | string;
 }
 
-const Products: React.FC = () => {
+const Inventory: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -258,4 +258,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products;
+export default Inventory;
