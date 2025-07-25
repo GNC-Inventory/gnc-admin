@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-full p-8">
+    <div className="bg-gray-50 min-h-full pl-8 pr-1 py-4 w-full overflow-x-hidden">
       {/* Welcome Section */}
       <div className="mb-6">
         <h1 
@@ -95,13 +95,13 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-4 gap-4 mb-8 w-full">
         {/* Sales Card */}
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
-            height: '128px',
+            width: '290px',
+            height: '150px',
             gap: '16px'
           }}
         >
@@ -112,8 +112,8 @@ const Dashboard: React.FC = () => {
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
-            height: '128px',
+            width: '290px',
+            height: '150px',
             gap: '16px'
           }}
         >
@@ -124,8 +124,8 @@ const Dashboard: React.FC = () => {
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
-            height: '128px',
+            width: '290px',
+            height: '150px',
             gap: '16px'
           }}
         >
@@ -136,8 +136,8 @@ const Dashboard: React.FC = () => {
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
-            height: '128px',
+            width: '290px',
+            height: '150px',
             gap: '16px'
           }}
         >
@@ -149,7 +149,8 @@ const Dashboard: React.FC = () => {
       <div 
         className="bg-white rounded-[32px] p-6 mb-8"
         style={{
-          width: '1104px',
+          width: '100%',
+          maxWidth: '1104px',
           height: '261px',
           gap: '24px'
         }}
@@ -158,13 +159,13 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Sales by Product and Bottom Stats Row */}
-      <div className="flex gap-6">
+      <div className="flex gap-4">
         {/* Sales by Product */}
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
             width: '540px',
-            height: '246px',
+            height: '280px',
             gap: '14px'
           }}
         >
@@ -172,7 +173,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Bottom Stats Grid */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           {/* Top Performing Staff */}
           <div 
             className="bg-white rounded-[32px] p-6"
