@@ -139,63 +139,67 @@ const Inventory: React.FC = () => {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-4 gap-24 mb-8">
-        {/* In Card */}
-        <div 
-          className="bg-white rounded-[32px] p-6"
-          style={{
-            width: '250px',
-            height: '172px',
-            gap: '16px',
-            borderRadius: '32px',
-            padding: '24px'
-          }}
-        >
-          <InCard itemCount={5} totalValue={243000} />
-        </div>
+<div className="grid grid-cols-4 mb-8" style={{ gap: '16px' }}>
+  {/* In Card */}
+  <div 
+    style={{
+      width: '258px',
+      height: '172px',
+      opacity: 1,
+      borderRadius: '32px',
+      padding: '24px',
+      background: '#FFFFFF',
+      boxSizing: 'border-box'
+    }}
+  >
+    <InCard itemCount={5} totalValue={243000} />
+  </div>
 
-        {/* Out Card */}
-        <div 
-          className="bg-white rounded-[32px] p-6"
-          style={{
-            width: '250px',
-            height: '172px',
-            gap: '16px',
-            borderRadius: '32px',
-            padding: '24px'
-          }}
-        >
-          <OutCard itemCount={205} totalValue={23243000} />
-        </div>
+  {/* Out Card */}
+  <div 
+    style={{
+      width: '258px',
+      height: '172px',
+      opacity: 1,
+      borderRadius: '32px',
+      padding: '24px',
+      background: '#FFFFFF',
+      boxSizing: 'border-box'
+    }}
+  >
+    <OutCard itemCount={205} totalValue={23243000} />
+  </div>
 
-        {/* Inventory Value Card */}
-        <div 
-          className="bg-white rounded-[32px] p-6"
-          style={{
-            width: '250px',
-            height: '172px',
-            gap: '16px',
-            borderRadius: '32px',
-            padding: '24px'
-          }}
-        >
-          <InventoryValueCard itemCount={13205} totalValue={132243000} />
-        </div>
+  {/* Inventory Value Card */}
+  <div 
+    style={{
+      width: '258px',
+      height: '172px',
+      opacity: 1,
+      borderRadius: '32px',
+      padding: '24px',
+      background: '#FFFFFF',
+      boxSizing: 'border-box'
+    }}
+  >
+    <InventoryValueCard itemCount={13205} totalValue={132243000} />
+  </div>
 
-        {/* Low In Stock Card */}
-        <div 
-          className="bg-white rounded-[32px] p-6"
-          style={{
-            width: '250px',
-            height: '172px',
-            gap: '16px',
-            borderRadius: '32px',
-            padding: '24px'
-          }}
-        >
-          <LowInStockCard itemCount={25} />
-        </div>
-      </div>
+  {/* Low In Stock Card */}
+  <div 
+    style={{
+      width: '258px',
+      height: '172px',
+      opacity: 1,
+      borderRadius: '32px',
+      padding: '24px',
+      background: '#FFFFFF',
+      boxSizing: 'border-box'
+    }}
+  >
+    <LowInStockCard itemCount={25} />
+  </div>
+</div>
 
       {/* Search Bar */}
       <div className="mb-6">
