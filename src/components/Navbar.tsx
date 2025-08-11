@@ -93,10 +93,19 @@ const Navbar: React.FC = () => {
 
   return (
     <div 
-      className="w-full bg-white px-8 py-6 flex items-center justify-between"
+      className="flex items-center justify-between bg-white border-b border-gray-200"
       style={{ 
-        height: '100px',
-        gap: '12px'
+        width: '1168px',
+        height: '88px',
+        left: '272px',
+        borderBottomWidth: '1px',
+        gap: '12px',
+        opacity: 1,
+        paddingTop: '20px',
+        paddingRight: '32px',
+        paddingBottom: '20px',
+        paddingLeft: '32px',
+        background: '#FFFFFF'
       }}
     >
       {/* Left Section - Title and Subtitle */}
