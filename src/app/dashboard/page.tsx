@@ -158,17 +158,22 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Sales Graph */}
-      <div 
-        className="bg-white rounded-[32px] p-6 mb-8"
-        style={{
-          width: '100%',
-          maxWidth: '1104px',
-          height: '261px',
-          gap: '24px'
-        }}
-      >
-        <SalesGraph period={selectedPeriod.toLowerCase()} />
-      </div>
+<div 
+  className="mb-8"
+  style={{
+    width: '1104px',
+    height: '261px',
+    top: '384px',
+    left: '304px',
+    gap: '24px',
+    opacity: 1,
+    borderRadius: '32px',
+    padding: '24px',
+    background: '#FFFFFF'
+  }}
+>
+  <SalesGraph period={selectedPeriod.toLowerCase()} />
+</div>
 
       {/* Sales by Product and Bottom Stats Row */}
       <div className="flex gap-4">
