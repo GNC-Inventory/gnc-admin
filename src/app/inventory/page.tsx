@@ -92,13 +92,7 @@ const Inventory: React.FC = () => {
       <div className="mb-6">
         {/* Showing and Dropdown */}
         <div className="flex items-center gap-4">
-          <p 
-            className="text-gray-600"
-            style={{
-              width: '57px',
-              height: '20px'
-            }}
-          >
+          <p className="text-gray-600 w-[57px] h-5">
             Showing
           </p>
           
@@ -106,13 +100,8 @@ const Inventory: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="bg-white rounded-[10px] px-3 py-2.5 flex items-center justify-between border border-gray-200 hover:border-gray-300 transition-colors"
-              style={{
-                width: '193px',
-                height: '40px',
-                padding: '10px 10px 10px 12px',
-                gap: '8px'
-              }}
+              className="bg-white rounded-[10px] px-3 py-2.5 flex items-center justify-between border border-gray-200 hover:border-gray-300 transition-colors w-[193px] h-10"
+              style={{ padding: '10px 10px 10px 12px', gap: '8px' }}
             >
               <span className="text-gray-700 text-sm">{selectedPeriod}</span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -139,95 +128,47 @@ const Inventory: React.FC = () => {
       </div>
 
       {/* Stats Cards Row */}
-<div className="grid grid-cols-4 mb-8" style={{ gap: '16px' }}>
-  {/* In Card */}
-  <div 
-    style={{
-      width: '258px',
-      height: '172px',
-      opacity: 1,
-      borderRadius: '32px',
-      padding: '24px',
-      background: '#FFFFFF',
-      boxSizing: 'border-box'
-    }}
-  >
-    <InCard itemCount={5} totalValue={243000} />
-  </div>
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        {/* In Card */}
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
+          <InCard itemCount={5} totalValue={243000} />
+        </div>
 
-  {/* Out Card */}
-  <div 
-    style={{
-      width: '258px',
-      height: '172px',
-      opacity: 1,
-      borderRadius: '32px',
-      padding: '24px',
-      background: '#FFFFFF',
-      boxSizing: 'border-box'
-    }}
-  >
-    <OutCard itemCount={205} totalValue={23243000} />
-  </div>
+        {/* Out Card */}
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
+          <OutCard itemCount={205} totalValue={23243000} />
+        </div>
 
-  {/* Inventory Value Card */}
-  <div 
-    style={{
-      width: '258px',
-      height: '172px',
-      opacity: 1,
-      borderRadius: '32px',
-      padding: '24px',
-      background: '#FFFFFF',
-      boxSizing: 'border-box'
-    }}
-  >
-    <InventoryValueCard itemCount={13205} totalValue={132243000} />
-  </div>
+        {/* Inventory Value Card */}
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
+          <InventoryValueCard itemCount={13205} totalValue={132243000} />
+        </div>
 
-  {/* Low In Stock Card */}
-  <div 
-    style={{
-      width: '258px',
-      height: '172px',
-      opacity: 1,
-      borderRadius: '32px',
-      padding: '24px',
-      background: '#FFFFFF',
-      boxSizing: 'border-box'
-    }}
-  >
-    <LowInStockCard itemCount={25} />
-  </div>
-</div>
-
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search items by name or SKU"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        {/* Low In Stock Card */}
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
+          <LowInStockCard itemCount={25} />
         </div>
       </div>
 
-      {/* Inventory Section */}
-      <div className="bg-white rounded-lg shadow-sm">
-        {/* Section Title */}
-        <div className="p-6 border-b border-gray-200">
-          <h2 
-            className="text-[#0A0D14] font-semibold"
-            style={{
-              fontFamily: 'Geist, sans-serif',
-              fontSize: '18px',
-              lineHeight: '24px',
-              fontWeight: 600
-            }}
-          >
+      {/* Combined Search and Inventory Section */}
+      <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6 opacity-100 box-border" style={{ gap: '16px' }}>
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search items by name or SKU"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Inventory Section Title */}
+        <div className="mb-4">
+          <h2 className="text-[#0A0D14] font-geist font-semibold text-lg leading-6">
             Inventory
           </h2>
         </div>
