@@ -76,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isActive = (href: string) => pathname === href;
 
   return (
-    <div className="w-[380px] min-h-screen max-w-[380px] bg-white border-r border-[#E2E4E9] flex flex-col">
+    <div className="w-[272px] min-h-screen max-w-[272px] bg-white border-r border-[#E2E4E9] flex flex-col" style={{ opacity: 1 }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-8 py-6">
         <div className="w-8 h-8 relative">

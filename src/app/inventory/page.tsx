@@ -139,14 +139,16 @@ const Inventory: React.FC = () => {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-4 gap-24 mb-8">
         {/* In Card */}
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
+            width: '250px',
             height: '172px',
-            gap: '16px'
+            gap: '16px',
+            borderRadius: '32px',
+            padding: '24px'
           }}
         >
           <InCard itemCount={5} totalValue={243000} />
@@ -156,9 +158,11 @@ const Inventory: React.FC = () => {
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
+            width: '250px',
             height: '172px',
-            gap: '16px'
+            gap: '16px',
+            borderRadius: '32px',
+            padding: '24px'
           }}
         >
           <OutCard itemCount={205} totalValue={23243000} />
@@ -168,9 +172,11 @@ const Inventory: React.FC = () => {
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
+            width: '250px',
             height: '172px',
-            gap: '16px'
+            gap: '16px',
+            borderRadius: '32px',
+            padding: '24px'
           }}
         >
           <InventoryValueCard itemCount={13205} totalValue={132243000} />
@@ -180,9 +186,11 @@ const Inventory: React.FC = () => {
         <div 
           className="bg-white rounded-[32px] p-6"
           style={{
-            width: '258px',
+            width: '250px',
             height: '172px',
-            gap: '16px'
+            gap: '16px',
+            borderRadius: '32px',
+            padding: '24px'
           }}
         >
           <LowInStockCard itemCount={25} />
