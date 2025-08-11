@@ -153,18 +153,18 @@ const Inventory: React.FC = () => {
       {/* Combined Search and Inventory Section */}
       <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6 opacity-100 box-border" style={{ gap: '16px' }}>
         {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search items by name or SKU"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+<div className="mb-6">
+  <div className="relative w-[540px] h-9 opacity-100 rounded-[20px] p-2 border border-gray-200" style={{ gap: '8px' }}>
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+    <input
+      type="text"
+      placeholder="Search items by name or SKU"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none focus:ring-0"
+    />
+  </div>
+</div>
 
         {/* Inventory Section Title */}
         <div className="mb-4">
