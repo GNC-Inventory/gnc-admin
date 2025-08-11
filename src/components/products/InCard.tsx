@@ -26,15 +26,15 @@ const InCard: React.FC<InCardProps> = ({
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col justify-center">
-        {/* Item Count */}
-<p className="font-geist font-medium text-[32px] leading-[40px] text-[#0A0D14] mb-2">
-  {itemCount}
-</p>
-        
-        {/* Items label */}
-        <p className="text-gray-500 text-sm mb-4">
-          items
-        </p>
+        {/* Item Count and Items label - inline */}
+<div className="flex items-baseline gap-2 mb-2">
+  <p className="font-geist font-medium text-[32px] leading-[40px] text-[#0A0D14]">
+    {itemCount}
+  </p>
+  <span className="font-inter font-medium text-base leading-6 text-[#868C98]" style={{ letterSpacing: '-1.1%' }}>
+    items
+  </span>
+</div>
         
         {/* Total Value */}
         <p 
