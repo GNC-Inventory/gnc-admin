@@ -167,11 +167,11 @@ const Inventory: React.FC = () => {
 </div>
 
         {/* Inventory Section Title */}
-        <div className="mb-4">
-          <h2 className="text-[#0A0D14] font-geist font-semibold text-lg leading-6">
-            Inventory
-          </h2>
-        </div>
+<div className="mb-4">
+  <h2 className="font-geist font-medium text-lg leading-6 text-[#0A0D14] align-bottom" style={{ letterSpacing: '-1.5%' }}>
+    Inventory
+  </h2>
+</div>
 
         {/* Table */}
         <div className="overflow-x-auto">
