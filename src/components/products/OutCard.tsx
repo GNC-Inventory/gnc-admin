@@ -37,17 +37,9 @@ const OutCard: React.FC<OutCardProps> = ({
 </div>
         
         {/* Total Value */}
-        <p 
-          className="text-[#0A0D14] font-semibold"
-          style={{
-            fontFamily: 'Geist, sans-serif',
-            fontSize: '20px',
-            lineHeight: '24px',
-            fontWeight: 600
-          }}
-        >
-          {formatCurrency(totalValue)}
-        </p>
+<p className="font-geist font-medium text-[20px] leading-[28px] text-[#525866]">
+  {formatCurrency(totalValue)}
+</p>
       </div>
     </div>
   );
