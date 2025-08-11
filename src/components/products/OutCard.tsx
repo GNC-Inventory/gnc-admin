@@ -27,17 +27,9 @@ const OutCard: React.FC<OutCardProps> = ({
       {/* Main Content */}
       <div className="flex-1 flex flex-col justify-center">
         {/* Item Count */}
-        <p 
-          className="text-[#0A0D14] font-semibold mb-2"
-          style={{
-            fontFamily: 'Geist, sans-serif',
-            fontSize: '48px',
-            lineHeight: '56px',
-            fontWeight: 600
-          }}
-        >
-          {itemCount}
-        </p>
+<p className="font-geist font-medium text-[32px] leading-[40px] text-[#0A0D14] mb-2">
+  {itemCount}
+</p>
         
         {/* Items label */}
         <p className="text-gray-500 text-sm mb-4">
