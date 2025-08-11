@@ -20,9 +20,9 @@ const InventoryValueCard: React.FC<InventoryValueCardProps> = ({
   return (
     <div className="flex flex-col justify-between h-full">
       {/* Title */}
-      <h3 className="text-gray-600 text-sm font-medium mb-4">
-        Inventory value
-      </h3>
+<h3 className="font-inter font-medium text-base leading-6 text-[#868C98] mb-4" style={{ letterSpacing: '-1.1%' }}>
+  Inventory value
+</h3>
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col justify-center">

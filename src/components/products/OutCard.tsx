@@ -20,17 +20,7 @@ const OutCard: React.FC<OutCardProps> = ({
   return (
     <div className="flex flex-col justify-between h-full">
       {/* Title */}
-<h3 
-  style={{
-    fontFamily: 'Inter, sans-serif',
-    fontWeight: 500,
-    fontSize: '16px',
-    lineHeight: '24px',
-    letterSpacing: '-1.1%',
-    color: '#868C98'
-  }}
-  className="mb-4"
->
+<h3 className="font-inter font-medium text-base leading-6 text-[#868C98] mb-4" style={{ letterSpacing: '-1.1%' }}>
   Out
 </h3>
       
