@@ -97,19 +97,20 @@ const Dashboard: React.FC = () => {
       {/* Stats Cards Row */}
       <div className="grid grid-cols-4 mb-8" style={{ gap: '16px' }}>
         {/* Sales Card */}
-        <div 
-          style={{
-            width: '258px',
-            height: '128px',
-            borderRadius: '32px',
-            padding: '24px',
-            background: '#FFFFFF',
-            opacity: 1,
-            boxSizing: 'border-box'
-          }}
-        >
-          <SalesCard amount={5000000} period="today" />
-        </div>
+<div 
+  style={{
+    width: '258px',
+    height: '128px',
+    borderRadius: '32px',
+    padding: '24px',
+    background: '#FFFFFF',
+    opacity: 1,
+    boxSizing: 'border-box'
+  }}
+  className="xl:w-[300px] xl:h-[150px] 2xl:w-[350px] 2xl:h-[170px]"
+>
+  <SalesCard amount={5000000} period="today" />
+</div>
 
         {/* Transactions Card */}
         <div 
