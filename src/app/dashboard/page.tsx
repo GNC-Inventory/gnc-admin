@@ -95,14 +95,17 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-4 gap-4 mb-8 w-full">
+      <div className="grid grid-cols-4 mb-8" style={{ gap: '16px' }}>
         {/* Sales Card */}
         <div 
-          className="bg-white rounded-[32px] p-6"
           style={{
-            width: '290px',
-            height: '150px',
-            gap: '16px'
+            width: '258px',
+            height: '128px',
+            borderRadius: '32px',
+            padding: '24px',
+            background: '#FFFFFF',
+            opacity: 1,
+            boxSizing: 'border-box'
           }}
         >
           <SalesCard amount={5000000} period="today" />
@@ -110,11 +113,14 @@ const Dashboard: React.FC = () => {
 
         {/* Transactions Card */}
         <div 
-          className="bg-white rounded-[32px] p-6"
           style={{
-            width: '290px',
-            height: '150px',
-            gap: '16px'
+            width: '258px',
+            height: '128px',
+            borderRadius: '32px',
+            padding: '24px',
+            background: '#FFFFFF',
+            opacity: 1,
+            boxSizing: 'border-box'
           }}
         >
           <TransactionsCard count={156} period="today" />
@@ -122,11 +128,14 @@ const Dashboard: React.FC = () => {
 
         {/* Average Sales Card */}
         <div 
-          className="bg-white rounded-[32px] p-6"
           style={{
-            width: '290px',
-            height: '150px',
-            gap: '16px'
+            width: '258px',
+            height: '128px',
+            borderRadius: '32px',
+            padding: '24px',
+            background: '#FFFFFF',
+            opacity: 1,
+            boxSizing: 'border-box'
           }}
         >
           <AverageSalesCard amount={243000} period="today" />
@@ -134,11 +143,14 @@ const Dashboard: React.FC = () => {
 
         {/* Tax Due Card */}
         <div 
-          className="bg-white rounded-[32px] p-6"
           style={{
-            width: '290px',
-            height: '150px',
-            gap: '16px'
+            width: '258px',
+            height: '128px',
+            borderRadius: '32px',
+            padding: '24px',
+            background: '#FFFFFF',
+            opacity: 1,
+            boxSizing: 'border-box'
           }}
         >
           <TaxDueCard amount={853129} period="today" />
