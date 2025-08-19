@@ -153,58 +153,56 @@ const Inventory: React.FC = () => {
       {/* Combined Search and Inventory Section */}
       <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6 opacity-100 box-border" style={{ gap: '16px' }}>
         {/* Search Bar */}
-<div className="mb-6">
-  <div className="relative w-[540px] h-9 opacity-100 rounded-[20px] p-2 border border-gray-200" style={{ gap: '8px' }}>
-    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-    <input
-      type="text"
-      placeholder="Search items by name or SKU"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none focus:ring-0"
-    />
-  </div>
-</div>
+        <div className="mb-6">
+          <div className="relative w-[540px] h-9 opacity-100 rounded-[20px] p-2 border border-gray-200" style={{ gap: '8px' }}>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search items by name or SKU"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none focus:ring-0"
+            />
+          </div>
+        </div>
 
         {/* Inventory Section Title */}
-<div className="mb-4">
-  <h2 className="font-geist font-medium text-lg leading-6 text-[#0A0D14] align-bottom" style={{ letterSpacing: '-1.5%' }}>
-    Inventory
-  </h2>
-</div>
+        <div className="mb-4">
+          <h2 className="font-geist font-medium text-lg leading-6 text-[#0A0D14] align-bottom" style={{ letterSpacing: '-1.5%' }}>
+            Inventory
+          </h2>
+        </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* Table Header */}
-            <thead className="bg-[#F6F8FA]">
-              <tr>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Product</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Date Added</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Stock left</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Unit cost</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-600">Amount</th>
-              </tr>
-            </thead>
+          {/* Table Header - separate from table */}
+          <div className="w-[1056px] h-11 opacity-100 rounded-[20px] p-3 bg-[#F6F8FA] mb-2" style={{ gap: '36px' }}>
+            <div className="grid items-center h-full" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
+              <div className="text-left text-sm font-medium text-gray-600 px-6">Product</div>
+              <div className="text-left text-sm font-medium text-gray-600 px-6">Date Added</div>
+              <div className="text-left text-sm font-medium text-gray-600 pl-0 pr-1">Stock left</div>
+              <div className="text-left text-sm font-medium text-gray-600 px-3">Unit cost</div>
+              <div className="text-left text-sm font-medium text-gray-600 px-6">Amount</div>
+            </div>
+          </div>
 
-            {/* Table Body */}
-            <tbody>
-              {inventoryData.map((item, index) => (
-                <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
-                      <span className="text-sm font-medium text-gray-900">{item.product}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{item.dateAdded}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{item.stockLeft}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatCurrency(item.unitCost)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatAmount(item.amount)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* Table Body */}
+          <div className="space-y-1">
+            {inventoryData.map((item, index) => (
+              <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
+                <div className="px-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
+                    <span className="text-sm font-medium text-gray-900">{item.product}</span>
+                  </div>
+                </div>
+                <div className="px-6 text-sm text-gray-600">{item.dateAdded}</div>
+                <div className="px-8 text-sm text-gray-900">{item.stockLeft}</div>
+                <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
+                <div className="px-6 text-sm text-gray-900">{formatAmount(item.amount)}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
