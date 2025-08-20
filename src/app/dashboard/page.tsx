@@ -94,25 +94,9 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards Row */}
+      {/* Stats Cards Row - FIXED: Removed static props to enable API integration */}
       <div className="grid grid-cols-4 mb-8" style={{ gap: '16px' }}>
-        {/* Sales Card */}
-<div 
-  style={{
-    width: '258px',
-    height: '128px',
-    borderRadius: '32px',
-    padding: '24px',
-    background: '#FFFFFF',
-    opacity: 1,
-    boxSizing: 'border-box'
-  }}
-  className="xl:w-[300px] xl:h-[150px] 2xl:w-[350px] 2xl:h-[170px]"
->
-  <SalesCard amount={5000000} period="today" />
-</div>
-
-        {/* Transactions Card */}
+        {/* Sales Card - Now uses API */}
         <div 
           style={{
             width: '258px',
@@ -123,11 +107,12 @@ const Dashboard: React.FC = () => {
             opacity: 1,
             boxSizing: 'border-box'
           }}
+          className="xl:w-[300px] xl:h-[150px] 2xl:w-[350px] 2xl:h-[170px]"
         >
-          <TransactionsCard count={156} period="today" />
+          <SalesCard period="today" />
         </div>
 
-        {/* Average Sales Card */}
+        {/* Transactions Card - Now uses API */}
         <div 
           style={{
             width: '258px',
@@ -139,10 +124,10 @@ const Dashboard: React.FC = () => {
             boxSizing: 'border-box'
           }}
         >
-          <AverageSalesCard amount={243000} period="today" />
+          <TransactionsCard period="today" />
         </div>
 
-        {/* Tax Due Card */}
+        {/* Average Sales Card - Now uses API */}
         <div 
           style={{
             width: '258px',
@@ -154,27 +139,42 @@ const Dashboard: React.FC = () => {
             boxSizing: 'border-box'
           }}
         >
-          <TaxDueCard amount={853129} period="today" />
+          <AverageSalesCard period="today" />
+        </div>
+
+        {/* Tax Due Card - Now uses API */}
+        <div 
+          style={{
+            width: '258px',
+            height: '128px',
+            borderRadius: '32px',
+            padding: '24px',
+            background: '#FFFFFF',
+            opacity: 1,
+            boxSizing: 'border-box'
+          }}
+        >
+          <TaxDueCard period="today" />
         </div>
       </div>
 
       {/* Sales Graph */}
-<div 
-  className="mb-8"
-  style={{
-    width: '1104px',
-    height: '261px',
-    top: '384px',
-    left: '304px',
-    gap: '24px',
-    opacity: 1,
-    borderRadius: '32px',
-    padding: '24px',
-    background: '#FFFFFF'
-  }}
->
-  <SalesGraph period={selectedPeriod.toLowerCase()} />
-</div>
+      <div 
+        className="mb-8"
+        style={{
+          width: '1104px',
+          height: '261px',
+          top: '384px',
+          left: '304px',
+          gap: '24px',
+          opacity: 1,
+          borderRadius: '32px',
+          padding: '24px',
+          background: '#FFFFFF'
+        }}
+      >
+        <SalesGraph period={selectedPeriod.toLowerCase()} />
+      </div>
 
       {/* Sales by Product and Bottom Stats Row */}
       <div className="flex gap-4">
