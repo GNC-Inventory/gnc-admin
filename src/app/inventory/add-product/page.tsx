@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -34,6 +34,19 @@ const AddProductPage: React.FC = () => {
     lowStock: 8
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load selected products from localStorage on component mount
+  useEffect(() => {
+    const savedSelectedProducts = localStorage.getItem('selectedProducts');
+    if (savedSelectedProducts) {
+      setSelectedProducts(JSON.parse(savedSelectedProducts));
+    }
+  }, []);
+
+  // Save selected products to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
+  }, [selectedProducts]);
 
   const formatCurrency = (value: number) => {
     return `₦ ${value.toLocaleString()}`;
@@ -117,6 +130,10 @@ const AddProductPage: React.FC = () => {
 
       // Show success message
       alert(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
+
+      // Clear selected products from localStorage after successful addition
+      localStorage.removeItem('selectedProducts');
+      setSelectedProducts([]);
 
       // Redirect to inventory page
       setTimeout(() => {
