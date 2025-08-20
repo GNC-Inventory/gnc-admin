@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search, Bell, Plus } from 'lucide-react';
 
 // Define page configurations
@@ -18,6 +18,12 @@ const pageConfigs = {
     subtitle: 'Manage your product inventory.',
     showNewSaleButton: true,
     buttonText: '+ Add Product'
+  },
+  '/inventory/add-product': {
+    title: 'Add a product',
+    subtitle: 'Build your inventory. Ensure your data entry is correct before saving.',
+    showNewSaleButton: true,
+    buttonText: '+ New product'
   },
   '/transactions': {
     title: 'Transactions',
@@ -59,6 +65,7 @@ const pageConfigs = {
 
 const Navbar: React.FC = () => {
   const pathname = usePathname();
+  const router = useRouter();
   
   // Get current page config or default to dashboard
   const currentConfig = pageConfigs[pathname as keyof typeof pageConfigs] || pageConfigs['/dashboard'];
@@ -71,7 +78,11 @@ const Navbar: React.FC = () => {
         console.log('Opening new sale modal...');
         break;
       case '/inventory':
-        console.log('Opening add product modal...');
+        console.log('Navigating to add product page...');
+        router.push('/inventory/add-product');
+        break;
+      case '/inventory/add-product':
+        console.log('Opening new product modal...');
         break;
       case '/transactions':
         console.log('Opening new transaction modal...');
