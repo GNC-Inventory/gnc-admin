@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Info, Minus, Plus } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -27,6 +27,41 @@ const AddProductPage: React.FC = () => {
     return `₦ ${value.toLocaleString()}`;
   };
 
+  const handleSelectProduct = () => {
+    // Validate that required fields are filled
+    if (!currentProduct.category || !currentProduct.model || currentProduct.cost <= 0) {
+      alert('Please fill in all required fields (category, model, and cost)');
+      return;
+    }
+
+    // Create new product
+    const newProduct: Product = {
+      id: Date.now().toString(), // Simple ID generation
+      name: `${currentProduct.category} ${currentProduct.model}`,
+      category: currentProduct.category,
+      model: currentProduct.model,
+      cost: currentProduct.cost,
+      quantity: currentProduct.quantity,
+      lowStock: currentProduct.lowStock
+    };
+
+    // Add to selected products
+    setSelectedProducts(prev => [...prev, newProduct]);
+
+    // Reset form
+    setCurrentProduct({
+      category: '',
+      model: '',
+      cost: 0,
+      quantity: 16,
+      lowStock: 8
+    });
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+    setSelectedProducts(prev => prev.filter(product => product.id !== productId));
+  };
+
   const handleQuantityChange = (field: 'quantity' | 'lowStock', value: number) => {
     if (value >= 0) {
       setCurrentProduct(prev => ({ ...prev, [field]: value }));
@@ -44,13 +79,13 @@ const AddProductPage: React.FC = () => {
       <div className="flex gap-8">
         {/* Left Section - Add selected products */}
         <div className="w-[377px] h-[764px] bg-white rounded-[32px] p-6">
-          <h3 className="text-[#0A0D14] font-medium text-sm leading-5 mb-6" style={{ fontFamily: 'Inter', letterSpacing: '-0.6%' }}>
+          <h3 className="text-[#0A0D14] font-medium text-sm leading-5 mb-6 font-inter tracking-[-0.6%]">
             Add selected products
           </h3>
           
           {/* Product List */}
           <div className="space-y-4 mb-6">
-            {selectedProducts.map((product, index) => (
+            {selectedProducts.map((product) => (
               <div key={product.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-gray-600 text-sm">{product.quantity}</span>
@@ -59,7 +94,10 @@ const AddProductPage: React.FC = () => {
                     <p className="text-gray-600 text-xs">{formatCurrency(product.cost)}</p>
                   </div>
                 </div>
-                <button className="text-gray-400 hover:text-red-500">
+                <button 
+                  onClick={() => handleRemoveProduct(product.id)}
+                  className="text-gray-400 hover:text-red-500"
+                >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
@@ -78,62 +116,26 @@ const AddProductPage: React.FC = () => {
 
           {/* Buttons */}
           <div className="space-y-3">
-            <button 
-              className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors"
-            >
+            <button className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors">
               Add to inventory
             </button>
-            <button 
-              className="w-full bg-gray-100 text-gray-600 py-3 rounded-[10px] font-medium text-sm hover:bg-gray-200 transition-colors"
-            >
+            <button className="w-full bg-gray-100 text-gray-600 py-3 rounded-[10px] font-medium text-sm hover:bg-gray-200 transition-colors">
               Select product
             </button>
           </div>
         </div>
 
         {/* Right Section - Select products */}
-        <div 
-          className="bg-white rounded-[32px]"
-          style={{
-            width: '727px',
-            height: '764px',
-            top: '112px',
-            left: '681px',
-            paddingTop: '24px',
-            paddingRight: '24px',
-            paddingLeft: '24px',
-            opacity: 1
-          }}
-        >
+        <div className="w-[727px] h-[764px] bg-white rounded-[32px] pt-6 pr-6 pl-6 opacity-100">
           {/* Header */}
-          <h3 
-            className="mb-6"
-            style={{
-              fontFamily: 'Inter',
-              fontWeight: 500,
-              fontSize: '14px',
-              lineHeight: '20px',
-              letterSpacing: '-0.6%',
-              color: '#0A0D14'
-            }}
-          >
+          <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
             Select products
           </h3>
 
           <div className="space-y-6">
             {/* Product category */}
             <div>
-              <label 
-                className="block mb-2"
-                style={{
-                  fontFamily: 'Inter',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  lineHeight: '20px',
-                  letterSpacing: '-0.6%',
-                  color: '#0A0D14'
-                }}
-              >
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
                 Product category
               </label>
               <input
@@ -141,33 +143,11 @@ const AddProductPage: React.FC = () => {
                 placeholder="Start typing..."
                 value={currentProduct.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                className="border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{
-                  width: '342px',
-                  height: '40px',
-                  padding: '10px 10px 10px 12px',
-                  gap: '8px',
-                  background: '#FFFFFF'
-                }}
+                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="flex items-center gap-2 mt-2">
-                <Info 
-                  className="text-gray-400"
-                  style={{
-                    width: '16px',
-                    height: '16px'
-                  }}
-                />
-                <span 
-                  style={{
-                    fontFamily: 'Sora',
-                    fontWeight: 400,
-                    fontSize: '12px',
-                    lineHeight: '16px',
-                    letterSpacing: '0%',
-                    color: '#525866'
-                  }}
-                >
+                <Info className="w-4 h-4 text-gray-400" />
+                <span className="font-sora text-xs leading-4 text-[#525866]">
                   To add a category, press enter after typing the name
                 </span>
               </div>
@@ -175,17 +155,7 @@ const AddProductPage: React.FC = () => {
 
             {/* Product model */}
             <div>
-              <label 
-                className="block mb-2"
-                style={{
-                  fontFamily: 'Inter',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  lineHeight: '20px',
-                  letterSpacing: '-0.6%',
-                  color: '#0A0D14'
-                }}
-              >
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
                 Product model
               </label>
               <input
@@ -193,162 +163,60 @@ const AddProductPage: React.FC = () => {
                 placeholder="Start typing..."
                 value={currentProduct.model}
                 onChange={(e) => handleInputChange('model', e.target.value)}
-                className="border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{
-                  width: '342px',
-                  height: '40px',
-                  padding: '10px 10px 10px 12px',
-                  gap: '8px',
-                  background: '#FFFFFF'
-                }}
+                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Product cost */}
             <div>
-              <label 
-                className="block mb-2"
-                style={{
-                  fontFamily: 'Inter',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  lineHeight: '20px',
-                  letterSpacing: '-0.6%',
-                  color: '#0A0D14'
-                }}
-              >
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
                 Product cost
               </label>
               <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
                 <input
                   type="number"
                   placeholder="0.00"
                   value={currentProduct.cost || ''}
                   onChange={(e) => handleInputChange('cost', parseFloat(e.target.value) || 0)}
-                  className="border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 pl-8"
-                  style={{
-                    width: '342px',
-                    height: '40px',
-                    padding: '10px 10px 10px 12px'
-                  }}
+                  className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                  <span className="text-xs text-gray-600">NGN</span>
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
               </div>
             </div>
 
             {/* Quantity */}
             <div>
-              <label 
-                className="block mb-2"
-                style={{
-                  fontFamily: 'Inter',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  lineHeight: '20px',
-                  letterSpacing: '-0.6%',
-                  color: '#0A0D14'
-                }}
-              >
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
                 Quantity
               </label>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleQuantityChange('quantity', currentProduct.quantity - 1)}
-                  className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <input
-                  type="number"
-                  value={currentProduct.quantity}
-                  onChange={(e) => handleQuantityChange('quantity', parseInt(e.target.value) || 0)}
-                  className="border border-gray-200 rounded-[10px] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    width: '60px',
-                    height: '40px'
-                  }}
-                />
-                <button
-                  onClick={() => handleQuantityChange('quantity', currentProduct.quantity + 1)}
-                  className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+              <input
+                type="number"
+                value={currentProduct.quantity}
+                onChange={(e) => handleQuantityChange('quantity', parseInt(e.target.value) || 0)}
+                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* Indicate low-stock */}
             <div>
-              <label 
-                className="block mb-2"
-                style={{
-                  fontFamily: 'Inter',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  lineHeight: '20px',
-                  letterSpacing: '-0.6%',
-                  color: '#0A0D14'
-                }}
-              >
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
                 Indicate low-stock
               </label>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleQuantityChange('lowStock', currentProduct.lowStock - 1)}
-                  className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <input
-                  type="number"
-                  value={currentProduct.lowStock}
-                  onChange={(e) => handleQuantityChange('lowStock', parseInt(e.target.value) || 0)}
-                  className="border border-gray-200 rounded-[10px] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    width: '60px',
-                    height: '40px'
-                  }}
-                />
-                <button
-                  onClick={() => handleQuantityChange('lowStock', currentProduct.lowStock + 1)}
-                  className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+              <input
+                type="number"
+                value={currentProduct.lowStock}
+                onChange={(e) => handleQuantityChange('lowStock', parseInt(e.target.value) || 0)}
+                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* Select product button */}
-            <div className="pt-8">
-              <button
-                className="text-center rounded-[8px]"
-                style={{
-                  width: '347px',
-                  height: '36px',
-                  gap: '4px',
-                  padding: '8px',
-                  background: '#EBF1FF'
-                }}
+            <div className="pt-20">
+              <button 
+                onClick={handleSelectProduct}
+                className="w-[347px] h-9 rounded-lg p-2 bg-[#EBF1FF] flex items-center justify-center hover:bg-[#DDE7FF] transition-colors"
               >
-                <span
-                  style={{
-                    width: '98px',
-                    height: '20px',
-                    fontFamily: 'Inter',
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    lineHeight: '20px',
-                    letterSpacing: '-0.6%',
-                    textAlign: 'center',
-                    color: '#375DFB'
-                  }}
-                >
+                <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center text-[#375DFB]">
                   Select product
                 </span>
               </button>
