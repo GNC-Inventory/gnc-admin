@@ -88,7 +88,29 @@ const AddProductPage: React.FC = () => {
             {selectedProducts.map((product) => (
               <div key={product.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-gray-600 text-sm">{product.quantity}</span>
+                  <div className="flex items-center gap-1">
+                    <div 
+                      className="flex items-center justify-center bg-white border border-[#E2E4E9] rounded"
+                      style={{
+                        width: '24px',
+                        height: '20px',
+                        paddingTop: '2px',
+                        paddingRight: '3px',
+                        paddingBottom: '2px',
+                        paddingLeft: '3px',
+                        gap: '10px'
+                      }}
+                    >
+                      <span className="text-gray-600 text-xs">{product.quantity}</span>
+                    </div>
+                    <button 
+                      onClick={() => handleRemoveProduct(product.id)}
+                      className="text-gray-400 hover:text-gray-600"
+                      style={{ fontSize: '12px' }}
+                    >
+                      ×
+                    </button>
+                  </div>
                   <div>
                     <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
                     <p className="text-gray-600 text-xs">{formatCurrency(product.cost)}</p>
@@ -99,7 +121,7 @@ const AddProductPage: React.FC = () => {
                   className="text-gray-400 hover:text-red-500"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M6 2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12.5C11 13.3284 10.3284 14 9.5 14H6.5C5.67157 14 5 13.3284 5 12.5V4H4.5C4.22386 4 4 3.77614 4 3.5C4 3.22386 4.22386 3 4.5 3H6V2.5ZM7 5.5C7 5.22386 6.77614 5 6.5 5C6.22386 5 6 5.22386 6 5.5V11.5C6 11.7761 6.22386 12 6.5 12C6.77614 12 7 11.7761 7 11.5V5.5ZM10 5.5C10 5.22386 9.77614 5 9.5 5C9.22386 5 9 5.22386 9 5.5V11.5C9 11.7761 9.22386 12 9.5 12C9.77614 12 10 11.7761 10 11.5V5.5Z" fill="currentColor"/>
                   </svg>
                 </button>
               </div>
@@ -118,9 +140,6 @@ const AddProductPage: React.FC = () => {
           <div className="space-y-3">
             <button className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors">
               Add to inventory
-            </button>
-            <button className="w-full bg-gray-100 text-gray-600 py-3 rounded-[10px] font-medium text-sm hover:bg-gray-200 transition-colors">
-              Select product
             </button>
           </div>
         </div>
