@@ -7,9 +7,10 @@ import Image from 'next/image';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('joseph@example.com');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@gnc.com');
+  const [password, setPassword] = useState('admin123');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const togglePasswordVisibility = () => {
@@ -19,20 +20,45 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation - just check if fields are not empty
+    // Basic validation
     if (!email.trim() || !password.trim()) {
-      alert('Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
     setIsLoading(true);
+    setError('');
     
-    // Simulate API call delay
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://gnc-inventory-backend.onrender.com/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data.token) {
+        // Store token and user data
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        setError(data.error?.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Network error. Please try again.');
+    } finally {
       setIsLoading(false);
-      // Redirect to dashboard on successful login
-      router.push('/dashboard');
-    }, 1000);
+    }
   };
 
   return (
@@ -83,6 +109,13 @@ export default function LoginPage() {
           >
             Continue from where you left off
           </p>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
           
           {/* Email Field */}
           <div className="mb-6">
@@ -105,8 +138,9 @@ export default function LoginPage() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="joseph@example.com"
+              disabled={isLoading}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+              placeholder="admin@gnc.com"
               style={{
                 fontFamily: 'var(--font-inter), Inter, sans-serif',
                 fontSize: '14px',
@@ -137,7 +171,8 @@ export default function LoginPage() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isLoading}
+                className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                 placeholder="Enter your password"
                 style={{
                   fontFamily: 'var(--font-inter), Inter, sans-serif',
@@ -147,7 +182,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                disabled={isLoading}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-50"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
