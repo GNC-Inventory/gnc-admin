@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   id: string;
@@ -13,7 +14,17 @@ interface Product {
   lowStock: number;
 }
 
+interface InventoryItem {
+  id: string;
+  product: string;
+  dateAdded: string;
+  stockLeft: number;
+  unitCost: number;
+  amount: number;
+}
+
 const AddProductPage: React.FC = () => {
+  const router = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [currentProduct, setCurrentProduct] = useState({
     category: '',
@@ -22,9 +33,22 @@ const AddProductPage: React.FC = () => {
     quantity: 16,
     lowStock: 8
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatCurrency = (value: number) => {
     return `₦ ${value.toLocaleString()}`;
+  };
+
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
   };
 
   const handleSelectProduct = () => {
@@ -60,6 +84,51 @@ const AddProductPage: React.FC = () => {
 
   const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(prev => prev.filter(product => product.id !== productId));
+  };
+
+  const handleAddToInventory = () => {
+    if (selectedProducts.length === 0) {
+      alert('Please select at least one product to add to inventory');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get existing inventory from localStorage
+      const existingInventory = localStorage.getItem('inventoryData');
+      const inventoryItems: InventoryItem[] = existingInventory ? JSON.parse(existingInventory) : [];
+
+      // Convert selected products to inventory items
+      const newInventoryItems: InventoryItem[] = selectedProducts.map(product => ({
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        product: product.name,
+        dateAdded: getCurrentDateTime(),
+        stockLeft: product.quantity,
+        unitCost: product.cost,
+        amount: product.cost * product.quantity
+      }));
+
+      // Add new items to existing inventory
+      const updatedInventory = [...inventoryItems, ...newInventoryItems];
+
+      // Save to localStorage
+      localStorage.setItem('inventoryData', JSON.stringify(updatedInventory));
+
+      // Show success message
+      alert(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
+
+      // Redirect to inventory page
+      setTimeout(() => {
+        router.push('/inventory');
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error adding products to inventory:', error);
+      alert('Error adding products to inventory. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleQuantityChange = (field: 'quantity' | 'lowStock', value: number) => {
@@ -138,8 +207,12 @@ const AddProductPage: React.FC = () => {
 
           {/* Buttons */}
           <div className="space-y-3">
-            <button className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors">
-              Add to inventory
+            <button 
+              onClick={handleAddToInventory}
+              disabled={isSubmitting || selectedProducts.length === 0}
+              className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Adding to inventory...' : 'Add to inventory'}
             </button>
           </div>
         </div>

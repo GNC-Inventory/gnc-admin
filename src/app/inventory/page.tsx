@@ -1,7 +1,7 @@
 // app/inventory/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
@@ -21,6 +21,7 @@ const Inventory: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
   
   const dropdownOptions = [
     'Today',
@@ -31,49 +32,25 @@ const Inventory: React.FC = () => {
     'Last year'
   ];
 
-  // Sample inventory data
-  const inventoryData: InventoryItem[] = [
-    {
-      id: '1',
-      product: 'Generator',
-      dateAdded: '25-07-2025 14:36:12',
-      stockLeft: 1,
-      unitCost: 243000,
-      amount: 243000
-    },
-    {
-      id: '2',
-      product: 'Air conditioner',
-      dateAdded: '25-07-2025 14:36:12',
-      stockLeft: 1,
-      unitCost: 243000,
-      amount: 'Leaking water'
-    },
-    {
-      id: '3',
-      product: 'Fan',
-      dateAdded: '25-07-2025 14:36:12',
-      stockLeft: 1,
-      unitCost: 243000,
-      amount: 'Leaking water'
-    },
-    {
-      id: '4',
-      product: 'Television',
-      dateAdded: '25-07-2025 14:36:12',
-      stockLeft: 1,
-      unitCost: 243000,
-      amount: 'Leaking water'
-    },
-    {
-      id: '5',
-      product: 'Solar Battery',
-      dateAdded: '25-07-2025 14:36:12',
-      stockLeft: 1,
-      unitCost: 243000,
-      amount: 'Leaking water'
+  // Load inventory data from localStorage on component mount
+  useEffect(() => {
+    const savedInventory = localStorage.getItem('inventoryData');
+    if (savedInventory) {
+      setInventoryData(JSON.parse(savedInventory));
     }
-  ];
+  }, []);
+
+  // Filter inventory data based on search query
+  const filteredInventoryData = inventoryData.filter(item =>
+    item.product.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Calculate stats from actual inventory data
+  const totalItems = inventoryData.length;
+  const totalValue = inventoryData.reduce((sum, item) => {
+    return sum + (typeof item.amount === 'number' ? item.amount : 0);
+  }, 0);
+  const lowStockItems = inventoryData.filter(item => item.stockLeft <= 5).length;
 
   const formatCurrency = (value: number) => {
     return `₦ ${value.toLocaleString()}`;
@@ -131,22 +108,22 @@ const Inventory: React.FC = () => {
       <div className="grid grid-cols-4 gap-4 mb-8">
         {/* In Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
-          <InCard itemCount={5} totalValue={243000} />
+          <InCard itemCount={totalItems} totalValue={totalValue} />
         </div>
 
         {/* Out Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
-          <OutCard itemCount={205} totalValue={23243000} />
+          <OutCard itemCount={0} totalValue={0} />
         </div>
 
         {/* Inventory Value Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
-          <InventoryValueCard itemCount={13205} totalValue={132243000} />
+          <InventoryValueCard itemCount={totalItems} totalValue={totalValue} />
         </div>
 
         {/* Low In Stock Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
-          <LowInStockCard itemCount={25} />
+          <LowInStockCard itemCount={lowStockItems} />
         </div>
       </div>
 
@@ -188,20 +165,26 @@ const Inventory: React.FC = () => {
 
           {/* Table Body */}
           <div className="space-y-1">
-            {inventoryData.map((item, index) => (
-              <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
-                <div className="px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
-                    <span className="text-sm font-medium text-gray-900">{item.product}</span>
-                  </div>
-                </div>
-                <div className="px-6 text-sm text-gray-600">{item.dateAdded}</div>
-                <div className="px-8 text-sm text-gray-900">{item.stockLeft}</div>
-                <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
-                <div className="px-6 text-sm text-gray-900">{formatAmount(item.amount)}</div>
+            {filteredInventoryData.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No inventory items found. Add products to get started.
               </div>
-            ))}
+            ) : (
+              filteredInventoryData.map((item) => (
+                <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
+                  <div className="px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
+                      <span className="text-sm font-medium text-gray-900">{item.product}</span>
+                    </div>
+                  </div>
+                  <div className="px-6 text-sm text-gray-600">{item.dateAdded}</div>
+                  <div className="px-8 text-sm text-gray-900">{item.stockLeft}</div>
+                  <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
+                  <div className="px-6 text-sm text-gray-900">{formatAmount(item.amount)}</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
