@@ -9,6 +9,7 @@ interface Product {
   name: string;
   category: string;
   model: string;
+  image: string;
   cost: number;
   quantity: number;
   lowStock: number;
@@ -21,6 +22,7 @@ interface InventoryItem {
   stockLeft: number;
   unitCost: number;
   amount: number;
+  image: string;
 }
 
 const AddProductPage: React.FC = () => {
@@ -29,6 +31,7 @@ const AddProductPage: React.FC = () => {
   const [currentProduct, setCurrentProduct] = useState({
     category: '',
     model: '',
+    image: '',
     cost: 0,
     quantity: 16,
     lowStock: 8
@@ -77,6 +80,7 @@ const AddProductPage: React.FC = () => {
       name: `${currentProduct.category} ${currentProduct.model}`,
       category: currentProduct.category,
       model: currentProduct.model,
+      image: currentProduct.image,
       cost: currentProduct.cost,
       quantity: currentProduct.quantity,
       lowStock: currentProduct.lowStock
@@ -89,6 +93,7 @@ const AddProductPage: React.FC = () => {
     setCurrentProduct({
       category: '',
       model: '',
+      image: '',
       cost: 0,
       quantity: 16,
       lowStock: 8
@@ -119,7 +124,8 @@ const AddProductPage: React.FC = () => {
         dateAdded: getCurrentDateTime(),
         stockLeft: product.quantity,
         unitCost: product.cost,
-        amount: product.cost * product.quantity
+        amount: product.cost * product.quantity,
+        image: product.image
       }));
 
       // Add new items to existing inventory
@@ -156,6 +162,18 @@ const AddProductPage: React.FC = () => {
 
   const handleInputChange = (field: string, value: string | number) => {
     setCurrentProduct(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64String = e.target?.result as string;
+        setCurrentProduct(prev => ({ ...prev, image: base64String }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const total = selectedProducts.reduce((sum, product) => sum + (product.cost * product.quantity), 0);
@@ -197,9 +215,20 @@ const AddProductPage: React.FC = () => {
                       ×
                     </button>
                   </div>
-                  <div>
-                    <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
-                    <p className="text-gray-600 text-xs">{formatCurrency(product.cost)}</p>
+                  <div className="flex items-center gap-3">
+                    {product.image && (
+                      <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
+                      <p className="text-gray-600 text-xs">{formatCurrency(product.cost)}</p>
+                    </div>
                   </div>
                 </div>
                 <button 
@@ -274,6 +303,30 @@ const AddProductPage: React.FC = () => {
                 onChange={(e) => handleInputChange('model', e.target.value)}
                 className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            {/* Product image */}
+            <div>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
+                Product image
+              </label>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {currentProduct.image && (
+                  <div className="w-[100px] h-[100px] border border-[#E2E4E9] rounded-[10px] overflow-hidden">
+                    <img 
+                      src={currentProduct.image} 
+                      alt="Product preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Product cost */}
