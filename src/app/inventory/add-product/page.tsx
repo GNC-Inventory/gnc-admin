@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Product {
   id: string;
@@ -179,7 +180,13 @@ const AddProductPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     {product.image && (
-                      <img src={product.image} alt={product.name} className="w-8 h-8 rounded object-cover" />
+                      <Image 
+                        src={product.image} 
+                        alt={product.name} 
+                        width={32} 
+                        height={32} 
+                        className="rounded object-cover" 
+                      />
                     )}
                     <div>
                       <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
@@ -256,7 +263,13 @@ const AddProductPage: React.FC = () => {
                   className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 {currentProduct.image && (
-                  <img src={currentProduct.image} alt="Preview" className="w-[100px] h-[100px] border border-[#E2E4E9] rounded-[10px] object-cover" />
+                  <Image 
+                    src={currentProduct.image} 
+                    alt="Preview" 
+                    width={100} 
+                    height={100} 
+                    className="border border-[#E2E4E9] rounded-[10px] object-cover" 
+                  />
                 )}
               </div>
             </div>
