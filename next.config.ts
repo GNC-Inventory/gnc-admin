@@ -1,13 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true, 
-  },
+  output: 'export', // Enable static export
+  trailingSlash: true, // Required for static export
   images: {
-    domains: [], 
-    dangerouslyAllowSVG: true, 
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: true, // Required for static export
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
