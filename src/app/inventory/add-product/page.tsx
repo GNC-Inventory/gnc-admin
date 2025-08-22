@@ -38,45 +38,33 @@ const AddProductPage: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load selected products from localStorage on component mount
+  // Load selected products from localStorage on mount
   useEffect(() => {
-    const savedSelectedProducts = localStorage.getItem('selectedProducts');
-    if (savedSelectedProducts) {
-      setSelectedProducts(JSON.parse(savedSelectedProducts));
-    }
+    const saved = localStorage.getItem('selectedProducts');
+    if (saved) setSelectedProducts(JSON.parse(saved));
   }, []);
 
-  // Save selected products to localStorage whenever it changes
+  // Save selected products to localStorage when changed
   useEffect(() => {
     localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
   }, [selectedProducts]);
 
-  const formatCurrency = (value: number) => {
-    return `₦ ${value.toLocaleString()}`;
-  };
+  const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
 
   const getCurrentDateTime = () => {
     const now = new Date();
-    const day = now.getDate().toString().padStart(2, '0');
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const year = now.getFullYear();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    
-    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   };
 
   const handleSelectProduct = () => {
-    // Validate that required fields are filled
     if (!currentProduct.category || !currentProduct.model || currentProduct.cost <= 0) {
       alert('Please fill in all required fields (category, model, and cost)');
       return;
     }
 
-    // Create new product
     const newProduct: Product = {
-      id: Date.now().toString(), // Simple ID generation
+      id: Date.now().toString(),
       name: `${currentProduct.category} ${currentProduct.model}`,
       category: currentProduct.category,
       model: currentProduct.model,
@@ -86,39 +74,33 @@ const AddProductPage: React.FC = () => {
       lowStock: currentProduct.lowStock
     };
 
-    // Add to selected products
     setSelectedProducts(prev => [...prev, newProduct]);
-
-    // Reset form
-    setCurrentProduct({
-      category: '',
-      model: '',
-      image: '',
-      cost: 0,
-      quantity: 16,
-      lowStock: 8
-    });
+    setCurrentProduct({ category: '', model: '', image: '', cost: 0, quantity: 16, lowStock: 8 });
   };
 
   const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(prev => prev.filter(product => product.id !== productId));
   };
 
-  const handleAddToInventory = () => {
+  const handleAddToInventory = async () => {
     if (selectedProducts.length === 0) {
       alert('Please select at least one product to add to inventory');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      // Get existing inventory from localStorage
-      const existingInventory = localStorage.getItem('inventoryData');
-      const inventoryItems: InventoryItem[] = existingInventory ? JSON.parse(existingInventory) : [];
+      // Get existing inventory
+      const getResponse = await fetch('/.netlify/functions/inventory');
+      let existingInventory: InventoryItem[] = [];
+      
+      if (getResponse.ok) {
+        const result = await getResponse.json();
+        if (result.success) existingInventory = result.data || [];
+      }
 
       // Convert selected products to inventory items
-      const newInventoryItems: InventoryItem[] = selectedProducts.map(product => ({
+      const newItems: InventoryItem[] = selectedProducts.map(product => ({
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         product: product.name,
         dateAdded: getCurrentDateTime(),
@@ -128,35 +110,30 @@ const AddProductPage: React.FC = () => {
         image: product.image
       }));
 
-      // Add new items to existing inventory
-      const updatedInventory = [...inventoryItems, ...newInventoryItems];
+      const updatedInventory = [...existingInventory, ...newItems];
 
-      // Save to localStorage
+      // Save to Netlify function
+      const updateResponse = await fetch('/.netlify/functions/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inventory: updatedInventory })
+      });
+
+      const result = await updateResponse.json();
+      if (!result.success) throw new Error(result.error);
+
+      // Backup to localStorage
       localStorage.setItem('inventoryData', JSON.stringify(updatedInventory));
-
-      // Show success message
-      alert(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
-
-      // Clear selected products from localStorage after successful addition
       localStorage.removeItem('selectedProducts');
       setSelectedProducts([]);
 
-      // Redirect to inventory page
-      setTimeout(() => {
-        router.push('/inventory');
-      }, 1000);
+      alert(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
+      setTimeout(() => router.push('/inventory'), 1000);
 
     } catch (error) {
-      console.error('Error adding products to inventory:', error);
-      alert('Error adding products to inventory. Please try again.');
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleQuantityChange = (field: 'quantity' | 'lowStock', value: number) => {
-    if (value >= 0) {
-      setCurrentProduct(prev => ({ ...prev, [field]: value }));
     }
   };
 
@@ -164,13 +141,16 @@ const AddProductPage: React.FC = () => {
     setCurrentProduct(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleQuantityChange = (field: 'quantity' | 'lowStock', value: number) => {
+    if (value >= 0) setCurrentProduct(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const base64String = e.target?.result as string;
-        setCurrentProduct(prev => ({ ...prev, image: base64String }));
+        setCurrentProduct(prev => ({ ...prev, image: e.target?.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -181,49 +161,25 @@ const AddProductPage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-full p-8">
       <div className="flex gap-8">
-        {/* Left Section - Add selected products */}
+        {/* Left Section - Selected Products */}
         <div className="w-[377px] h-[764px] bg-white rounded-[32px] p-6">
           <h3 className="text-[#0A0D14] font-medium text-sm leading-5 mb-6 font-inter tracking-[-0.6%]">
             Add selected products
           </h3>
           
-          {/* Product List */}
           <div className="space-y-4 mb-6">
             {selectedProducts.map((product) => (
               <div key={product.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1">
-                    <div 
-                      className="flex items-center justify-center bg-white border border-[#E2E4E9] rounded"
-                      style={{
-                        width: '24px',
-                        height: '20px',
-                        paddingTop: '2px',
-                        paddingRight: '3px',
-                        paddingBottom: '2px',
-                        paddingLeft: '3px',
-                        gap: '10px'
-                      }}
-                    >
+                    <div className="flex items-center justify-center bg-white border border-[#E2E4E9] rounded w-6 h-5 px-1 py-0.5">
                       <span className="text-gray-600 text-xs">{product.quantity}</span>
                     </div>
-                    <button 
-                      onClick={() => handleRemoveProduct(product.id)}
-                      className="text-gray-400 hover:text-gray-600"
-                      style={{ fontSize: '12px' }}
-                    >
-                      ×
-                    </button>
+                    <button onClick={() => handleRemoveProduct(product.id)} className="text-gray-400 hover:text-gray-600 text-xs">×</button>
                   </div>
                   <div className="flex items-center gap-3">
                     {product.image && (
-                      <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                        <img 
-                          src={product.image} 
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                      <img src={product.image} alt={product.name} className="w-8 h-8 rounded object-cover" />
                     )}
                     <div>
                       <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
@@ -231,19 +187,15 @@ const AddProductPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleRemoveProduct(product.id)}
-                  className="text-gray-400 hover:text-red-500"
-                >
+                <button onClick={() => handleRemoveProduct(product.id)} className="text-gray-400 hover:text-red-500">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M6 2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12.5C11 13.3284 10.3284 14 9.5 14H6.5C5.67157 14 5 13.3284 5 12.5V4H4.5C4.22386 4 4 3.77614 4 3.5C4 3.22386 4.22386 3 4.5 3H6V2.5ZM7 5.5C7 5.22386 6.77614 5 6.5 5C6.22386 5 6 5.22386 6 5.5V11.5C6 11.7761 6.22386 12 6.5 12C6.77614 12 7 11.7761 7 11.5V5.5ZM10 5.5C10 5.22386 9.77614 5 9.5 5C9.22386 5 9 5.22386 9 5.5V11.5C9 11.7761 9.22386 12 9.5 12C9.77614 12 10 11.7761 10 11.5V5.5Z" fill="currentColor"/>
+                    <path d="M6 2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12.5C11 13.3284 10.3284 14 9.5 14H6.5C5.67157 14 5 13.3284 5 12.5V4H4.5C4.22386 4 4 3.77614 4 3.5C4 3.22386 4.22386 3 4.5 3H6V2.5Z" fill="currentColor"/>
                   </svg>
                 </button>
               </div>
             ))}
           </div>
 
-          {/* Total */}
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between items-center">
               <span className="text-[#0A0D14] font-medium">Total</span>
@@ -251,31 +203,23 @@ const AddProductPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="space-y-3">
-            <button 
-              onClick={handleAddToInventory}
-              disabled={isSubmitting || selectedProducts.length === 0}
-              className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Adding to inventory...' : 'Add to inventory'}
-            </button>
-          </div>
+          <button 
+            onClick={handleAddToInventory}
+            disabled={isSubmitting || selectedProducts.length === 0}
+            className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Adding to inventory...' : 'Add to inventory'}
+          </button>
         </div>
 
-        {/* Right Section - Select products */}
-        <div className="w-[727px] h-[764px] bg-white rounded-[32px] pt-6 pr-6 pl-6 opacity-100">
-          {/* Header */}
-          <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-            Select products
-          </h3>
+        {/* Right Section - Product Form */}
+        <div className="w-[727px] h-[764px] bg-white rounded-[32px] pt-6 pr-6 pl-6">
+          <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Select products</h3>
 
           <div className="space-y-6">
             {/* Product category */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Product category
-              </label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product category</label>
               <input
                 type="text"
                 placeholder="Start typing..."
@@ -285,17 +229,13 @@ const AddProductPage: React.FC = () => {
               />
               <div className="flex items-center gap-2 mt-2">
                 <Info className="w-4 h-4 text-gray-400" />
-                <span className="font-sora text-xs leading-4 text-[#525866]">
-                  To add a category, press enter after typing the name
-                </span>
+                <span className="font-sora text-xs leading-4 text-[#525866]">To add a category, press enter after typing the name</span>
               </div>
             </div>
 
             {/* Product model */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Product model
-              </label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product model</label>
               <input
                 type="text"
                 placeholder="Start typing..."
@@ -307,9 +247,7 @@ const AddProductPage: React.FC = () => {
 
             {/* Product image */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Product image
-              </label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
               <div className="flex flex-col gap-3">
                 <input
                   type="file"
@@ -318,22 +256,14 @@ const AddProductPage: React.FC = () => {
                   className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 {currentProduct.image && (
-                  <div className="w-[100px] h-[100px] border border-[#E2E4E9] rounded-[10px] overflow-hidden">
-                    <img 
-                      src={currentProduct.image} 
-                      alt="Product preview" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img src={currentProduct.image} alt="Preview" className="w-[100px] h-[100px] border border-[#E2E4E9] rounded-[10px] object-cover" />
                 )}
               </div>
             </div>
 
             {/* Product cost */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Product cost
-              </label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product cost</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
                 <input
@@ -348,9 +278,7 @@ const AddProductPage: React.FC = () => {
 
             {/* Quantity */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Quantity
-              </label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Quantity</label>
               <input
                 type="number"
                 value={currentProduct.quantity}
@@ -361,9 +289,7 @@ const AddProductPage: React.FC = () => {
 
             {/* Indicate low-stock */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Indicate low-stock
-              </label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Indicate low-stock</label>
               <input
                 type="number"
                 value={currentProduct.lowStock}
@@ -378,9 +304,7 @@ const AddProductPage: React.FC = () => {
                 onClick={handleSelectProduct}
                 className="w-[347px] h-9 rounded-lg p-2 bg-[#EBF1FF] flex items-center justify-center hover:bg-[#DDE7FF] transition-colors"
               >
-                <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center text-[#375DFB]">
-                  Select product
-                </span>
+                <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center text-[#375DFB]">Select product</span>
               </button>
             </div>
           </div>
