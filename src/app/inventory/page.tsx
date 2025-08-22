@@ -15,6 +15,7 @@ interface InventoryItem {
   stockLeft: number;
   unitCost: number;
   amount: number | string;
+  image?: string;
 }
 
 const Inventory: React.FC = () => {
@@ -22,6 +23,8 @@ const Inventory: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const dropdownOptions = [
     'Today',
@@ -32,12 +35,51 @@ const Inventory: React.FC = () => {
     'Last year'
   ];
 
-  // Load inventory data from localStorage on component mount
-  useEffect(() => {
-    const savedInventory = localStorage.getItem('inventoryData');
-    if (savedInventory) {
-      setInventoryData(JSON.parse(savedInventory));
+  // Load inventory data from Netlify function
+  const loadInventoryData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Try Netlify function first
+      const response = await fetch('/.netlify/functions/inventory');
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setInventoryData(result.data);
+          // Also backup to localStorage
+          localStorage.setItem('inventoryData', JSON.stringify(result.data));
+          return;
+        }
+      }
+
+      // Fallback to localStorage if function fails
+      const localData = localStorage.getItem('inventoryData');
+      if (localData) {
+        setInventoryData(JSON.parse(localData));
+      } else {
+        setInventoryData([]);
+      }
+
+    } catch (err) {
+      console.error('Error loading inventory:', err);
+      setError('Failed to load inventory data');
+      
+      // Fallback to localStorage
+      const localData = localStorage.getItem('inventoryData');
+      if (localData) {
+        setInventoryData(JSON.parse(localData));
+        setError(null); // Clear error if we have local data
+      }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    loadInventoryData();
   }, []);
 
   // Filter inventory data based on search query
@@ -63,17 +105,40 @@ const Inventory: React.FC = () => {
     return amount;
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-full p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading inventory...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 min-h-full p-8">
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700">{error}</p>
+          <button 
+            onClick={loadInventoryData}
+            className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="mb-6">
-        {/* Showing and Dropdown */}
         <div className="flex items-center gap-4">
-          <p className="text-gray-600 w-[57px] h-5">
-            Showing
-          </p>
+          <p className="text-gray-600 w-[57px] h-5">Showing</p>
           
-          {/* Dropdown */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -101,27 +166,30 @@ const Inventory: React.FC = () => {
               </div>
             )}
           </div>
+
+          <button 
+            onClick={loadInventoryData}
+            className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-[10px] hover:bg-blue-700 transition-colors text-sm"
+          >
+            Refresh
+          </button>
         </div>
       </div>
 
       {/* Stats Cards Row */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        {/* In Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
           <InCard itemCount={totalItems} totalValue={totalValue} />
         </div>
 
-        {/* Out Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
           <OutCard itemCount={0} totalValue={0} />
         </div>
 
-        {/* Inventory Value Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
           <InventoryValueCard itemCount={totalItems} totalValue={totalValue} />
         </div>
 
-        {/* Low In Stock Card */}
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
           <LowInStockCard itemCount={lowStockItems} />
         </div>
@@ -129,7 +197,6 @@ const Inventory: React.FC = () => {
 
       {/* Combined Search and Inventory Section */}
       <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6 opacity-100 box-border" style={{ gap: '16px' }}>
-        {/* Search Bar */}
         <div className="mb-6">
           <div className="relative w-[540px] h-9 opacity-100 rounded-[20px] p-2 border border-gray-200" style={{ gap: '8px' }}>
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -143,16 +210,13 @@ const Inventory: React.FC = () => {
           </div>
         </div>
 
-        {/* Inventory Section Title */}
         <div className="mb-4">
           <h2 className="font-geist font-medium text-lg leading-6 text-[#0A0D14] align-bottom" style={{ letterSpacing: '-1.5%' }}>
             Inventory
           </h2>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
-          {/* Table Header - separate from table */}
           <div className="w-[1056px] h-11 opacity-100 rounded-[20px] p-3 bg-[#F6F8FA] mb-2" style={{ gap: '36px' }}>
             <div className="grid items-center h-full" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
               <div className="text-left text-sm font-medium text-gray-600 px-6">Product</div>
@@ -163,18 +227,21 @@ const Inventory: React.FC = () => {
             </div>
           </div>
 
-          {/* Table Body */}
           <div className="space-y-1">
             {filteredInventoryData.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                No inventory items found. Add products to get started.
+                {searchQuery ? 'No items found matching your search.' : 'No inventory items found. Add products to get started.'}
               </div>
             ) : (
               filteredInventoryData.map((item) => (
                 <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
                   <div className="px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
+                      {item.image ? (
+                        <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded flex-shrink-0 object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
+                      )}
                       <span className="text-sm font-medium text-gray-900">{item.product}</span>
                     </div>
                   </div>
