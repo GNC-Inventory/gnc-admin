@@ -1,9 +1,10 @@
 // netlify/functions/inventory.js
 
-const { createClient } = require('@supabase/supabase-js');
+// Simple inventory management function for Netlify
+// Stores data temporarily in memory during function execution
 
-// We'll use a simple approach with JSON storage in environment variables
-// This is free and works well for small to medium datasets
+// In-memory storage (resets on cold starts)
+let inventoryStore = [];
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -59,27 +60,12 @@ exports.handler = async (event, context) => {
 // Get inventory data
 async function getInventory(headers) {
   try {
-    // For now, we'll use a simple storage approach
-    // In production, you might want to use a database
-    
-    // Try to get data from environment variable first
-    let inventoryData = [];
-    
-    if (process.env.INVENTORY_DATA) {
-      try {
-        inventoryData = JSON.parse(process.env.INVENTORY_DATA);
-      } catch (parseError) {
-        console.error('Error parsing inventory data:', parseError);
-        inventoryData = [];
-      }
-    }
-
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        data: inventoryData,
+        data: inventoryStore,
         timestamp: new Date().toISOString()
       })
     };
@@ -140,13 +126,11 @@ async function updateInventory(event, headers) {
       }
     }
 
-    // In a real production environment, you would save this to a database
-    // For this demo, we'll return success
-    // Note: Environment variables can't be updated at runtime in Netlify Functions
-    // So we'll need a different storage approach for production
+    // Update the in-memory store
+    inventoryStore = [...inventoryData];
 
-    console.log('Inventory update requested:', {
-      itemCount: inventoryData.length,
+    console.log('Inventory updated:', {
+      itemCount: inventoryStore.length,
       timestamp: new Date().toISOString()
     });
 
@@ -156,7 +140,7 @@ async function updateInventory(event, headers) {
       body: JSON.stringify({
         success: true,
         message: 'Inventory updated successfully',
-        itemCount: inventoryData.length,
+        itemCount: inventoryStore.length,
         timestamp: new Date().toISOString()
       })
     };
@@ -172,38 +156,4 @@ async function updateInventory(event, headers) {
       })
     };
   }
-}
-
-// Utility function to validate inventory item structure
-function validateInventoryItem(item) {
-  const requiredFields = ['id', 'product', 'dateAdded', 'stockLeft', 'unitCost', 'amount'];
-  
-  for (const field of requiredFields) {
-    if (!(field in item)) {
-      return false;
-    }
-  }
-  
-  // Type validation
-  if (typeof item.stockLeft !== 'number' || 
-      typeof item.unitCost !== 'number' || 
-      typeof item.id !== 'string' || 
-      typeof item.product !== 'string') {
-    return false;
-  }
-  
-  return true;
-}
-
-// Utility function to sanitize inventory data
-function sanitizeInventoryData(inventoryData) {
-  return inventoryData.map(item => ({
-    id: String(item.id),
-    product: String(item.product),
-    dateAdded: String(item.dateAdded),
-    stockLeft: Number(item.stockLeft),
-    unitCost: Number(item.unitCost),
-    amount: item.amount,
-    image: item.image || ''
-  }));
 }
