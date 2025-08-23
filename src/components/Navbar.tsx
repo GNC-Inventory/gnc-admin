@@ -67,57 +67,34 @@ const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   
-  // DEBUG: Add these console logs
-  console.log('🔍 Current pathname:', pathname);
-  console.log('🔍 Available configs:', Object.keys(pageConfigs));
-  
   // Get current page config or default to dashboard
   const currentConfig = pageConfigs[pathname as keyof typeof pageConfigs] || pageConfigs['/dashboard'];
-  
-  console.log('🔍 Current config:', currentConfig);
-  console.log('🔍 Router available:', !!router);
 
   const handleButtonClick = () => {
-    console.log(`🚀 ${currentConfig.buttonText} clicked for ${pathname}`);
-    console.log('🚀 About to navigate...');
-    
-    try {
-      // Add specific actions based on current page
-      switch(pathname) {
-        case '/dashboard':
-          console.log('📍 Navigating from dashboard to add product...');
-          router.push('/inventory/add-product');
-          console.log('✅ Navigation call completed');
-          break;
-        case '/inventory':
-          console.log('📍 Navigating from inventory to add product...');
-          router.push('/inventory/add-product');
-          console.log('✅ Navigation call completed');
-          break;
-        case '/inventory/add-product':
-          console.log('📍 Already on add product page - no navigation needed');
-          // Could add functionality to reset form or add another product
-          break;
-        case '/transactions':
-          console.log('📍 Opening new transaction modal...');
-          break;
-        default:
-          console.log('📍 Default action - navigating to add product from:', pathname);
-          router.push('/inventory/add-product');
-          console.log('✅ Navigation call completed');
-      }
-    } catch (error) {
-      console.error('❌ Navigation error:', error);
+    // Add specific actions based on current page
+    switch(pathname) {
+      case '/dashboard':
+        router.push('/inventory/add-product');
+        break;
+      case '/inventory':
+        router.push('/inventory/add-product');
+        break;
+      case '/inventory/add-product':
+        // Could add functionality to reset form or add another product
+        break;
+      case '/transactions':
+        // Add transaction functionality here
+        break;
+      default:
+        router.push('/inventory/add-product');
     }
   };
 
   const handleSearch = () => {
-    console.log('🔍 Search clicked');
     // Add search functionality here
   };
 
   const handleNotification = () => {
-    console.log('🔔 Notification clicked');
     // Add notification functionality here
   };
 
