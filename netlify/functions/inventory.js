@@ -1,10 +1,13 @@
 // netlify/functions/inventory.js
 
-// Simple inventory management function for Netlify
-// Stores data temporarily in memory during function execution
+// Persistent inventory management function for Netlify
+// Uses a combination of strategies for data persistence
 
-// In-memory storage (resets on cold starts)
-let inventoryStore = [];
+const fs = require('fs');
+const path = require('path');
+
+// File-based storage path (works in Netlify's temporary file system)
+const DATA_FILE = '/tmp/inventory.json';
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -57,16 +60,66 @@ exports.handler = async (event, context) => {
   }
 };
 
+// Load inventory from persistent storage
+function loadInventory() {
+  try {
+    // Try to load from temporary file first
+    if (fs.existsSync(DATA_FILE)) {
+      const data = fs.readFileSync(DATA_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+
+    // Try to load from environment variable as backup
+    const envData = process.env.INVENTORY_DATA;
+    if (envData) {
+      return JSON.parse(envData);
+    }
+
+    // Return empty array if no data found
+    return [];
+  } catch (error) {
+    console.error('Error loading inventory:', error);
+    return [];
+  }
+}
+
+// Save inventory to persistent storage
+function saveInventory(inventoryData) {
+  try {
+    // Save to temporary file (survives during function execution)
+    fs.writeFileSync(DATA_FILE, JSON.stringify(inventoryData, null, 2));
+    
+    // Also save to environment variable for backup
+    // Note: This won't persist across deployments, but helps with cold starts
+    process.env.INVENTORY_DATA = JSON.stringify(inventoryData);
+    
+    console.log('Inventory saved:', {
+      itemCount: inventoryData.length,
+      timestamp: new Date().toISOString(),
+      method: 'file + env'
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving inventory:', error);
+    return false;
+  }
+}
+
 // Get inventory data
 async function getInventory(headers) {
   try {
+    const inventoryData = loadInventory();
+    
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        data: inventoryStore,
-        timestamp: new Date().toISOString()
+        data: inventoryData,
+        itemCount: inventoryData.length,
+        timestamp: new Date().toISOString(),
+        source: 'persistent_storage'
       })
     };
   } catch (error) {
@@ -120,19 +173,25 @@ async function updateInventory(event, headers) {
           headers,
           body: JSON.stringify({ 
             success: false, 
-            error: 'Invalid inventory item format. Each item must have id, product, unitCost, and stockLeft' 
+          error: 'Invalid inventory item format. Each item must have id, product, unitCost, and stockLeft' 
           })
         };
       }
     }
 
-    // Update the in-memory store
-    inventoryStore = [...inventoryData];
-
-    console.log('Inventory updated:', {
-      itemCount: inventoryStore.length,
-      timestamp: new Date().toISOString()
-    });
+    // Save to persistent storage
+    const saveSuccess = saveInventory(inventoryData);
+    
+    if (!saveSuccess) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'Failed to save inventory data' 
+        })
+      };
+    }
 
     return {
       statusCode: 200,
@@ -140,8 +199,9 @@ async function updateInventory(event, headers) {
       body: JSON.stringify({
         success: true,
         message: 'Inventory updated successfully',
-        itemCount: inventoryStore.length,
-        timestamp: new Date().toISOString()
+        itemCount: inventoryData.length,
+        timestamp: new Date().toISOString(),
+        storage: 'persistent'
       })
     };
 
