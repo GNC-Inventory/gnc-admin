@@ -11,7 +11,7 @@ const pageConfigs = {
     title: 'Dashboard',
     subtitle: 'View your recent activities.',
     showNewSaleButton: true,
-    buttonText: '+ New Sale'
+    buttonText: '+ Add Product'  // Changed from "New Sale" to "Add Product"
   },
   '/inventory': {
     title: 'Inventory',
@@ -75,7 +75,8 @@ const Navbar: React.FC = () => {
     // Add specific actions based on current page
     switch(pathname) {
       case '/dashboard':
-        console.log('Opening new sale modal...');
+        console.log('Navigating to add product page from dashboard...');
+        router.push('/inventory/add-product');  // Navigate to add product from dashboard
         break;
       case '/inventory':
         console.log('Navigating to add product page...');
