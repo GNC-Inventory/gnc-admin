@@ -1,219 +1,177 @@
 // netlify/functions/inventory.js
-
-// Persistent inventory management function for Netlify
-// Uses a combination of strategies for data persistence
-
 const fs = require('fs');
-const path = require('path');
 
-// File-based storage path (works in Netlify's temporary file system)
-const DATA_FILE = '/tmp/inventory.json';
+const INVENTORY_FILE = '/tmp/inventory.json';
+const TRANSACTIONS_FILE = '/tmp/transactions.json';
 
-exports.handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Content-Type': 'application/json'
-  };
-
-  // Handle CORS preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: ''
-    };
-  }
-
-  try {
-    switch (event.httpMethod) {
-      case 'GET':
-        return await getInventory(headers);
-      
-      case 'POST':
-        return await updateInventory(event, headers);
-      
-      case 'PUT':
-        return await updateInventory(event, headers);
-        
-      default:
-        return {
-          statusCode: 405,
-          headers,
-          body: JSON.stringify({ 
-            success: false, 
-            error: 'Method not allowed' 
-          })
-        };
-    }
-  } catch (error) {
-    console.error('Function error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      })
-    };
-  }
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Content-Type': 'application/json'
 };
 
-// Load inventory from persistent storage
-function loadInventory() {
+const loadData = (file) => {
   try {
-    // Try to load from temporary file first
-    if (fs.existsSync(DATA_FILE)) {
-      const data = fs.readFileSync(DATA_FILE, 'utf8');
-      return JSON.parse(data);
-    }
+    return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
+  } catch { return []; }
+};
 
-    // Try to load from environment variable as backup
-    const envData = process.env.INVENTORY_DATA;
-    if (envData) {
-      return JSON.parse(envData);
-    }
-
-    // Return empty array if no data found
-    return [];
-  } catch (error) {
-    console.error('Error loading inventory:', error);
-    return [];
-  }
-}
-
-// Save inventory to persistent storage
-function saveInventory(inventoryData) {
+const saveData = (file, data) => {
   try {
-    // Save to temporary file (survives during function execution)
-    fs.writeFileSync(DATA_FILE, JSON.stringify(inventoryData, null, 2));
-    
-    // Also save to environment variable for backup
-    // Note: This won't persist across deployments, but helps with cold starts
-    process.env.INVENTORY_DATA = JSON.stringify(inventoryData);
-    
-    console.log('Inventory saved:', {
-      itemCount: inventoryData.length,
-      timestamp: new Date().toISOString(),
-      method: 'file + env'
-    });
-    
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
     return true;
-  } catch (error) {
-    console.error('Error saving inventory:', error);
-    return false;
-  }
-}
+  } catch { return false; }
+};
 
-// Get inventory data
-async function getInventory(headers) {
+const respond = (statusCode, data) => ({ statusCode, headers, body: JSON.stringify(data) });
+
+const validateInventory = (inventory) => {
+  if (!Array.isArray(inventory)) return 'Invalid inventory format';
+  for (const item of inventory) {
+    if (!item.id || !item.product || typeof item.unitCost !== 'number' || typeof item.stockLeft !== 'number') {
+      return 'Invalid item format. Required: id, product, unitCost, stockLeft';
+    }
+  }
+  return null;
+};
+
+const validateSale = (sale) => {
+  if (!Array.isArray(sale.items) || !sale.customer) {
+    return 'Invalid sale format. Required: items (array), customer (string)';
+  }
+  return null;
+};
+
+const getInventory = () => {
+  const data = loadData(INVENTORY_FILE);
+  return respond(200, {
+    success: true,
+    data,
+    itemCount: data.length,
+    timestamp: new Date().toISOString()
+  });
+};
+
+const updateInventory = (body) => {
+  const { inventory } = JSON.parse(body);
+  const error = validateInventory(inventory);
+  if (error) return respond(400, { success: false, error });
+
+  const saved = saveData(INVENTORY_FILE, inventory);
+  if (!saved) return respond(500, { success: false, error: 'Failed to save inventory' });
+
+  return respond(200, {
+    success: true,
+    message: 'Inventory updated successfully',
+    itemCount: inventory.length,
+    timestamp: new Date().toISOString()
+  });
+};
+
+const getTransactions = () => {
+  const data = loadData(TRANSACTIONS_FILE);
+  return respond(200, {
+    success: true,
+    data,
+    count: data.length,
+    timestamp: new Date().toISOString()
+  });
+};
+
+const processSale = (body) => {
+  const sale = JSON.parse(body);
+  const error = validateSale(sale);
+  if (error) return respond(400, { success: false, error });
+
+  const inventory = loadData(INVENTORY_FILE);
+  const transactions = loadData(TRANSACTIONS_FILE);
+  
+  // Check stock and prepare updates
+  const stockErrors = [];
+  const updatedInventory = [...inventory];
+  const processedItems = [];
+  let totalAmount = 0;
+
+  for (const saleItem of sale.items) {
+    const invItem = updatedInventory.find(item => 
+      item.product === saleItem.name || item.id === saleItem.id
+    );
+
+    if (!invItem) {
+      stockErrors.push(`Product "${saleItem.name}" not found`);
+      continue;
+    }
+
+    if (invItem.stockLeft < saleItem.quantity) {
+      stockErrors.push(`Insufficient stock for "${saleItem.name}". Available: ${invItem.stockLeft}, Requested: ${saleItem.quantity}`);
+      continue;
+    }
+
+    // Process item
+    invItem.stockLeft -= saleItem.quantity;
+    const itemTotal = saleItem.price * saleItem.quantity;
+    totalAmount += itemTotal;
+    
+    processedItems.push({
+      id: invItem.id,
+      name: saleItem.name,
+      image: saleItem.image || invItem.image || '',
+      price: saleItem.price,
+      quantity: saleItem.quantity,
+      total: itemTotal
+    });
+  }
+
+  if (stockErrors.length > 0) {
+    return respond(400, { success: false, error: 'Insufficient stock', details: stockErrors });
+  }
+
+  // Create transaction
+  const transaction = {
+    id: `A-${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+    items: processedItems,
+    customer: sale.customer,
+    paymentMethod: sale.paymentMethod || 'Cash',
+    total: totalAmount,
+    createdAt: new Date().toISOString(),
+    status: 'Successful'
+  };
+
+  // Save data
+  const inventorySaved = saveData(INVENTORY_FILE, updatedInventory);
+  const transactionSaved = saveData(TRANSACTIONS_FILE, [...transactions, transaction]);
+
+  if (!inventorySaved || !transactionSaved) {
+    return respond(500, { success: false, error: 'Failed to save transaction data' });
+  }
+
+  return respond(200, {
+    success: true,
+    message: 'Sale completed successfully',
+    transaction,
+    inventoryUpdated: true,
+    timestamp: new Date().toISOString()
+  });
+};
+
+exports.handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') return respond(200, {});
+
   try {
-    const inventoryData = loadInventory();
+    const isTransactionRoute = event.path?.includes('/transactions');
     
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        data: inventoryData,
-        itemCount: inventoryData.length,
-        timestamp: new Date().toISOString(),
-        source: 'persistent_storage'
-      })
-    };
+    if (isTransactionRoute) {
+      if (event.httpMethod === 'GET') return getTransactions();
+      if (event.httpMethod === 'POST') return processSale(event.body);
+    } else {
+      if (event.httpMethod === 'GET') return getInventory();
+      if (['POST', 'PUT'].includes(event.httpMethod)) return updateInventory(event.body);
+    }
+    
+    return respond(405, { success: false, error: 'Method not allowed' });
   } catch (error) {
-    console.error('Get inventory error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        success: false, 
-        error: 'Failed to retrieve inventory data' 
-      })
-    };
+    console.error('Function error:', error);
+    return respond(500, { success: false, error: error.message });
   }
-}
-
-// Update inventory data
-async function updateInventory(event, headers) {
-  try {
-    if (!event.body) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: 'Request body is required' 
-        })
-      };
-    }
-
-    const requestData = JSON.parse(event.body);
-    
-    // Validate the inventory data structure
-    if (!requestData.inventory || !Array.isArray(requestData.inventory)) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: 'Invalid inventory data format. Expected { inventory: [] }' 
-        })
-      };
-    }
-
-    const inventoryData = requestData.inventory;
-
-    // Validate each inventory item
-    for (const item of inventoryData) {
-      if (!item.id || !item.product || typeof item.unitCost !== 'number' || typeof item.stockLeft !== 'number') {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ 
-            success: false, 
-          error: 'Invalid inventory item format. Each item must have id, product, unitCost, and stockLeft' 
-          })
-        };
-      }
-    }
-
-    // Save to persistent storage
-    const saveSuccess = saveInventory(inventoryData);
-    
-    if (!saveSuccess) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: 'Failed to save inventory data' 
-        })
-      };
-    }
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        message: 'Inventory updated successfully',
-        itemCount: inventoryData.length,
-        timestamp: new Date().toISOString(),
-        storage: 'persistent'
-      })
-    };
-
-  } catch (error) {
-    console.error('Update inventory error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        success: false, 
-        error: 'Failed to update inventory data' 
-      })
-    };
-  }
-}
+};
