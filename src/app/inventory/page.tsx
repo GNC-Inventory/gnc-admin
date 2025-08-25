@@ -23,6 +23,7 @@ const Inventory: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
+  const [transactionData, setTransactionData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -35,42 +36,59 @@ const Inventory: React.FC = () => {
     'Last year'
   ];
 
-  // Load inventory data from Netlify function
+  // Load inventory and transaction data from Netlify function
   const loadInventoryData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Try Netlify function first
-      const response = await fetch('/.netlify/functions/inventory');
+      // Load inventory data
+      const inventoryResponse = await fetch('/.netlify/functions/inventory');
       
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          setInventoryData(result.data);
-          // Also backup to localStorage
-          localStorage.setItem('inventoryData', JSON.stringify(result.data));
-          return;
+      if (inventoryResponse.ok) {
+        const inventoryResult = await inventoryResponse.json();
+        if (inventoryResult.success && inventoryResult.data) {
+          setInventoryData(inventoryResult.data);
+          localStorage.setItem('inventoryData', JSON.stringify(inventoryResult.data));
         }
       }
 
-      // Fallback to localStorage if function fails
-      const localData = localStorage.getItem('inventoryData');
-      if (localData) {
-        setInventoryData(JSON.parse(localData));
-      } else {
-        setInventoryData([]);
+      // Load transaction data
+      const transactionResponse = await fetch('/.netlify/functions/inventory/transactions');
+      
+      if (transactionResponse.ok) {
+        const transactionResult = await transactionResponse.json();
+        if (transactionResult.success && transactionResult.data) {
+          setTransactionData(transactionResult.data);
+          localStorage.setItem('transactionData', JSON.stringify(transactionResult.data));
+        }
+      }
+
+      // Fallback to localStorage if functions fail
+      if (!inventoryResponse.ok) {
+        const localInventory = localStorage.getItem('inventoryData');
+        if (localInventory) setInventoryData(JSON.parse(localInventory));
+      }
+
+      if (!transactionResponse.ok) {
+        const localTransactions = localStorage.getItem('transactionData');
+        if (localTransactions) setTransactionData(JSON.parse(localTransactions));
       }
 
     } catch (err) {
-      console.error('Error loading inventory:', err);
-      setError('Failed to load inventory data');
+      console.error('Error loading data:', err);
+      setError('Failed to load data');
       
       // Fallback to localStorage
-      const localData = localStorage.getItem('inventoryData');
-      if (localData) {
-        setInventoryData(JSON.parse(localData));
-        setError(null); // Clear error if we have local data
+      const localInventory = localStorage.getItem('inventoryData');
+      const localTransactions = localStorage.getItem('transactionData');
+      
+      if (localInventory) {
+        setInventoryData(JSON.parse(localInventory));
+        setError(null);
+      }
+      if (localTransactions) {
+        setTransactionData(JSON.parse(localTransactions));
       }
     } finally {
       setLoading(false);
@@ -87,12 +105,26 @@ const Inventory: React.FC = () => {
     item.product.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Calculate stats from actual inventory data
+  // Calculate stats from actual inventory and transaction data
   const totalItems = inventoryData.length;
   const totalValue = inventoryData.reduce((sum, item) => {
     return sum + (typeof item.amount === 'number' ? item.amount : 0);
   }, 0);
   const lowStockItems = inventoryData.filter(item => item.stockLeft <= 5).length;
+
+  // Calculate sales stats from transactions
+  const totalItemsSold = transactionData.reduce((sum, transaction) => {
+    return sum + transaction.items.reduce((itemSum: number, item: any) => itemSum + item.quantity, 0);
+  }, 0);
+
+  const totalSalesRevenue = transactionData.reduce((sum, transaction) => {
+    return sum + (transaction.total || 0);
+  }, 0);
+
+  // Calculate current inventory value (remaining stock value)
+  const currentInventoryValue = inventoryData.reduce((sum, item) => {
+    return sum + (item.unitCost * item.stockLeft);
+  }, 0);
 
   const formatCurrency = (value: number) => {
     return `₦ ${value.toLocaleString()}`;
@@ -183,11 +215,11 @@ const Inventory: React.FC = () => {
         </div>
 
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
-          <OutCard itemCount={0} totalValue={0} />
+          <OutCard itemCount={totalItemsSold} totalValue={totalSalesRevenue} />
         </div>
 
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
-          <InventoryValueCard itemCount={totalItems} totalValue={totalValue} />
+          <InventoryValueCard itemCount={totalItems} totalValue={currentInventoryValue} />
         </div>
 
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6 opacity-100 box-border">
