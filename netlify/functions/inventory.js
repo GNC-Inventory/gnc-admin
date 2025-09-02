@@ -53,6 +53,37 @@ const getInventory = () => {
   });
 };
 
+const deleteProduct = (body) => {
+  const { productId } = JSON.parse(body);
+  
+  if (!productId) {
+    return respond(400, { success: false, error: 'Product ID is required' });
+  }
+
+  const inventory = loadData(INVENTORY_FILE);
+  const productIndex = inventory.findIndex(item => item.id === productId);
+  
+  if (productIndex === -1) {
+    return respond(404, { success: false, error: 'Product not found' });
+  }
+
+  const deletedProduct = inventory[productIndex];
+  inventory.splice(productIndex, 1);
+  
+  const saved = saveData(INVENTORY_FILE, inventory);
+  if (!saved) {
+    return respond(500, { success: false, error: 'Failed to delete product' });
+  }
+
+  return respond(200, {
+    success: true,
+    message: 'Product deleted successfully',
+    deletedProduct: deletedProduct.product,
+    itemCount: inventory.length,
+    timestamp: new Date().toISOString()
+  });
+};
+
 const updateInventory = (body) => {
   const { inventory } = JSON.parse(body);
   const error = validateInventory(inventory);
@@ -167,6 +198,7 @@ exports.handler = async (event, context) => {
     } else {
       if (event.httpMethod === 'GET') return getInventory();
       if (['POST', 'PUT'].includes(event.httpMethod)) return updateInventory(event.body);
+      if (event.httpMethod === 'DELETE') return deleteProduct(event.body);
     }
     
     return respond(405, { success: false, error: 'Method not allowed' });

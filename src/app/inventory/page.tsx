@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, Trash2 } from 'lucide-react';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
 import InventoryValueCard from '@/components/products/InventoryValueCard';
@@ -26,6 +26,9 @@ const Inventory: React.FC = () => {
   const [transactionData, setTransactionData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<InventoryItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const dropdownOptions = [
     'Today',
@@ -125,6 +128,54 @@ const Inventory: React.FC = () => {
   const currentInventoryValue = inventoryData.reduce((sum, item) => {
     return sum + (item.unitCost * item.stockLeft);
   }, 0);
+
+  // Handle delete product
+  const handleDeleteClick = (product: InventoryItem) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/.netlify/functions/inventory', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: productToDelete.id })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Remove product from local state
+        setInventoryData(prev => prev.filter(item => item.id !== productToDelete.id));
+        
+        // Update localStorage
+        const updatedInventory = inventoryData.filter(item => item.id !== productToDelete.id);
+        localStorage.setItem('inventoryData', JSON.stringify(updatedInventory));
+        
+        setShowDeleteModal(false);
+        setProductToDelete(null);
+        
+        // Show success message (you can replace this with a toast notification)
+        alert(`Product "${productToDelete.product}" deleted successfully!`);
+      } else {
+        throw new Error(result.error || 'Failed to delete product');
+      }
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert(`Failed to delete product: ${error.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  };
 
   const formatCurrency = (value: number) => {
     return `₦ ${value.toLocaleString()}`;
