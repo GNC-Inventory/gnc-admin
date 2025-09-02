@@ -11,6 +11,7 @@ import LowInStockCard from '@/components/products/LowInStockCard';
 interface InventoryItem {
   id: string;
   product: string;
+  category: string;
   dateAdded: string;
   stockLeft: number;
   unitCost: number;
