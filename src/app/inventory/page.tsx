@@ -348,6 +348,79 @@ const Inventory: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && productToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Delete Product</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone.</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  {productToDelete.image ? (
+                    <img src={productToDelete.image} alt={productToDelete.product} className="w-12 h-12 bg-gray-200 rounded object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 rounded"></div>
+                  )}
+                  <div>
+                    <p className="font-medium text-gray-900">{productToDelete.product}</p>
+                    <p className="text-sm text-gray-500">Unit Cost: {formatCurrency(productToDelete.unitCost)}</p>
+                  </div>
+                </div>
+                
+                {productToDelete.stockLeft > 0 && (
+                  <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-orange-400 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                      <p className="text-sm text-orange-800">
+                        <strong>Warning:</strong> This product has {productToDelete.stockLeft} items remaining in stock.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete Product
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
