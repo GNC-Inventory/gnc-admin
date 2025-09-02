@@ -301,12 +301,13 @@ const Inventory: React.FC = () => {
 
         <div className="overflow-x-auto">
           <div className="w-[1056px] h-11 opacity-100 rounded-[20px] p-3 bg-[#F6F8FA] mb-2" style={{ gap: '36px' }}>
-            <div className="grid items-center h-full" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
+            <div className="grid items-center h-full" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px 80px' }}>
               <div className="text-left text-sm font-medium text-gray-600 px-6">Product</div>
               <div className="text-left text-sm font-medium text-gray-600 px-6">Date Added</div>
               <div className="text-left text-sm font-medium text-gray-600 pl-0 pr-1">Stock left</div>
               <div className="text-left text-sm font-medium text-gray-600 px-3">Unit cost</div>
               <div className="text-left text-sm font-medium text-gray-600 px-6">Amount</div>
+              <div className="text-left text-sm font-medium text-gray-600 px-3">Action</div>
             </div>
           </div>
 
@@ -317,7 +318,7 @@ const Inventory: React.FC = () => {
               </div>
             ) : (
               filteredInventoryData.map((item) => (
-                <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px' }}>
+                <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '300px 200px 120px 150px 150px 80px' }}>
                   <div className="px-6">
                     <div className="flex items-center gap-3">
                       {item.image ? (
@@ -332,6 +333,15 @@ const Inventory: React.FC = () => {
                   <div className="px-8 text-sm text-gray-900">{item.stockLeft}</div>
                   <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
                   <div className="px-6 text-sm text-gray-900">{formatAmount(item.amount)}</div>
+                  <div className="px-3">
+                    <button
+                      onClick={() => handleDeleteClick(item)}
+                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                      title="Delete product"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
