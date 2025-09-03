@@ -29,8 +29,8 @@ const respond = (statusCode, data) => ({ statusCode, headers, body: JSON.stringi
 const validateInventory = (inventory) => {
   if (!Array.isArray(inventory)) return 'Invalid inventory format';
   for (const item of inventory) {
-    if (!item.id || !item.product || typeof item.unitCost !== 'number' || typeof item.stockLeft !== 'number') {
-      return 'Invalid item format. Required: id, product, unitCost, stockLeft';
+    if (!item.id || !item.product || !item.category || typeof item.unitCost !== 'number' || typeof item.stockLeft !== 'number') {
+      return 'Invalid item format. Required: id, product, category, unitCost, stockLeft';
     }
   }
   return null;
