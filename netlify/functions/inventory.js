@@ -29,8 +29,8 @@ const respond = (statusCode, data) => ({ statusCode, headers, body: JSON.stringi
 const validateInventory = (inventory) => {
   if (!Array.isArray(inventory)) return 'Invalid inventory format';
   for (const item of inventory) {
-    if (!item.id || !item.product || !item.category || typeof item.unitCost !== 'number' || typeof item.stockLeft !== 'number') {
-      return 'Invalid item format. Required: id, product, category, unitCost, stockLeft';
+    if (!item.id || !item.product || !item.category || typeof item.unitCost !== 'number' || typeof item.basePrice !== 'number' || typeof item.stockLeft !== 'number') {
+      return 'Invalid item format. Required: id, product, category, unitCost, basePrice, stockLeft';
     }
   }
   return null;
@@ -118,7 +118,6 @@ const processSale = (body) => {
   const inventory = loadData(INVENTORY_FILE);
   const transactions = loadData(TRANSACTIONS_FILE);
   
-  // Check stock and prepare updates
   const stockErrors = [];
   const updatedInventory = [...inventory];
   const processedItems = [];
@@ -139,16 +138,15 @@ const processSale = (body) => {
       continue;
     }
 
-    // Process item
     invItem.stockLeft -= saleItem.quantity;
-    const itemTotal = saleItem.price * saleItem.quantity;
+    const itemTotal = (saleItem.price || invItem.basePrice) * saleItem.quantity;
     totalAmount += itemTotal;
     
     processedItems.push({
       id: invItem.id,
       name: saleItem.name,
       image: saleItem.image || invItem.image || '',
-      price: saleItem.price,
+      price: saleItem.price || invItem.basePrice,
       quantity: saleItem.quantity,
       total: itemTotal
     });
@@ -158,7 +156,6 @@ const processSale = (body) => {
     return respond(400, { success: false, error: 'Insufficient stock', details: stockErrors });
   }
 
-  // Create transaction
   const transaction = {
     id: `A-${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
     items: processedItems,
@@ -169,7 +166,6 @@ const processSale = (body) => {
     status: 'Successful'
   };
 
-  // Save data
   const inventorySaved = saveData(INVENTORY_FILE, updatedInventory);
   const transactionSaved = saveData(TRANSACTIONS_FILE, [...transactions, transaction]);
 
