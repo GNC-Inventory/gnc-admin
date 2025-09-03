@@ -35,12 +35,17 @@ const formatNumberWithCommas = (value: string): string => {
   // Handle multiple decimal points - keep only the first one
   const parts = cleaned.split('.');
   const integerPart = parts[0];
-  const decimalPart = parts[1] ? `.${parts[1]}` : '';
+  const decimalPart = parts[1];
   
   // Add commas to integer part
   const formatted = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   
-  return formatted + decimalPart;
+  // Return with decimal part if it exists
+  if (decimalPart !== undefined) {
+    return `${formatted}.${decimalPart}`;
+  }
+  
+  return formatted;
 };
 
 const parseFormattedNumber = (value: string): number => {
