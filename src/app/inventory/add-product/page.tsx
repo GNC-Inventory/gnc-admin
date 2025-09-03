@@ -27,6 +27,28 @@ interface InventoryItem {
   image: string;
 }
 
+// Number formatting helper functions
+const formatNumberWithCommas = (value: string): string => {
+  // Remove all non-digit and non-decimal characters
+  const cleaned = value.replace(/[^\d.]/g, '');
+  
+  // Handle multiple decimal points - keep only the first one
+  const parts = cleaned.split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts[1] ? `.${parts[1]}` : '';
+  
+  // Add commas to integer part
+  const formatted = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  return formatted + decimalPart;
+};
+
+const parseFormattedNumber = (value: string): number => {
+  // Remove commas and parse as float
+  const cleaned = value.replace(/,/g, '');
+  return parseFloat(cleaned) || 0;
+};
+
 const AddProductPage: React.FC = () => {
   const router = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
@@ -276,16 +298,42 @@ const AddProductPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Product cost */}
+            {/* Product cost - Updated with number formatting */}
             <div>
               <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product cost</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
                 <input
-                  type="number"
+                  type="text"
                   placeholder="0.00"
-                  value={currentProduct.cost || ''}
-                  onChange={(e) => handleInputChange('cost', parseFloat(e.target.value) || 0)}
+                  value={currentProduct.cost ? formatNumberWithCommas(currentProduct.cost.toString()) : ''}
+                  onChange={(e) => {
+                    const formattedValue = formatNumberWithCommas(e.target.value);
+                    const numericValue = parseFormattedNumber(formattedValue);
+                    
+                    // Update the input display with formatted value
+                    e.target.value = formattedValue;
+                    
+                    // Store the clean numeric value
+                    handleInputChange('cost', numericValue);
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, enter
+                    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) ||
+                        (e.keyCode === 67 && e.ctrlKey === true) ||
+                        (e.keyCode === 86 && e.ctrlKey === true) ||
+                        (e.keyCode === 88 && e.ctrlKey === true)) {
+                      return;
+                    }
+                    // Ensure that it is a number or decimal point and stop the keypress
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
+                        (e.keyCode < 96 || e.keyCode > 105) && 
+                        e.keyCode !== 190 && e.keyCode !== 110) {
+                      e.preventDefault();
+                    }
+                  }}
                   className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
