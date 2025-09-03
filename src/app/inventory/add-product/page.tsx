@@ -19,6 +19,7 @@ interface Product {
 interface InventoryItem {
   id: string;
   product: string;
+  category: string;
   dateAdded: string;
   stockLeft: number;
   unitCost: number;
@@ -104,6 +105,7 @@ const AddProductPage: React.FC = () => {
       const newItems: InventoryItem[] = selectedProducts.map(product => ({
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         product: product.name,
+        category: product.category,
         dateAdded: getCurrentDateTime(),
         stockLeft: product.quantity,
         unitCost: product.cost,
