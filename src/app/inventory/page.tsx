@@ -7,6 +7,7 @@ import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
 import InventoryValueCard from '@/components/products/InventoryValueCard';
 import LowInStockCard from '@/components/products/LowInStockCard';
+import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from '@/utils/toast';
 
 interface InventoryItem {
   id: string;
@@ -22,6 +23,8 @@ interface InventoryItem {
   model?: string;
   lowStock?: number;
 }
+
+const periods = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
 
 const Inventory: React.FC = () => {
   // State
@@ -103,16 +106,17 @@ const Inventory: React.FC = () => {
   const filteredInventoryData = inventoryData.filter(item =>
     item.product.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const totalItems = inventoryData.length;
-  const totalValue = inventoryData.reduce((sum, item) => 
-    sum + (typeof item.amount === 'number' ? item.amount : 0), 0
-  );
-  const lowStockItems = inventoryData.filter(item => item.stockLeft <= 5).length;
-  const totalItemsSold = transactionData.reduce((sum, transaction) => 
-    sum + transaction.items.reduce((itemSum: number, item: any) => itemSum + item.quantity, 0), 0
-  );
-  const totalSalesRevenue = transactionData.reduce((sum, transaction) => sum + (transaction.total || 0), 0);
-  const currentInventoryValue = inventoryData.reduce((sum, item) => sum + (item.unitCost * item.stockLeft), 0);
+
+  const stats = {
+    totalItems: inventoryData.length,
+    totalValue: inventoryData.reduce((sum, item) => 
+      sum + (typeof item.amount === 'number' ? item.amount : 0), 0),
+    lowStockItems: inventoryData.filter(item => item.stockLeft <= 5).length,
+    totalItemsSold: transactionData.reduce((sum, transaction) => 
+      sum + transaction.items.reduce((itemSum: number, item: any) => itemSum + item.quantity, 0), 0),
+    totalSalesRevenue: transactionData.reduce((sum, transaction) => sum + (transaction.total || 0), 0),
+    currentInventoryValue: inventoryData.reduce((sum, item) => sum + (item.unitCost * item.stockLeft), 0)
+  };
 
   // Event handlers
   const openModal = (type: 'edit' | 'delete', product: InventoryItem) => {
@@ -138,6 +142,9 @@ const Inventory: React.FC = () => {
     
     const isDelete = action === 'delete';
     isDelete ? setIsDeleting(true) : setIsUpdating(true);
+    
+    // Show loading toast
+    const loadingToastId = showLoadingToast(isDelete ? 'Deleting product...' : 'Updating product...');
     
     try {
       let updatedItems;
@@ -172,16 +179,20 @@ const Inventory: React.FC = () => {
 
       const result = await response.json();
       
+      // Dismiss loading toast
+      dismissToast(loadingToastId);
+      
       if (result.success) {
         setInventoryData(updatedItems);
         localStorage.setItem('inventoryData', JSON.stringify(updatedItems));
         closeModals();
-        alert(`Product "${product.product}" ${isDelete ? 'deleted' : 'updated'} successfully!`);
+        showSuccessToast(`Product "${product.product}" ${isDelete ? 'deleted' : 'updated'} successfully!`);
       } else {
         throw new Error(result.error || `Failed to ${action} product`);
       }
     } catch (error: any) {
-      alert(`Failed to ${action} product: ${error.message}`);
+      dismissToast(loadingToastId);
+      showErrorToast(`Failed to ${action} product: ${error.message}`);
     } finally {
       isDelete ? setIsDeleting(false) : setIsUpdating(false);
     }
@@ -248,7 +259,7 @@ const Inventory: React.FC = () => {
           
           {dropdownOpen && (
             <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-[10px] shadow-lg z-10">
-              {['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'].map((option) => (
+              {periods.map((option) => (
                 <button
                   key={option}
                   onClick={() => {
@@ -271,16 +282,16 @@ const Inventory: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <InCard itemCount={totalItems} totalValue={totalValue} />
+          <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <OutCard itemCount={totalItemsSold} totalValue={totalSalesRevenue} />
+          <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <InventoryValueCard itemCount={totalItems} totalValue={currentInventoryValue} />
+          <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <LowInStockCard itemCount={lowStockItems} />
+          <LowInStockCard itemCount={stats.lowStockItems} />
         </div>
       </div>
 
@@ -356,6 +367,7 @@ const Inventory: React.FC = () => {
               {/* Category and Model Fields */}
               {[
                 { label: 'Product category', value: productToEdit.category, field: 'category', placeholder: 'Start typing...', helper: 'To add a category, press enter after typing the name' },
+                { label: 'Product name', value: productToEdit.product, field: 'product', placeholder: 'Enter product name...' },
                 { label: 'Product model', value: productToEdit.model || '', field: 'model', placeholder: 'Start typing...' }
               ].map(({ label, value, field, placeholder, helper }) => (
                 <div key={field}>
