@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Search, Trash2, Edit } from 'lucide-react';
+import { ChevronDown, Search, Trash2, Edit, Info } from 'lucide-react';
+import Image from 'next/image';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
 import InventoryValueCard from '@/components/products/InventoryValueCard';
@@ -18,9 +19,12 @@ interface InventoryItem {
   profitPercentage?: number;
   amount: number | string;
   image?: string;
+  model?: string;
+  lowStock?: number;
 }
 
 const Inventory: React.FC = () => {
+  // State
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,8 +32,6 @@ const Inventory: React.FC = () => {
   const [transactionData, setTransactionData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Modal states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<InventoryItem | null>(null);
@@ -37,6 +39,17 @@ const Inventory: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Utility functions
+  const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
+  const formatNumberWithCommas = (value: string) => {
+    const cleaned = value.replace(/[^\d.]/g, '');
+    const parts = cleaned.split('.');
+    const formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts[1] !== undefined ? `${formatted}.${parts[1]}` : formatted;
+  };
+  const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
+
+  // Data loading
   const loadInventoryData = async () => {
     try {
       setLoading(true);
@@ -72,9 +85,7 @@ const Inventory: React.FC = () => {
       }
 
     } catch (err) {
-      console.error('Error loading data:', err);
       setError('Failed to load data');
-      
       const localInventory = localStorage.getItem('inventoryData');
       const localTransactions = localStorage.getItem('transactionData');
       if (localInventory) setInventoryData(JSON.parse(localInventory));
@@ -88,11 +99,10 @@ const Inventory: React.FC = () => {
     loadInventoryData();
   }, []);
 
+  // Calculated values
   const filteredInventoryData = inventoryData.filter(item =>
     item.product.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Calculate stats
   const totalItems = inventoryData.length;
   const totalValue = inventoryData.reduce((sum, item) => 
     sum + (typeof item.amount === 'number' ? item.amount : 0), 0
@@ -104,15 +114,15 @@ const Inventory: React.FC = () => {
   const totalSalesRevenue = transactionData.reduce((sum, transaction) => sum + (transaction.total || 0), 0);
   const currentInventoryValue = inventoryData.reduce((sum, item) => sum + (item.unitCost * item.stockLeft), 0);
 
-  // Modal handlers
-  const openDeleteModal = (product: InventoryItem) => {
-    setProductToDelete(product);
-    setShowDeleteModal(true);
-  };
-
-  const openEditModal = (product: InventoryItem) => {
-    setProductToEdit(product);
-    setShowEditModal(true);
+  // Event handlers
+  const openModal = (type: 'edit' | 'delete', product: InventoryItem) => {
+    if (type === 'edit') {
+      setProductToEdit(product);
+      setShowEditModal(true);
+    } else {
+      setProductToDelete(product);
+      setShowDeleteModal(true);
+    }
   };
 
   const closeModals = () => {
@@ -177,7 +187,29 @@ const Inventory: React.FC = () => {
     }
   };
 
-  const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
+  const handleNumericInput = (field: 'unitCost' | 'profitPercentage', e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!productToEdit) return;
+    
+    if (field === 'unitCost') {
+      const formattedValue = formatNumberWithCommas(e.target.value);
+      const numericValue = parseFormattedNumber(formattedValue);
+      e.target.value = formattedValue;
+      setProductToEdit({ ...productToEdit, [field]: numericValue });
+    } else {
+      setProductToEdit({ ...productToEdit, [field]: parseFloat(e.target.value) || 0 });
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!productToEdit) return;
+    
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setProductToEdit(prev => prev ? ({ ...prev, image: e.target?.result as string }) : null);
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (loading) {
     return (
@@ -300,10 +332,10 @@ const Inventory: React.FC = () => {
                   <div className="px-3 text-sm text-gray-900">{item.basePrice ? formatCurrency(item.basePrice) : '-'}</div>
                   <div className="px-3 text-sm text-gray-900">{typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}</div>
                   <div className="px-3 flex gap-2">
-                    <button onClick={() => openEditModal(item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
+                    <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button onClick={() => openDeleteModal(item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
+                    <button onClick={() => openModal('delete', item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -317,60 +349,137 @@ const Inventory: React.FC = () => {
       {/* Edit Modal */}
       {showEditModal && productToEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[500px] max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Product</h3>
+          <div className="bg-white rounded-[32px] p-6 w-[727px] h-[700px] max-h-[90vh] overflow-y-auto">
+            <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
             
-            <div className="space-y-4 mb-6">
+            <div className="space-y-6">
+              {/* Category and Model Fields */}
               {[
-                { label: 'Product Category', value: productToEdit.category, field: 'category', type: 'text' },
-                { label: 'Product Name', value: productToEdit.product, field: 'product', type: 'text' },
-                { label: 'Unit Cost', value: productToEdit.unitCost, field: 'unitCost', type: 'number', prefix: '₦' },
-                { label: 'Profit Percentage', value: productToEdit.profitPercentage || 0, field: 'profitPercentage', type: 'number', suffix: '%' },
-                { label: 'Stock Left', value: productToEdit.stockLeft, field: 'stockLeft', type: 'number' }
-              ].map(({ label, value, field, type, prefix, suffix }) => (
+                { label: 'Product category', value: productToEdit.category, field: 'category', placeholder: 'Start typing...', helper: 'To add a category, press enter after typing the name' },
+                { label: 'Product model', value: productToEdit.model || '', field: 'model', placeholder: 'Start typing...' }
+              ].map(({ label, value, field, placeholder, helper }) => (
                 <div key={field}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-                  <div className="relative">
-                    {prefix && <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">{prefix}</span>}
-                    <input
-                      type={type}
-                      min={type === 'number' ? '0' : undefined}
-                      step={type === 'number' ? '0.01' : undefined}
-                      value={value}
-                      onChange={(e) => setProductToEdit({
-                        ...productToEdit,
-                        [field]: type === 'number' ? (parseFloat(e.target.value) || 0) : e.target.value
-                      })}
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-8' : ''}`}
-                    />
-                    {suffix && <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">{suffix}</span>}
-                  </div>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                  <input
+                    type="text"
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={(e) => setProductToEdit({ ...productToEdit, [field]: e.target.value })}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {helper && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Info className="w-4 h-4 text-gray-400" />
+                      <span className="font-sora text-xs leading-4 text-[#525866]">{helper}</span>
+                    </div>
+                  )}
                 </div>
               ))}
 
-              {/* Auto-calculated Base Price Display */}
+              {/* Product image */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (Auto-calculated)</label>
-                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                  <span className="text-gray-700">
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  {productToEdit.image && <Image src={productToEdit.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
+                </div>
+              </div>
+
+              {/* Unit Cost */}
+              <div>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Unit Cost</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
+                  <input
+                    type="text"
+                    placeholder="0.00"
+                    value={productToEdit.unitCost ? formatNumberWithCommas(productToEdit.unitCost.toString()) : ''}
+                    onChange={(e) => handleNumericInput('unitCost', e)}
+                    onKeyDown={(e) => {
+                      if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
+                      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
+                    }}
+                    className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Profit Percentage */}
+              <div>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Profit Percentage</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    max="1000"
+                    step="0.1"
+                    value={productToEdit.profitPercentage || ''}
+                    onChange={(e) => handleNumericInput('profitPercentage', e)}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Info className="w-4 h-4 text-gray-400" />
+                  <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 for 25%)</span>
+                </div>
+              </div>
+
+              {/* Calculated Base Price Display */}
+              <div>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price (Auto-calculated)</label>
+                <div className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-gray-50 flex items-center">
+                  <span className="text-gray-700 font-medium">
                     {formatCurrency((productToEdit.unitCost || 0) * (1 + (productToEdit.profitPercentage || 0) / 100))}
                   </span>
                 </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Info className="w-4 h-4 text-gray-400" />
+                  <span className="font-sora text-xs leading-4 text-[#525866]">
+                    Calculation: ₦{(productToEdit.unitCost || 0).toLocaleString()} × (1 + {productToEdit.profitPercentage || 0}%) = {formatCurrency((productToEdit.unitCost || 0) * (1 + (productToEdit.profitPercentage || 0) / 100))}
+                  </span>
+                </div>
               </div>
+
+              {/* Quantity and Low Stock Fields */}
+              {[
+                { label: 'Quantity', value: productToEdit.stockLeft, field: 'stockLeft' },
+                { label: 'Indicate low-stock', value: productToEdit.lowStock || 8, field: 'lowStock' }
+              ].map(({ label, value, field }) => (
+                <div key={field}>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                  <input
+                    type="number"
+                    value={value}
+                    onChange={(e) => setProductToEdit({ ...productToEdit, [field]: parseInt(e.target.value) || 0 })}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              ))}
             </div>
 
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-3 justify-end mt-8">
               <button onClick={closeModals} disabled={isUpdating} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
                 Cancel
               </button>
-              <button onClick={() => processAction('update')} disabled={isUpdating} className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+              <button
+                onClick={() => processAction('update')}
+                disabled={isUpdating}
+                className="w-[347px] h-9 rounded-lg p-2 bg-[#375DFB] text-white flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
                 {isUpdating ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                     Updating...
                   </>
                 ) : (
-                  'Update Product'
+                  <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center">Update Product</span>
                 )}
               </button>
             </div>
@@ -384,31 +493,29 @@ const Inventory: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Product</h3>
             
-            <div className="mb-6">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  {productToDelete.image ? (
-                    <img src={productToDelete.image} alt={productToDelete.product} className="w-12 h-12 bg-gray-200 rounded object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                  )}
-                  <div>
-                    <p className="font-medium text-gray-900">{productToDelete.product}</p>
-                    <p className="text-sm text-gray-500">Unit Cost: {formatCurrency(productToDelete.unitCost)}</p>
-                    {productToDelete.basePrice && (
-                      <p className="text-sm text-gray-500">Base Price: {formatCurrency(productToDelete.basePrice)}</p>
-                    )}
-                  </div>
-                </div>
-                
-                {productToDelete.stockLeft > 0 && (
-                  <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
-                    <p className="text-sm text-orange-800">
-                      <strong>Warning:</strong> This product has {productToDelete.stockLeft} items remaining in stock.
-                    </p>
-                  </div>
+            <div className="mb-6 bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-2">
+                {productToDelete.image ? (
+                  <img src={productToDelete.image} alt={productToDelete.product} className="w-12 h-12 bg-gray-200 rounded object-cover" />
+                ) : (
+                  <div className="w-12 h-12 bg-gray-200 rounded"></div>
                 )}
+                <div>
+                  <p className="font-medium text-gray-900">{productToDelete.product}</p>
+                  <p className="text-sm text-gray-500">Unit Cost: {formatCurrency(productToDelete.unitCost)}</p>
+                  {productToDelete.basePrice && (
+                    <p className="text-sm text-gray-500">Base Price: {formatCurrency(productToDelete.basePrice)}</p>
+                  )}
+                </div>
               </div>
+              
+              {productToDelete.stockLeft > 0 && (
+                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <p className="text-sm text-orange-800">
+                    <strong>Warning:</strong> This product has {productToDelete.stockLeft} items remaining in stock.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 justify-end">
