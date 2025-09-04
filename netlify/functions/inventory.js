@@ -84,6 +84,69 @@ const deleteProduct = (body) => {
   });
 };
 
+// New function to handle inventory deduction/restoration
+const modifyInventory = (body) => {
+  const { productId, action, quantity } = JSON.parse(body);
+  
+  if (!productId || !action || typeof quantity !== 'number') {
+    return respond(400, { success: false, error: 'Required: productId, action (deduct/restore), quantity' });
+  }
+
+  if (!['deduct', 'restore'].includes(action)) {
+    return respond(400, { success: false, error: 'Action must be either "deduct" or "restore"' });
+  }
+
+  if (quantity <= 0) {
+    return respond(400, { success: false, error: 'Quantity must be greater than 0' });
+  }
+
+  const inventory = loadData(INVENTORY_FILE);
+  const productIndex = inventory.findIndex(item => item.id === productId);
+  
+  if (productIndex === -1) {
+    return respond(404, { success: false, error: 'Product not found' });
+  }
+
+  const product = inventory[productIndex];
+  
+  if (action === 'deduct') {
+    // Check if sufficient stock available
+    if (product.stockLeft < quantity) {
+      return respond(400, { 
+        success: false, 
+        error: `Insufficient stock for "${product.product}". Only ${product.stockLeft} available, requested ${quantity}`,
+        availableStock: product.stockLeft
+      });
+    }
+    
+    // Deduct from inventory
+    product.stockLeft -= quantity;
+  } else if (action === 'restore') {
+    // Restore to inventory
+    product.stockLeft += quantity;
+  }
+
+  // Recalculate amount if basePrice exists
+  if (product.basePrice) {
+    product.amount = product.basePrice * product.stockLeft;
+  }
+
+  const saved = saveData(INVENTORY_FILE, inventory);
+  if (!saved) {
+    return respond(500, { success: false, error: 'Failed to save inventory changes' });
+  }
+
+  return respond(200, {
+    success: true,
+    message: `Successfully ${action}ed ${quantity} units for "${product.product}"`,
+    data: product,
+    action,
+    quantity,
+    newStockLeft: product.stockLeft,
+    timestamp: new Date().toISOString()
+  });
+};
+
 const updateInventory = (body) => {
   const { inventory } = JSON.parse(body);
   const error = validateInventory(inventory);
@@ -193,7 +256,17 @@ exports.handler = async (event, context) => {
       if (event.httpMethod === 'POST') return processSale(event.body);
     } else {
       if (event.httpMethod === 'GET') return getInventory();
-      if (['POST', 'PUT'].includes(event.httpMethod)) return updateInventory(event.body);
+      if (event.httpMethod === 'POST') return updateInventory(event.body);
+      if (event.httpMethod === 'PUT') {
+        // Check if this is a inventory modification request (deduct/restore)
+        const bodyData = JSON.parse(event.body);
+        if (bodyData.action && ['deduct', 'restore'].includes(bodyData.action)) {
+          return modifyInventory(event.body);
+        } else {
+          // Original PUT behavior for full inventory update
+          return updateInventory(event.body);
+        }
+      }
       if (event.httpMethod === 'DELETE') return deleteProduct(event.body);
     }
     
