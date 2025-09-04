@@ -15,6 +15,7 @@ interface InventoryItem {
   stockLeft: number;
   unitCost: number;
   basePrice?: number;
+  profitPercentage?: number;
   amount: number | string;
   image?: string;
 }
@@ -35,8 +36,6 @@ const Inventory: React.FC = () => {
   const [productToEdit, setProductToEdit] = useState<InventoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  
-  const dropdownOptions = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
 
   const loadInventoryData = async () => {
     try {
@@ -123,49 +122,43 @@ const Inventory: React.FC = () => {
     setProductToEdit(null);
   };
 
-  const confirmDelete = async () => {
-    if (!productToDelete) return;
+  const processAction = async (action: 'delete' | 'update') => {
+    const product = action === 'delete' ? productToDelete : productToEdit;
+    if (!product) return;
     
-    setIsDeleting(true);
+    const isDelete = action === 'delete';
+    isDelete ? setIsDeleting(true) : setIsUpdating(true);
+    
     try {
-      const response = await fetch('/.netlify/functions/inventory', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: productToDelete.id })
-      });
-
-      const result = await response.json();
+      let updatedItems;
+      let response;
       
-      if (result.success) {
-        const updatedInventory = inventoryData.filter(item => item.id !== productToDelete.id);
-        setInventoryData(updatedInventory);
-        localStorage.setItem('inventoryData', JSON.stringify(updatedInventory));
-        closeModals();
-        alert(`Product "${productToDelete.product}" deleted successfully!`);
+      if (isDelete) {
+        response = await fetch('/.netlify/functions/inventory', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: product.id })
+        });
+        updatedItems = inventoryData.filter(item => item.id !== product.id);
       } else {
-        throw new Error(result.error || 'Failed to delete product');
+        const profitPercentage = product.profitPercentage || 0;
+        const calculatedBasePrice = product.unitCost * (1 + profitPercentage / 100);
+        const updatedProduct = {
+          ...product,
+          basePrice: calculatedBasePrice,
+          amount: calculatedBasePrice * product.stockLeft
+        };
+        
+        updatedItems = inventoryData.map(item => 
+          item.id === product.id ? updatedProduct : item
+        );
+        
+        response = await fetch('/.netlify/functions/inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inventory: updatedItems })
+        });
       }
-    } catch (error: any) {
-      alert(`Failed to delete product: ${error.message}`);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const updateProduct = async () => {
-    if (!productToEdit) return;
-    
-    setIsUpdating(true);
-    try {
-      const updatedItems = inventoryData.map(item => 
-        item.id === productToEdit.id ? productToEdit : item
-      );
-      
-      const response = await fetch('/.netlify/functions/inventory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inventory: updatedItems })
-      });
 
       const result = await response.json();
       
@@ -173,19 +166,18 @@ const Inventory: React.FC = () => {
         setInventoryData(updatedItems);
         localStorage.setItem('inventoryData', JSON.stringify(updatedItems));
         closeModals();
-        alert(`Product "${productToEdit.product}" updated successfully!`);
+        alert(`Product "${product.product}" ${isDelete ? 'deleted' : 'updated'} successfully!`);
       } else {
-        throw new Error(result.error || 'Failed to update product');
+        throw new Error(result.error || `Failed to ${action} product`);
       }
     } catch (error: any) {
-      alert(`Failed to update product: ${error.message}`);
+      alert(`Failed to ${action} product: ${error.message}`);
     } finally {
-      setIsUpdating(false);
+      isDelete ? setIsDeleting(false) : setIsUpdating(false);
     }
   };
 
   const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
-  const formatAmount = (amount: number | string) => typeof amount === 'number' ? formatCurrency(amount) : amount;
 
   if (loading) {
     return (
@@ -204,7 +196,7 @@ const Inventory: React.FC = () => {
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-700">{error}</p>
-          <button onClick={loadInventoryData} className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors">
+          <button onClick={loadInventoryData} className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
             Retry
           </button>
         </div>
@@ -216,7 +208,7 @@ const Inventory: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="bg-white rounded-[10px] px-3 py-2.5 flex items-center justify-between border border-gray-200 hover:border-gray-300 transition-colors w-[193px]"
+            className="bg-white rounded-[10px] px-3 py-2.5 flex items-center justify-between border border-gray-200 hover:border-gray-300 w-[193px]"
           >
             <span className="text-gray-700 text-sm">{selectedPeriod}</span>
             <ChevronDown className="w-4 h-4 text-gray-500" />
@@ -224,7 +216,7 @@ const Inventory: React.FC = () => {
           
           {dropdownOpen && (
             <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-[10px] shadow-lg z-10">
-              {dropdownOptions.map((option) => (
+              {['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'].map((option) => (
                 <button
                   key={option}
                   onClick={() => {
@@ -239,7 +231,7 @@ const Inventory: React.FC = () => {
             </div>
           )}
         </div>
-        <button onClick={loadInventoryData} className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-[10px] hover:bg-blue-700 transition-colors text-sm">
+        <button onClick={loadInventoryData} className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-[10px] hover:bg-blue-700 text-sm">
           Refresh
         </button>
       </div>
@@ -280,13 +272,9 @@ const Inventory: React.FC = () => {
         <div className="overflow-x-auto">
           <div className="w-[1056px] h-11 rounded-[20px] p-3 bg-[#F6F8FA] mb-2">
             <div className="grid items-center h-full" style={{ gridTemplateColumns: '260px 160px 100px 120px 120px 120px 120px' }}>
-              <div className="text-sm font-medium text-gray-600 px-6">Product</div>
-              <div className="text-sm font-medium text-gray-600 px-6">Date Added</div>
-              <div className="text-sm font-medium text-gray-600">Stock left</div>
-              <div className="text-sm font-medium text-gray-600 px-3">Unit cost</div>
-              <div className="text-sm font-medium text-gray-600 px-3">Base Price</div>
-              <div className="text-sm font-medium text-gray-600 px-6">Amount</div>
-              <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
+              {['Product', 'Date Added', 'Stock left', 'Unit cost', 'Base Price', 'Amount', 'Actions'].map((header) => (
+                <div key={header} className="text-sm font-medium text-gray-600 px-3">{header}</div>
+              ))}
             </div>
           </div>
 
@@ -298,30 +286,24 @@ const Inventory: React.FC = () => {
             ) : (
               filteredInventoryData.map((item) => (
                 <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '260px 160px 100px 120px 120px 120px 120px' }}>
-                  <div className="px-6 flex items-center gap-3">
+                  <div className="px-3 flex items-center gap-3">
                     {item.image ? (
-                      <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded flex-shrink-0 object-cover" />
+                      <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
                     ) : (
-                      <div className="w-8 h-8 bg-gray-200 rounded flex-shrink-0"></div>
+                      <div className="w-8 h-8 bg-gray-200 rounded"></div>
                     )}
                     <span className="text-sm font-medium text-gray-900">{item.product}</span>
                   </div>
-                  <div className="px-6 text-sm text-gray-600">{item.dateAdded}</div>
-                  <div className="px-8 text-sm text-gray-900">{item.stockLeft}</div>
+                  <div className="px-3 text-sm text-gray-600">{item.dateAdded}</div>
+                  <div className="px-3 text-sm text-gray-900">{item.stockLeft}</div>
                   <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
                   <div className="px-3 text-sm text-gray-900">{item.basePrice ? formatCurrency(item.basePrice) : '-'}</div>
-                  <div className="px-6 text-sm text-gray-900">{formatAmount(item.amount)}</div>
+                  <div className="px-3 text-sm text-gray-900">{typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}</div>
                   <div className="px-3 flex gap-2">
-                    <button
-                      onClick={() => openEditModal(item)}
-                      className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-                    >
+                    <button onClick={() => openEditModal(item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => openDeleteModal(item)}
-                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                    >
+                    <button onClick={() => openDeleteModal(item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -335,70 +317,53 @@ const Inventory: React.FC = () => {
       {/* Edit Modal */}
       {showEditModal && productToEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+          <div className="bg-white rounded-lg p-6 w-[500px] max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Product</h3>
             
             <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Left</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={productToEdit.stockLeft}
-                  onChange={(e) => setProductToEdit({
-                    ...productToEdit,
-                    stockLeft: parseInt(e.target.value) || 0
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Cost</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={productToEdit.unitCost}
-                  onChange={(e) => setProductToEdit({
-                    ...productToEdit,
-                    unitCost: parseFloat(e.target.value) || 0
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              {productToEdit.basePrice !== undefined && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Base Price</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={productToEdit.basePrice}
-                    onChange={(e) => setProductToEdit({
-                      ...productToEdit,
-                      basePrice: parseFloat(e.target.value) || 0
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              {[
+                { label: 'Product Category', value: productToEdit.category, field: 'category', type: 'text' },
+                { label: 'Product Name', value: productToEdit.product, field: 'product', type: 'text' },
+                { label: 'Unit Cost', value: productToEdit.unitCost, field: 'unitCost', type: 'number', prefix: '₦' },
+                { label: 'Profit Percentage', value: productToEdit.profitPercentage || 0, field: 'profitPercentage', type: 'number', suffix: '%' },
+                { label: 'Stock Left', value: productToEdit.stockLeft, field: 'stockLeft', type: 'number' }
+              ].map(({ label, value, field, type, prefix, suffix }) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                  <div className="relative">
+                    {prefix && <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">{prefix}</span>}
+                    <input
+                      type={type}
+                      min={type === 'number' ? '0' : undefined}
+                      step={type === 'number' ? '0.01' : undefined}
+                      value={value}
+                      onChange={(e) => setProductToEdit({
+                        ...productToEdit,
+                        [field]: type === 'number' ? (parseFloat(e.target.value) || 0) : e.target.value
+                      })}
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-8' : ''}`}
+                    />
+                    {suffix && <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">{suffix}</span>}
+                  </div>
                 </div>
-              )}
+              ))}
+
+              {/* Auto-calculated Base Price Display */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (Auto-calculated)</label>
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                  <span className="text-gray-700">
+                    {formatCurrency((productToEdit.unitCost || 0) * (1 + (productToEdit.profitPercentage || 0) / 100))}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={closeModals}
-                disabled={isUpdating}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-              >
+              <button onClick={closeModals} disabled={isUpdating} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
                 Cancel
               </button>
-              <button
-                onClick={updateProduct}
-                disabled={isUpdating}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-              >
+              <button onClick={() => processAction('update')} disabled={isUpdating} className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
                 {isUpdating ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -447,18 +412,10 @@ const Inventory: React.FC = () => {
             </div>
 
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={closeModals}
-                disabled={isDeleting}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-              >
+              <button onClick={closeModals} disabled={isDeleting} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
                 Cancel
               </button>
-              <button
-                onClick={confirmDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-              >
+              <button onClick={() => processAction('delete')} disabled={isDeleting} className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
                 {isDeleting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
