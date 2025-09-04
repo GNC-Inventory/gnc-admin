@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
 interface Product {
   id: string;
@@ -70,7 +71,7 @@ const AddProductPage: React.FC = () => {
 
   const handleSelectProduct = () => {
     if (!currentProduct.category || !currentProduct.model || currentProduct.unitCost <= 0 || currentProduct.profitPercentage < 0) {
-      alert('Please fill in all required fields (category, model, unit cost, and profit percentage)');
+      showErrorToast('Please fill in all required fields (category, model, unit cost, and profit percentage)');
       return;
     }
 
@@ -82,15 +83,18 @@ const AddProductPage: React.FC = () => {
 
     setSelectedProducts(prev => [...prev, newProduct]);
     setCurrentProduct({ category: '', model: '', image: '', unitCost: 0, profitPercentage: 0, basePrice: 0, quantity: 16, lowStock: 8 });
+    showSuccessToast(`${newProduct.name} added to selection`);
   };
 
   const handleAddToInventory = async () => {
     if (selectedProducts.length === 0) {
-      alert('Please select at least one product to add to inventory');
+      showWarningToast('Please select at least one product to add to inventory');
       return;
     }
 
     setIsSubmitting(true);
+    const loadingToastId = showLoadingToast(`Adding ${selectedProducts.length} product(s) to inventory...`);
+    
     try {
       const getResponse = await fetch('/.netlify/functions/inventory');
       let existingInventory: InventoryItem[] = [];
@@ -127,11 +131,15 @@ const AddProductPage: React.FC = () => {
       localStorage.removeItem('selectedProducts');
       setSelectedProducts([]);
 
-      alert(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
+      // Dismiss loading toast and show success
+      dismissToast(loadingToastId);
+      showSuccessToast(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
+      
       setTimeout(() => router.push('/inventory'), 1000);
 
     } catch (error) {
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      dismissToast(loadingToastId);
+      showErrorToast(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -165,6 +173,14 @@ const AddProductPage: React.FC = () => {
     }
   };
 
+  const removeProduct = (productId: string) => {
+    const product = selectedProducts.find(p => p.id === productId);
+    setSelectedProducts(prev => prev.filter(p => p.id !== productId));
+    if (product) {
+      showSuccessToast(`${product.name} removed from selection`);
+    }
+  };
+
   const total = selectedProducts.reduce((sum, product) => sum + (product.basePrice * product.quantity), 0);
 
   const ProductItem = ({ product }: { product: Product }) => (
@@ -174,7 +190,7 @@ const AddProductPage: React.FC = () => {
           <div className="flex items-center justify-center bg-white border border-[#E2E4E9] rounded w-6 h-5 px-1 py-0.5">
             <span className="text-gray-600 text-xs">{product.quantity}</span>
           </div>
-          <button onClick={() => setSelectedProducts(prev => prev.filter(p => p.id !== product.id))} className="text-gray-400 hover:text-gray-600 text-xs">×</button>
+          <button onClick={() => removeProduct(product.id)} className="text-gray-400 hover:text-gray-600 text-xs">×</button>
         </div>
         <div className="flex items-center gap-3">
           {product.image && <Image src={product.image} alt={product.name} width={32} height={32} className="rounded object-cover" />}
@@ -184,13 +200,31 @@ const AddProductPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <button onClick={() => setSelectedProducts(prev => prev.filter(p => p.id !== product.id))} className="text-gray-400 hover:text-red-500">
+      <button onClick={() => removeProduct(product.id)} className="text-gray-400 hover:text-red-500">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M6 2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12.5C11 13.3284 10.3284 14 9.5 14H6.5C5.67157 14 5 13.3284 5 12.5V4H4.5C4.22386 4 4 3.77614 4 3.5C4 3.22386 4.22386 3 4.5 3H6V2.5Z" fill="currentColor"/>
         </svg>
       </button>
     </div>
   );
+
+  const inputFields = [
+    {
+      label: 'Product category',
+      value: currentProduct.category,
+      field: 'category',
+      placeholder: 'Start typing...',
+      helper: 'To add a category, press enter after typing the name',
+      type: 'text'
+    },
+    {
+      label: 'Product model',
+      value: currentProduct.model,
+      field: 'model',
+      placeholder: 'Start typing...',
+      type: 'text'
+    }
+  ];
 
   return (
     <div className="bg-gray-50 min-h-full p-8">
@@ -226,33 +260,25 @@ const AddProductPage: React.FC = () => {
           <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Select products</h3>
 
           <div className="space-y-6">
-            {/* Product category */}
-            <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product category</label>
-              <input
-                type="text"
-                placeholder="Start typing..."
-                value={currentProduct.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
-                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="flex items-center gap-2 mt-2">
-                <Info className="w-4 h-4 text-gray-400" />
-                <span className="font-sora text-xs leading-4 text-[#525866]">To add a category, press enter after typing the name</span>
+            {/* Category and Model Fields */}
+            {inputFields.map(({ label, value, field, placeholder, helper }) => (
+              <div key={field}>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                <input
+                  type="text"
+                  placeholder={placeholder}
+                  value={value}
+                  onChange={(e) => handleInputChange(field, e.target.value)}
+                  className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {helper && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="font-sora text-xs leading-4 text-[#525866]">{helper}</span>
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* Product model */}
-            <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product model</label>
-              <input
-                type="text"
-                placeholder="Start typing..."
-                value={currentProduct.model}
-                onChange={(e) => handleInputChange('model', e.target.value)}
-                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            ))}
 
             {/* Product image */}
             <div>
@@ -323,27 +349,21 @@ const AddProductPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Quantity */}
-            <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Quantity</label>
-              <input
-                type="number"
-                value={currentProduct.quantity}
-                onChange={(e) => handleQuantityChange('quantity', parseInt(e.target.value) || 0)}
-                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Indicate low-stock */}
-            <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Indicate low-stock</label>
-              <input
-                type="number"
-                value={currentProduct.lowStock}
-                onChange={(e) => handleQuantityChange('lowStock', parseInt(e.target.value) || 0)}
-                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Quantity and Low Stock Fields */}
+            {[
+              { label: 'Quantity', value: currentProduct.quantity, field: 'quantity' },
+              { label: 'Indicate low-stock', value: currentProduct.lowStock, field: 'lowStock' }
+            ].map(({ label, value, field }) => (
+              <div key={field}>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                <input
+                  type="number"
+                  value={value}
+                  onChange={(e) => handleQuantityChange(field as 'quantity' | 'lowStock', parseInt(e.target.value) || 0)}
+                  className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            ))}
 
             {/* Select product button */}
             <div className="pt-4">
