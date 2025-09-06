@@ -101,7 +101,8 @@ const AddProductPage: React.FC = () => {
               unit_cost: product.unitCost,
               base_price: product.basePrice,
               stock_quantity: product.quantity,
-              low_stock_threshold: product.lowStock
+              low_stock_threshold: product.lowStock,
+              locationId: 1 // Add default location ID
             })
           });
 
