@@ -19,18 +19,6 @@ interface Product {
   lowStock: number;
 }
 
-interface InventoryItem {
-  id: string;
-  product: string;
-  category: string;
-  dateAdded: string;
-  stockLeft: number;
-  unitCost: number;
-  basePrice: number;
-  amount: number;
-  image: string;
-}
-
 const formatNumberWithCommas = (value: string): string => {
   const cleaned = value.replace(/[^\d.]/g, '');
   const parts = cleaned.split('.');
@@ -65,8 +53,7 @@ const AddProductPage: React.FC = () => {
   const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
   const getCurrentDateTime = () => {
     const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    return now.toISOString();
   };
 
   const handleSelectProduct = () => {
@@ -96,46 +83,57 @@ const AddProductPage: React.FC = () => {
     const loadingToastId = showLoadingToast(`Adding ${selectedProducts.length} product(s) to inventory...`);
     
     try {
-      const getResponse = await fetch('/.netlify/functions/inventory');
-      let existingInventory: InventoryItem[] = [];
+      // Add each product to backend via Netlify function
+      const addedProducts = [];
       
-      if (getResponse.ok) {
-        const result = await getResponse.json();
-        if (result.success) existingInventory = result.data || [];
+      for (const product of selectedProducts) {
+        try {
+          const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.NEXT_PUBLIC_INTERNAL_API_KEY || ''
+            },
+            body: JSON.stringify({
+              name: product.name,
+              category: product.category,
+              image_url: product.image || '/products/default.png',
+              unit_cost: product.unitCost,
+              base_price: product.basePrice,
+              stock_quantity: product.quantity,
+              low_stock_threshold: product.lowStock
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to add ${product.name}: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          if (!result.success) {
+            throw new Error(result.error?.message || `Failed to add ${product.name}`);
+          }
+
+          addedProducts.push(product.name);
+        } catch (error) {
+          console.error(`Error adding ${product.name}:`, error);
+          showErrorToast(`Failed to add ${product.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
       }
 
-      const newItems: InventoryItem[] = selectedProducts.map(product => ({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        product: product.name,
-        category: product.category,
-        dateAdded: getCurrentDateTime(),
-        stockLeft: product.quantity,
-        unitCost: product.unitCost,
-        basePrice: product.basePrice,
-        amount: product.basePrice * product.quantity,
-        image: product.image
-      }));
-
-      const updatedInventory = [...existingInventory, ...newItems];
-
-      const updateResponse = await fetch('/.netlify/functions/inventory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inventory: updatedInventory })
-      });
-
-      const result = await updateResponse.json();
-      if (!result.success) throw new Error(result.error);
-
-      localStorage.setItem('inventoryData', JSON.stringify(updatedInventory));
+      // Clear local storage and state
       localStorage.removeItem('selectedProducts');
       setSelectedProducts([]);
 
       // Dismiss loading toast and show success
       dismissToast(loadingToastId);
-      showSuccessToast(`Successfully added ${selectedProducts.length} product(s) to inventory!`);
       
-      setTimeout(() => router.push('/inventory'), 1000);
+      if (addedProducts.length > 0) {
+        showSuccessToast(`Successfully added ${addedProducts.length} product(s) to inventory!`);
+        setTimeout(() => router.push('/inventory'), 1000);
+      } else {
+        showErrorToast('No products were added successfully');
+      }
 
     } catch (error) {
       dismissToast(loadingToastId);
