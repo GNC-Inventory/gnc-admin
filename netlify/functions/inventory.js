@@ -14,7 +14,7 @@ const respond = (statusCode, data) => ({ statusCode, headers, body: JSON.stringi
 // Helper function to make API calls to backend
 const apiCall = async (endpoint, options = {}) => {
   try {
-    const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+    const response = await fetch(`${BACKEND_URL}/api${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
