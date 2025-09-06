@@ -34,18 +34,33 @@ const apiCall = async (endpoint, options = {}) => {
   }
 };
 
-// Data transformation functions
-const mapFromBackend = (backendItem) => ({
-  id: backendItem.id.toString(),
-  product: backendItem.name || backendItem.product_name,
-  category: backendItem.category || backendItem.category_name,
-  image: backendItem.image_url || backendItem.image || '/products/default.png',
-  unitCost: backendItem.unit_cost || backendItem.unitCost,
-  basePrice: backendItem.base_price || backendItem.basePrice,
-  stockLeft: backendItem.stock_quantity || backendItem.stockLeft || backendItem.quantity,
-  dateAdded: backendItem.created_at || backendItem.dateAdded || new Date().toISOString(),
-  amount: (backendItem.base_price || backendItem.basePrice) * (backendItem.stock_quantity || backendItem.stockLeft || 0)
-});
+// Updated data transformation function to handle nested structure
+const mapFromBackend = (backendItem) => {
+  // Handle the new nested structure from your normalized database
+  const product = backendItem.product || backendItem;
+  const inventory = backendItem; // The inventory item itself
+  
+  // Safely extract values with fallbacks
+  const productName = product?.name || backendItem?.name || backendItem?.product_name || '';
+  const productCategory = product?.category || backendItem?.category || backendItem?.category_name || '';
+  const imageUrl = product?.imageUrl || product?.image_url || backendItem?.image_url || backendItem?.image || '/products/default.png';
+  const unitCost = product?.unitCost || product?.unit_cost || backendItem?.unit_cost || backendItem?.unitCost || 0;
+  const basePrice = product?.basePrice || product?.base_price || backendItem?.base_price || backendItem?.basePrice || 0;
+  const stockLeft = inventory?.quantity || backendItem?.stock_quantity || backendItem?.stockLeft || 0;
+  const dateAdded = product?.createdAt || backendItem?.created_at || backendItem?.dateAdded || new Date().toISOString();
+  
+  return {
+    id: (backendItem?.id || inventory?.id || '').toString(),
+    product: productName,
+    category: productCategory,
+    image: imageUrl,
+    unitCost: parseFloat(unitCost) || 0,
+    basePrice: parseFloat(basePrice) || 0,
+    stockLeft: parseInt(stockLeft) || 0,
+    dateAdded: dateAdded,
+    amount: (parseFloat(basePrice) || 0) * (parseInt(stockLeft) || 0)
+  };
+};
 
 const mapToBackend = (frontendItem) => ({
   name: frontendItem.product,
@@ -53,7 +68,8 @@ const mapToBackend = (frontendItem) => ({
   image_url: frontendItem.image,
   unit_cost: frontendItem.unitCost,
   base_price: frontendItem.basePrice,
-  stock_quantity: frontendItem.stockLeft
+  stock_quantity: frontendItem.stockLeft,
+  locationId: 1 // Default location
 });
 
 const getInventory = async () => {
@@ -64,7 +80,29 @@ const getInventory = async () => {
       throw new Error(result.error?.message || 'Failed to fetch inventory');
     }
 
-    const transformedData = result.data.map(mapFromBackend);
+    // Ensure result.data is an array
+    const dataArray = Array.isArray(result.data) ? result.data : [];
+    
+    // Transform the data with error handling for each item
+    const transformedData = dataArray.map(item => {
+      try {
+        return mapFromBackend(item);
+      } catch (error) {
+        console.error('Error transforming item:', item, error);
+        // Return a safe default object
+        return {
+          id: (item?.id || '').toString(),
+          product: item?.name || 'Unknown Product',
+          category: item?.category || 'Unknown',
+          image: '/products/default.png',
+          unitCost: 0,
+          basePrice: 0,
+          stockLeft: 0,
+          dateAdded: new Date().toISOString(),
+          amount: 0
+        };
+      }
+    }).filter(item => item.product && item.product !== 'Unknown Product'); // Filter out invalid items
 
     return respond(200, {
       success: true,
@@ -144,14 +182,14 @@ const modifyInventory = async (body) => {
     }
 
     const product = productResult.data;
-    const currentStock = product.stock_quantity || product.stockLeft || 0;
+    const currentStock = product.quantity || product.stock_quantity || product.stockLeft || 0;
     let newStock;
 
     if (action === 'deduct') {
       if (currentStock < quantity) {
         return respond(400, { 
           success: false, 
-          error: `Insufficient stock for "${product.name}". Only ${currentStock} available, requested ${quantity}`,
+          error: `Insufficient stock for "${product.product?.name || product.name}". Only ${currentStock} available, requested ${quantity}`,
           availableStock: currentStock
         });
       }
@@ -164,8 +202,7 @@ const modifyInventory = async (body) => {
     const updateResult = await apiCall(`/admin/inventory/${productId}`, {
       method: 'PUT',
       body: JSON.stringify({
-        ...product,
-        stock_quantity: newStock
+        quantity: newStock
       })
     });
 
