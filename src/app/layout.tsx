@@ -28,10 +28,33 @@ export default function RootLayout({
         <meta name="description" content={description} />
       </Head>
       <body className={inter.className}>
+        {/* Side background images - fills white spaces on left and right of max-width container */}
+        <>
+          {/* Left side background */}
+          <div 
+            className="fixed left-0 top-0 w-full h-full bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: 'url(/globe.jpg)',
+              clipPath: 'polygon(0 0, calc((100vw - 1440px) / 2) 0, calc((100vw - 1440px) / 2) 100%, 0 100%)',
+              zIndex: -1
+            }}
+          />
+          
+          {/* Right side background */}
+          <div 
+            className="fixed right-0 top-0 w-full h-full bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: 'url(/globe.jpg)',
+              clipPath: 'polygon(calc(50vw + 720px) 0, 100% 0, 100% 100%, calc(50vw + 720px) 100%)',
+              zIndex: -1
+            }}
+          />
+        </>
+
         {/* Global max-width container */}
         <div style={{ maxWidth: '1440px', margin: '0 auto' }}>
           {isLoginPage ? (
-            // Login page - full screen without sidebar/navbar
+            // Login page - full screen without sidebar/navbar (keeps original background)
             <>{children}</>
           ) : (
             // All other pages - with sidebar and navbar
@@ -71,7 +94,7 @@ export default function RootLayout({
                 style: {
                   background: '#f0fdf4',
                   color: '#166534',
-                  border: '1px solid #bbf7d0', // <-- fixed here
+                  border: '1px solid #bbf7d0',
                 },
                 iconTheme: {
                   primary: '#22c55e',
