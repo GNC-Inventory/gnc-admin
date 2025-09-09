@@ -34,7 +34,7 @@ export default function RootLayout({
           <div 
             className="fixed left-0 top-0 w-full h-full bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: 'url(/globe.jpg)',
+              backgroundImage: 'url(/glob.jpg)',
               clipPath: 'polygon(0 0, calc((100vw - 1440px) / 2) 0, calc((100vw - 1440px) / 2) 100%, 0 100%)',
               zIndex: -1
             }}
@@ -44,7 +44,7 @@ export default function RootLayout({
           <div 
             className="fixed right-0 top-0 w-full h-full bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: 'url(/globe.jpg)',
+              backgroundImage: 'url(/glob.jpg)',
               clipPath: 'polygon(calc(50vw + 720px) 0, 100% 0, 100% 100%, calc(50vw + 720px) 100%)',
               zIndex: -1
             }}
