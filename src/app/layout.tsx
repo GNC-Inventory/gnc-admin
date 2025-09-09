@@ -29,7 +29,7 @@ export default function RootLayout({
       </Head>
       <body className={inter.className}>
         {/* Global max-width container */}
-        <div style={{ maxWidth: '2000px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '2200px', margin: '0 auto' }}>
           {isLoginPage ? (
             // Login page - full screen without sidebar/navbar
             <>{children}</>
