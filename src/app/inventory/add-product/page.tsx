@@ -10,7 +10,11 @@ interface Product {
   id: string;
   name: string;
   category: string;
+  make: string;
   model: string;
+  type: string;
+  capacity: string;
+  description: string;
   image: string;
   unitCost: number;
   profitPercentage: number;
@@ -32,9 +36,27 @@ const AddProductPage: React.FC = () => {
   const router = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [currentProduct, setCurrentProduct] = useState({
-    category: '', model: '', image: '', unitCost: 0, profitPercentage: 0, basePrice: 0, quantity: 16, lowStock: 8
+    category: '',
+    name: '',
+    make: '',
+    model: '',
+    type: '',
+    capacity: '',
+    description: '',
+    image: '',
+    unitCost: 0,
+    profitPercentage: 0,
+    basePrice: 0,
+    quantity: 16,
+    lowStock: 8
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const categoryOptions = [
+    'Building Materials',
+    'Electricals',
+    'Electronics'
+  ];
 
   useEffect(() => {
     const saved = localStorage.getItem('selectedProducts');
@@ -57,19 +79,44 @@ const AddProductPage: React.FC = () => {
   };
 
   const handleSelectProduct = () => {
-    if (!currentProduct.category || !currentProduct.model || currentProduct.unitCost <= 0 || currentProduct.profitPercentage < 0) {
-      showErrorToast('Please fill in all required fields (category, model, unit cost, and profit percentage)');
+    if (!currentProduct.category || !currentProduct.name || currentProduct.unitCost <= 0 || currentProduct.profitPercentage < 0) {
+      showErrorToast('Please fill in required fields: category, name, unit cost, and profit percentage');
       return;
     }
 
     const newProduct: Product = {
       id: Date.now().toString(),
-      name: `${currentProduct.category} ${currentProduct.model}`,
-      ...currentProduct
+      name: currentProduct.name,
+      category: currentProduct.category,
+      make: currentProduct.make,
+      model: currentProduct.model,
+      type: currentProduct.type,
+      capacity: currentProduct.capacity,
+      description: currentProduct.description,
+      image: currentProduct.image,
+      unitCost: currentProduct.unitCost,
+      profitPercentage: currentProduct.profitPercentage,
+      basePrice: currentProduct.basePrice,
+      quantity: currentProduct.quantity,
+      lowStock: currentProduct.lowStock
     };
 
     setSelectedProducts(prev => [...prev, newProduct]);
-    setCurrentProduct({ category: '', model: '', image: '', unitCost: 0, profitPercentage: 0, basePrice: 0, quantity: 16, lowStock: 8 });
+    setCurrentProduct({
+      category: '',
+      name: '',
+      make: '',
+      model: '',
+      type: '',
+      capacity: '',
+      description: '',
+      image: '',
+      unitCost: 0,
+      profitPercentage: 0,
+      basePrice: 0,
+      quantity: 16,
+      lowStock: 8
+    });
     showSuccessToast(`${newProduct.name} added to selection`);
   };
 
@@ -83,7 +130,7 @@ const AddProductPage: React.FC = () => {
     const loadingToastId = showLoadingToast(`Adding ${selectedProducts.length} product(s) to inventory...`);
     
     try {
-      // Add each product to backend via Netlify function
+      // Add each product to backend
       const addedProducts = [];
       
       for (const product of selectedProducts) {
@@ -92,11 +139,16 @@ const AddProductPage: React.FC = () => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': process.env.NEXT_PUBLIC_INTERNAL_API_KEY || ''
+              'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
             },
             body: JSON.stringify({
               name: product.name,
               category: product.category,
+              make: product.make,
+              model: product.model,
+              type: product.type,
+              capacity: product.capacity,
+              description: product.description,
               image_url: product.image || '/products/default.png',
               unit_cost: product.unitCost,
               base_price: product.basePrice,
@@ -195,6 +247,7 @@ const AddProductPage: React.FC = () => {
           {product.image && <Image src={product.image} alt={product.name} width={32} height={32} className="rounded object-cover" />}
           <div>
             <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
+            <p className="text-gray-600 text-xs">{product.make} {product.model}</p>
             <p className="text-gray-600 text-xs">{formatCurrency(product.basePrice)}</p>
           </div>
         </div>
@@ -207,29 +260,11 @@ const AddProductPage: React.FC = () => {
     </div>
   );
 
-  const inputFields = [
-    {
-      label: 'Product category',
-      value: currentProduct.category,
-      field: 'category',
-      placeholder: 'Start typing...',
-      helper: 'To add a category, press enter after typing the name',
-      type: 'text'
-    },
-    {
-      label: 'Product model',
-      value: currentProduct.model,
-      field: 'model',
-      placeholder: 'Start typing...',
-      type: 'text'
-    }
-  ];
-
   return (
     <div className="bg-gray-50 min-h-full p-8">
       <div className="flex gap-8">
         {/* Left Section - Selected Products */}
-        <div className="w-[377px] h-[764px] bg-white rounded-[32px] p-6">
+        <div className="w-[377px] h-[764px] bg-white rounded-[32px] p-6 overflow-y-auto">
           <h3 className="text-[#0A0D14] font-medium text-sm leading-5 mb-6 font-inter tracking-[-0.6%]">
             Add selected products
           </h3>
@@ -255,29 +290,64 @@ const AddProductPage: React.FC = () => {
         </div>
 
         {/* Right Section - Product Form */}
-        <div className="w-[727px] h-[764px] bg-white rounded-[32px] pt-6 pr-6 pl-6">
+        <div className="w-[727px] h-[764px] bg-white rounded-[32px] pt-6 pr-6 pl-6 overflow-y-auto">
           <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Select products</h3>
 
           <div className="space-y-6">
-            {/* Category and Model Fields */}
-            {inputFields.map(({ label, value, field, placeholder, helper }) => (
+            {/* Category Dropdown */}
+            <div>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
+                Product category
+              </label>
+              <select
+                value={currentProduct.category}
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select category...</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* New Fields */}
+            {[
+              { label: 'Name', field: 'name', placeholder: 'Enter product name...' },
+              { label: 'Make', field: 'make', placeholder: 'Enter make...' },
+              { label: 'Model', field: 'model', placeholder: 'Enter model...' },
+              { label: 'Type', field: 'type', placeholder: 'Enter type...' },
+              { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' }
+            ].map(({ label, field, placeholder }) => (
               <div key={field}>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
+                  {label}
+                </label>
                 <input
                   type="text"
                   placeholder={placeholder}
-                  value={value}
+                  value={currentProduct[field as keyof typeof currentProduct] as string}
                   onChange={(e) => handleInputChange(field, e.target.value)}
                   className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {helper && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="font-sora text-xs leading-4 text-[#525866]">{helper}</span>
-                  </div>
-                )}
               </div>
             ))}
+
+            {/* Description Field - Larger */}
+            <div>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
+                Description
+              </label>
+              <textarea
+                placeholder="Enter product description..."
+                value={currentProduct.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                rows={4}
+                className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+              />
+            </div>
 
             {/* Product image */}
             <div>
