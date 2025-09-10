@@ -135,32 +135,60 @@ const AddProductPage: React.FC = () => {
       
       for (const product of selectedProducts) {
         try {
-          const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
-            },
-            body: JSON.stringify({
-              name: product.name,
-              category: product.category,
-              make: product.make,
-              model: product.model,
-              type: product.type,
-              capacity: product.capacity,
-              description: product.description,
-              image_url: product.image || '/products/default.png',
-              unit_cost: product.unitCost,
-              base_price: product.basePrice,
-              stock_quantity: product.quantity,
-              low_stock_threshold: product.lowStock,
-              locationId: 1 // Add default location ID
-            })
-          });
+        console.log('=== ADD PRODUCT API DEBUG ===');
+console.log('API Key check:', process.env.NEXT_PUBLIC_API_KEY ? 'EXISTS' : 'MISSING');
+console.log('API Key value:', process.env.NEXT_PUBLIC_API_KEY ? 'SET' : 'EMPTY');
+console.log('Request headers:', {
+  'Content-Type': 'application/json',
+  'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'EMPTY'
+});
 
-          if (!response.ok) {
-            throw new Error(`Failed to add ${product.name}: ${response.statusText}`);
-          }
+const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+  },
+  body: JSON.stringify({
+    name: product.name,
+    category: product.category,
+    make: product.make,
+    model: product.model,
+    type: product.type,
+    capacity: product.capacity,
+    description: product.description,
+    image_url: product.image || '/products/default.png',
+    unit_cost: product.unitCost,
+    base_price: product.basePrice,
+    stock_quantity: product.quantity,
+    low_stock_threshold: product.lowStock,
+    locationId: 1
+  })
+});
+
+console.log('Response status:', response.status);
+console.log('Response URL:', response.url);
+
+if (!response.ok) {
+  const errorText = await response.text();
+  console.error('API Error Details:', errorText);
+  console.error('Request body sent:', JSON.stringify({
+    name: product.name,
+    category: product.category,
+    make: product.make,
+    model: product.model,
+    type: product.type,
+    capacity: product.capacity,
+    description: product.description,
+    image_url: product.image || '/products/default.png',
+    unit_cost: product.unitCost,
+    base_price: product.basePrice,
+    stock_quantity: product.quantity,
+    low_stock_threshold: product.lowStock,
+    locationId: 1
+  }, null, 2));
+  throw new Error(`Failed to add ${product.name}: ${response.statusText}`);
+}
 
           const result = await response.json();
           if (!result.success) {
