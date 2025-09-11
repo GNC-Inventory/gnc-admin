@@ -11,17 +11,17 @@ import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from
 
 interface InventoryItem {
   id: string;
-  product: string;
+  name: string;           // Changed from 'product' to 'name'
   category: string;
-  dateAdded: string;
-  stockLeft: number;
+  lastUpdated: string;    // Changed from 'dateAdded' to 'lastUpdated'
+  quantity: number;       // Changed from 'stockLeft' to 'quantity'
   unitCost: number;
   basePrice?: number;
   profitPercentage?: number;
   amount: number | string;
   image?: string;
   model?: string;
-  lowStock?: number;
+  lowStockThreshold?: number;  // Changed from 'lowStock' to 'lowStockThreshold'
 }
 
 const periods = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
@@ -153,7 +153,7 @@ console.log('Total items loaded:', inventoryData.length);
 
   // Calculated values
   const filteredInventoryData = state.inventoryData.filter(item => {
-  const matchesSearch = item.product?.toLowerCase().includes(state.searchQuery.toLowerCase()) || false;
+  const matchesSearch = item.name ? item.name.toLowerCase().includes(state.searchQuery.toLowerCase()) : false;
   const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
   return matchesSearch && matchesCategory;
 });
@@ -172,7 +172,7 @@ console.log('Total items loaded:', inventoryData.length);
     totalItems: categoryFilteredData.length,
     totalValue: categoryFilteredData.reduce((sum, item) => 
       sum + (typeof item.amount === 'number' ? item.amount : 0), 0),
-    lowStockItems: categoryFilteredData.filter(item => item.stockLeft <= 5).length,
+    lowStockItems: categoryFilteredData.filter(item => item.quantity <= 5).length,
     totalItemsSold: categoryFilteredTransactions.reduce((sum, transaction) => 
       sum + transaction.items.reduce((itemSum: number, item: any) => {
         if (state.selectedCategory === 'All Categories' || item.category === state.selectedCategory) {
@@ -189,7 +189,7 @@ console.log('Total items loaded:', inventoryData.length);
       }, 0);
       return sum + categoryRevenue;
     }, 0),
-    currentInventoryValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.stockLeft), 0)
+    currentInventoryValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0)
   };
 
   // Event handlers
@@ -246,7 +246,7 @@ console.log('Total items loaded:', inventoryData.length);
         const updatedProduct = {
           ...product,
           basePrice: calculatedBasePrice,
-          amount: calculatedBasePrice * product.stockLeft
+          amount: calculatedBasePrice * product.quantity
         };
         
         updatedItems = state.inventoryData.map(item => 
@@ -270,7 +270,7 @@ console.log('Total items loaded:', inventoryData.length);
         updateState({ inventoryData: updatedItems });
         localStorage.setItem('inventoryData', JSON.stringify(updatedItems));
         closeModals();
-        showSuccessToast(`Product "${product.product}" ${isDelete ? 'deleted' : 'updated'} successfully!`);
+        showSuccessToast(`Product "${product.name}" ${isDelete ? 'deleted' : 'updated'} successfully!`);
       } else {
         throw new Error(result.error || `Failed to ${action} product`);
       }
@@ -388,14 +388,14 @@ console.log('Total items loaded:', inventoryData.length);
               >
                 <div className="flex items-center gap-3">
                   {item.image ? (
-                    <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
+                    <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
                   ) : (
                     <div className="w-8 h-8 bg-gray-200 rounded"></div>
                   )}
-                  <span className="text-sm font-medium text-gray-900">{item.product}</span>
+                  <span className="text-sm font-medium text-gray-900">{item.name}</span>
                 </div>
                 
-                <span className="text-sm text-red-600 font-medium">{item.stockLeft} left</span>
+                <span className="text-sm text-red-600 font-medium">{item.quantity} left</span>
               </button>
             ))}
           </div>
@@ -469,7 +469,7 @@ console.log('Total items loaded:', inventoryData.length);
           <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px]">
-          <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.stockLeft <= 5)} />
+          <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.quantity <= 5)} />
         </div>
       </div>
 
@@ -532,15 +532,15 @@ console.log('Total items loaded:', inventoryData.length);
 >
                   <div className="pl-6 flex items-center gap-3">
                     {item.image ? (
-                      <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
+                      <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
                     ) : (
                       <div className="w-8 h-8 bg-gray-200 rounded"></div>
                     )}
-                    <span className="text-sm font-medium text-gray-900">{item.product}</span>
+                    <span className="text-sm font-medium text-gray-900">{item.name}</span>
                   </div>
                   <div className="pl-1 text-sm text-gray-600">{item.category}</div>
-                  <div className="px-3 text-sm text-gray-600">{item.dateAdded}</div>
-                  <div className="pl-6 text-sm text-gray-900">{item.stockLeft}</div>
+                  <div className="px-3 text-sm text-gray-600">{item.lastUpdated}</div>
+                  <div className="pl-6 text-sm text-gray-900">{item.quantity}</div>
                   <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
                   <div className="px-3 text-sm text-gray-900">{item.basePrice ? formatCurrency(item.basePrice) : '-'}</div>
                   <div className="px-3 text-sm text-gray-900">{typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}</div>
@@ -576,7 +576,7 @@ console.log('Total items loaded:', inventoryData.length);
               {/* Form Fields */}
               {[
                 { label: 'Product category', value: state.productToEdit.category, field: 'category', placeholder: 'Start typing...', helper: 'To add a category, press enter after typing the name' },
-                { label: 'Product name', value: state.productToEdit.product, field: 'product', placeholder: 'Enter product name...' },
+                { label: 'Product name', value: state.productToEdit.name, field: 'name', placeholder: 'Enter product name...' },
                 { label: 'Product model', value: state.productToEdit.model || '', field: 'model', placeholder: 'Start typing...' }
               ].map(({ label, value, field, placeholder, helper }) => (
                 <div key={field}>
@@ -656,8 +656,8 @@ console.log('Total items loaded:', inventoryData.length);
 
               {/* Quantity and Low Stock */}
               {[
-                { label: 'Quantity', value: state.productToEdit.stockLeft, field: 'stockLeft' },
-                { label: 'Indicate low-stock', value: state.productToEdit.lowStock || 8, field: 'lowStock' }
+                { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
+                { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
               ].map(({ label, value, field }) => (
                 <div key={field}>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
@@ -704,12 +704,12 @@ console.log('Total items loaded:', inventoryData.length);
             <div className="mb-6 bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 {state.productToDelete.image ? (
-                  <img src={state.productToDelete.image} alt={state.productToDelete.product} className="w-12 h-12 bg-gray-200 rounded object-cover" />
+                  <img src={state.productToDelete.image} alt={state.productToDelete.name} className="w-12 h-12 bg-gray-200 rounded object-cover" />
                 ) : (
                   <div className="w-12 h-12 bg-gray-200 rounded"></div>
                 )}
                 <div>
-                  <p className="font-medium text-gray-900">{state.productToDelete.product}</p>
+                  <p className="font-medium text-gray-900">{state.productToDelete.name}</p>
                   <p className="text-sm text-gray-500">Unit Cost: {formatCurrency(state.productToDelete.unitCost)}</p>
                   {state.productToDelete.basePrice && (
                     <p className="text-sm text-gray-500">Base Price: {formatCurrency(state.productToDelete.basePrice)}</p>
@@ -717,13 +717,13 @@ console.log('Total items loaded:', inventoryData.length);
                 </div>
               </div>
               
-              {state.productToDelete.stockLeft > 0 && (
-                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
-                  <p className="text-sm text-orange-800">
-                    <strong>Warning:</strong> This product has {state.productToDelete.stockLeft} items remaining in stock.
-                  </p>
-                </div>
-              )}
+              {state.productToDelete.quantity > 0 && (
+  <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+    <p className="text-sm text-orange-800">
+      <strong>Warning:</strong> This product has {state.productToDelete.quantity} items remaining in stock.
+    </p>
+  </div>
+)}
             </div>
 
             <div className="flex gap-3 justify-end">
