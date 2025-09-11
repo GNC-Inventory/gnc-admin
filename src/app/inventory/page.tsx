@@ -230,11 +230,11 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
           item.id === product.id ? updatedProduct : item
         );
         
-        response = await fetch('/.netlify/functions/inventory', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inventory: updatedItems })
-        });
+        response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(updatedProduct)
+});
       }
 
       const result = await response.json();
