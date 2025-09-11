@@ -215,6 +215,11 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
     const loadingToastId = showLoadingToast(isDelete ? 'Deleting product...' : 'Updating product...');
     
     try {
+
+       // ADD DEBUGGING HERE:
+      console.log('API Key:', process.env.NEXT_PUBLIC_API_KEY);
+      console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`);
+         
       let updatedItems;
       let response;
       
