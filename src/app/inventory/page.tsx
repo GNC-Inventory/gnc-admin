@@ -364,12 +364,17 @@ const Inventory: React.FC = () => {
 {/* Table Header */}
           <div className="w-[1056px] h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
             <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}>
-              {['Product', 'Category', 'Date Added', 'Stock left', 'Unit cost', 'Base Price', 'Amount', 'Actions'].map((header) => (
-                <div key={header} className="text-sm font-medium text-gray-600 px-3">{header}</div>
-              ))}
+              <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
+              <div className="text-sm font-medium text-gray-600 -ml-2">Category</div>
+              <div className="text-sm font-medium text-gray-600 px-3">Date Added</div>
+              <div className="text-sm font-medium text-gray-600 px-3">Stock left</div>
+              <div className="text-sm font-medium text-gray-600 px-3">Unit cost</div>
+              <div className="text-sm font-medium text-gray-600 px-3">Base Price</div>
+              <div className="text-sm font-medium text-gray-600 px-3">Amount</div>
+              <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
             </div>
           </div>
-
+          
           {/* Table Rows */}
           <div 
             className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-hidden"
