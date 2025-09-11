@@ -90,7 +90,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       updateState({ loading: true, error: null });
 
       const [inventoryResponse, transactionResponse] = await Promise.all([
-  fetch('https://gnc-inventory-backend.onrender.com/admin/inventory', {
+  fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
     headers: { 
       'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
     }
@@ -218,7 +218,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
 
        // ADD DEBUGGING HERE:
       console.log('API Key:', process.env.NEXT_PUBLIC_API_KEY);
-      console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`);
+      console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`);
          
       let updatedItems;
       let response;
@@ -228,7 +228,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
   console.log('Original product ID:', product.id, 'Type:', typeof product.id);
   console.log('Converted product ID:', productId, 'Type:', typeof productId);
   
-  response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${productId}`, {
+  response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${productId}`, {
     method: 'DELETE',
     headers: { 
       'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
@@ -248,7 +248,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
           item.id === product.id ? updatedProduct : item
         );
         
-        response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
+        response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`, {
   method: 'PUT',
   headers: { 
     'Content-Type': 'application/json',
