@@ -121,15 +121,38 @@ const Inventory: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Calculated values - now filtered by selected category
+  const categoryFilteredData = state.inventoryData.filter(item => 
+    state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
+  );
+
+  const categoryFilteredTransactions = state.transactionData.filter(transaction =>
+    transaction.items.some((item: any) => 
+      state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
+    )
+  );
   const stats = {
-    totalItems: state.inventoryData.length,
-    totalValue: state.inventoryData.reduce((sum, item) => 
+    totalItems: categoryFilteredData.length,
+    totalValue: categoryFilteredData.reduce((sum, item) => 
       sum + (typeof item.amount === 'number' ? item.amount : 0), 0),
-    lowStockItems: state.inventoryData.filter(item => item.stockLeft <= 5).length,
-    totalItemsSold: state.transactionData.reduce((sum, transaction) => 
-      sum + transaction.items.reduce((itemSum: number, item: any) => itemSum + item.quantity, 0), 0),
-    totalSalesRevenue: state.transactionData.reduce((sum, transaction) => sum + (transaction.total || 0), 0),
-    currentInventoryValue: state.inventoryData.reduce((sum, item) => sum + (item.unitCost * item.stockLeft), 0)
+    lowStockItems: categoryFilteredData.filter(item => item.stockLeft <= 5).length,
+    totalItemsSold: categoryFilteredTransactions.reduce((sum, transaction) => 
+      sum + transaction.items.reduce((itemSum: number, item: any) => {
+        if (state.selectedCategory === 'All Categories' || item.category === state.selectedCategory) {
+          return itemSum + item.quantity;
+        }
+        return itemSum;
+      }, 0), 0),
+    totalSalesRevenue: categoryFilteredTransactions.reduce((sum, transaction) => {
+      const categoryRevenue = transaction.items.reduce((itemSum: number, item: any) => {
+        if (state.selectedCategory === 'All Categories' || item.category === state.selectedCategory) {
+          return itemSum + (item.price * item.quantity || 0);
+        }
+        return itemSum;
+      }, 0);
+      return sum + categoryRevenue;
+    }, 0),
+    currentInventoryValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.stockLeft), 0)
   };
 
   // Event handlers
