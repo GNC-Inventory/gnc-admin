@@ -387,7 +387,7 @@ const Inventory: React.FC = () => {
             ) : (
               filteredInventoryData.map((item) => (
                 <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}>
-                  <div className="px-3 flex items-center gap-3">
+                  <div className="pl-6 flex items-center gap-3">
                     {item.image ? (
                       <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
                     ) : (
@@ -395,9 +395,9 @@ const Inventory: React.FC = () => {
                     )}
                     <span className="text-sm font-medium text-gray-900">{item.product}</span>
                   </div>
-                  <div className="px-3 text-sm text-gray-600">{item.category}</div>
+                  <div className="pl-1 text-sm text-gray-600">{item.category}</div>
                   <div className="px-3 text-sm text-gray-600">{item.dateAdded}</div>
-                  <div className="px-3 text-sm text-gray-900">{item.stockLeft}</div>
+                  <div className="pr-2 text-sm text-gray-900 text-right">{item.stockLeft}</div>
                   <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
                   <div className="px-3 text-sm text-gray-900">{item.basePrice ? formatCurrency(item.basePrice) : '-'}</div>
                   <div className="px-3 text-sm text-gray-900">{typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}</div>
