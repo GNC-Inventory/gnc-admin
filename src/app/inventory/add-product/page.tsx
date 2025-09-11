@@ -144,32 +144,27 @@ console.log('Request headers:', {
   'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'EMPTY'
 });
 
-const formData = new FormData();
-formData.append('name', product.name);
-formData.append('category', product.category);
-formData.append('make', product.make);
-formData.append('model', product.model);
-formData.append('type', product.type);
-formData.append('capacity', product.capacity);
-formData.append('description', product.description);
-formData.append('unit_cost', product.unitCost.toString());
-formData.append('base_price', product.basePrice.toString());
-formData.append('stock_quantity', product.quantity.toString());
-formData.append('low_stock_threshold', product.lowStock.toString());
-formData.append('locationId', '1');
-
-// Add image file if it exists
-if (product.imageFile) {
-  formData.append('image', product.imageFile);
-}
-
 const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
   method: 'POST',
   headers: {
+    'Content-Type': 'application/json',
     'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
-    // Don't set Content-Type when using FormData - let browser set it
   },
-  body: formData
+  body: JSON.stringify({
+    name: product.name,
+    category: product.category,
+    make: product.make,
+    model: product.model,
+    type: product.type,
+    capacity: product.capacity,
+    description: product.description,
+    image: product.image, // This sends the base64 string
+    unit_cost: product.unitCost,
+    base_price: product.basePrice,
+    stock_quantity: product.quantity,
+    low_stock_threshold: product.lowStock,
+    locationId: 1
+  })
 });
 
 console.log('Response status:', response.status);
