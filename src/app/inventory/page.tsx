@@ -211,11 +211,10 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       let response;
       
       if (isDelete) {
-        response = await fetch('/.netlify/functions/inventory', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: product.id })
-        });
+        response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+    });
         updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
         const profitPercentage = product.profitPercentage || 0;
