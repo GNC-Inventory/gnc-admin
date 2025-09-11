@@ -16,6 +16,7 @@ interface Product {
   capacity: string;
   description: string;
   image: string;
+  imageFile?: File;
   unitCost: number;
   profitPercentage: number;
   basePrice: number;
@@ -143,27 +144,32 @@ console.log('Request headers:', {
   'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'EMPTY'
 });
 
+const formData = new FormData();
+formData.append('name', product.name);
+formData.append('category', product.category);
+formData.append('make', product.make);
+formData.append('model', product.model);
+formData.append('type', product.type);
+formData.append('capacity', product.capacity);
+formData.append('description', product.description);
+formData.append('unit_cost', product.unitCost.toString());
+formData.append('base_price', product.basePrice.toString());
+formData.append('stock_quantity', product.quantity.toString());
+formData.append('low_stock_threshold', product.lowStock.toString());
+formData.append('locationId', '1');
+
+// Add image file if it exists
+if (product.imageFile) {
+  formData.append('image', product.imageFile);
+}
+
 const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
     'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+    // Don't set Content-Type when using FormData - let browser set it
   },
-  body: JSON.stringify({
-    name: product.name,
-    category: product.category,
-    make: product.make,
-    model: product.model,
-    type: product.type,
-    capacity: product.capacity,
-    description: product.description,
-    image_url: product.image || '/products/default.png',
-    unit_cost: product.unitCost,
-    base_price: product.basePrice,
-    stock_quantity: product.quantity,
-    low_stock_threshold: product.lowStock,
-    locationId: 1
-  })
+  body: formData
 });
 
 console.log('Response status:', response.status);
@@ -232,14 +238,27 @@ if (!response.ok) {
     if (value >= 0) setCurrentProduct(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => setCurrentProduct(prev => ({ ...prev, image: e.target?.result as string }));
-      reader.readAsDataURL(file);
-    }
-  };
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    // For now, store the file object instead of base64
+    // We'll send the actual file to the backend
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setCurrentProduct(prev => ({ 
+        ...prev, 
+        image: e.target?.result as string // Keep base64 for preview
+      }));
+    };
+    reader.readAsDataURL(file);
+    
+    // Also store the file object for upload
+    setCurrentProduct(prev => ({ 
+      ...prev, 
+      imageFile: file // Add this new field
+    }));
+  }
+};
 
   const handleNumericInput = (field: 'unitCost' | 'profitPercentage', e: React.ChangeEvent<HTMLInputElement>) => {
     if (field === 'unitCost') {
