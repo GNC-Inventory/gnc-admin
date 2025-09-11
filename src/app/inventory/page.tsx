@@ -130,20 +130,26 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       }
 
   // Transform the data to match your interface
-const transformedInventoryData = inventoryData.map((item: any) => ({
-  id: item.id,
-  name: item.name,                      // Keep as 'name'
-  category: item.category,
-  lastUpdated: item.lastUpdated,        // Keep as 'lastUpdated'
-  quantity: item.quantity,              // Keep as 'quantity'
-  unitCost: item.unitCost || 0,
-  basePrice: item.basePrice,
-  profitPercentage: item.profitPercentage,
-  amount: item.amount || 0,
-  image: item.image,
-  model: item.model,
-  lowStockThreshold: item.lowStockThreshold || 5
-}));
+// Transform the data to match your interface
+const transformedInventoryData = inventoryData.map((item: any) => {
+  console.log('Transforming item:', item); // Debug each item
+  return {
+    id: item.id?.toString() || '',
+    name: item.name || '',                    
+    category: item.category || '',
+    lastUpdated: item.lastUpdated || '',        
+    quantity: item.quantity || 0,              
+    unitCost: item.unitCost || 0,
+    basePrice: item.basePrice || 0,
+    profitPercentage: item.profitPercentage || 0,
+    amount: item.amount || 0,
+    image: item.image || '',
+    model: item.model || '',
+    lowStockThreshold: item.lowStockThreshold || 5
+  };
+});
+
+console.log('Transformed data:', transformedInventoryData);
 
 updateState({ inventoryData: transformedInventoryData, transactionData });
       // ADD DEBUGGING HERE:
