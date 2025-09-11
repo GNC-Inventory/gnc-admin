@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, Search, Trash2, Edit, Info } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, Search, Trash2, Edit, Info, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
@@ -30,22 +30,26 @@ const categories = ['All Categories', 'Building Materials', 'Electricals', 'Elec
 const Inventory: React.FC = () => {
   // Consolidated state
   const [state, setState] = useState({
-    selectedPeriod: 'Today',
-    selectedCategory: 'All Categories',
-    dropdownOpen: false,
-    categoryDropdownOpen: false,
-    searchQuery: '',
-    inventoryData: [] as InventoryItem[],
-    transactionData: [] as any[],
-    loading: true,
-    error: null as string | null,
-    showDeleteModal: false,
-    showEditModal: false,
-    productToDelete: null as InventoryItem | null,
-    productToEdit: null as InventoryItem | null,
-    isDeleting: false,
-    isUpdating: false,
-  });
+  selectedPeriod: 'Today',
+  selectedCategory: 'All Categories',
+  dropdownOpen: false,
+  categoryDropdownOpen: false,
+  searchQuery: '',
+  inventoryData: [] as InventoryItem[],
+  transactionData: [] as any[],
+  loading: true,
+  error: null as string | null,
+  showDeleteModal: false,
+  showEditModal: false,
+  productToDelete: null as InventoryItem | null,
+  productToEdit: null as InventoryItem | null,
+  isDeleting: false,
+  isUpdating: false,
+  lowStockDropdownOpen: false,
+  highlightedItemId: null as string | null,
+});
+
+const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // Utility functions
   const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
