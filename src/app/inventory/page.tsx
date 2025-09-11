@@ -133,7 +133,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
 // Transform the data to match your interface
 const transformedInventoryData = inventoryData.map((item: any) => {
   console.log('Transforming item:', item);
-  console.log('Item image data:', item.product?.image);
+  console.log('Item image data:', item.product?.imageUrl);
   return {
     id: item.id?.toString() || '',
     name: item.product?.name || '',                    
@@ -144,7 +144,7 @@ const transformedInventoryData = inventoryData.map((item: any) => {
     basePrice: item.product?.basePrice || 0,          // Added: from product object
     profitPercentage: item.profitPercentage || 0,
     amount: (item.product?.basePrice || 0) * (item.quantity || 0), // Calculate amount
-    image: item.product?.image || '',                  // Added: from product object
+    image: item.product?.imageUrl || '',                  // Added: from product object
     model: item.product?.model || '',                  
     lowStockThreshold: item.lowStockThreshold || 5
   };
