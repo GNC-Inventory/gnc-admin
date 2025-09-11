@@ -363,7 +363,7 @@ const Inventory: React.FC = () => {
         <div className="overflow-x-auto">
           {/* Table Header */}
           <div className="w-[1056px] h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
-            <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 160px 100px 120px 120px 120px 120px' }}>
+            <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}>
               {['Product', 'Category', 'Date Added', 'Stock left', 'Unit cost', 'Base Price', 'Amount', 'Actions'].map((header) => (
                 <div key={header} className="text-sm font-medium text-gray-600 px-3">{header}</div>
               ))}
@@ -386,7 +386,7 @@ const Inventory: React.FC = () => {
               </div>
             ) : (
               filteredInventoryData.map((item) => (
-                <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '200px 120px 160px 100px 120px 120px 120px 120px' }}>
+                <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}>
                   <div className="px-3 flex items-center gap-3">
                     {item.image ? (
                       <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
