@@ -358,7 +358,7 @@ if (!response.ok) {
             {/* New Fields */}
             {[
               { label: 'Name', field: 'name', placeholder: 'Enter product name...' },
-              { label: 'Make', field: 'make', placeholder: 'Enter make...' },
+              { label: 'Brand', field: 'make', placeholder: 'Enter Brand...' },
               { label: 'Model', field: 'model', placeholder: 'Enter model...' },
               { label: 'Type', field: 'type', placeholder: 'Enter type...' },
               { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' }
