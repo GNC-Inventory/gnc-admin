@@ -402,7 +402,7 @@ const Inventory: React.FC = () => {
                   </div>
                   <div className="pl-1 text-sm text-gray-600">{item.category}</div>
                   <div className="px-3 text-sm text-gray-600">{item.dateAdded}</div>
-                  <div className="pl-4 text-sm text-gray-900">{item.stockLeft}</div>
+                  <div className="pl-6 text-sm text-gray-900">{item.stockLeft}</div>
                   <div className="px-3 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
                   <div className="px-3 text-sm text-gray-900">{item.basePrice ? formatCurrency(item.basePrice) : '-'}</div>
                   <div className="px-3 text-sm text-gray-900">{typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}</div>
