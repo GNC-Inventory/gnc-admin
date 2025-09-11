@@ -361,7 +361,7 @@ const Inventory: React.FC = () => {
         <h2 className="font-medium text-lg text-[#0A0D14] mb-4">Inventory</h2>
 
         <div className="overflow-x-auto">
-          {/* Table Header */}
+{/* Table Header */}
           <div className="w-[1056px] h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
             <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}>
               {['Product', 'Category', 'Date Added', 'Stock left', 'Unit cost', 'Base Price', 'Amount', 'Actions'].map((header) => (
