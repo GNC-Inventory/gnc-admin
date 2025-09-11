@@ -371,7 +371,7 @@ const Inventory: React.FC = () => {
           </div>
 
           {/* Table Rows */}
-          <div className="space-y-1">
+          <div className="space-y-1 max-h-[400px] overflow-y-auto">
             {filteredInventoryData.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 {state.searchQuery || state.selectedCategory !== 'All Categories' 
