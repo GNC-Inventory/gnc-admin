@@ -173,6 +173,13 @@ console.log('Total items loaded:', inventoryData.length);
   return matchesSearch && matchesCategory;
 });
 
+// ADD THIS DEBUGGING:
+console.log('Raw inventory data:', state.inventoryData);
+console.log('Filtered inventory data:', filteredInventoryData);
+console.log('Search query:', state.searchQuery);
+console.log('Selected category:', state.selectedCategory);
+console.log('First filtered item:', filteredInventoryData[0]);
+
   // Calculated values - now filtered by selected category
   const categoryFilteredData = state.inventoryData.filter(item => 
     state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
