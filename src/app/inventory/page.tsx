@@ -129,8 +129,23 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         if (localTransactions) transactionData = JSON.parse(localTransactions);
       }
 
-      updateState({ inventoryData, transactionData });
+      // Transform the data to match your interface
+const transformedInventoryData = inventoryData.map((item: any) => ({
+  id: item.id,
+  product: item.name,                    // name → product
+  category: item.category,
+  dateAdded: item.lastUpdated,           // lastUpdated → dateAdded
+  stockLeft: item.quantity,              // quantity → stockLeft
+  unitCost: item.unitCost || 0,
+  basePrice: item.basePrice,
+  profitPercentage: item.profitPercentage,
+  amount: item.amount || 0,
+  image: item.image,
+  model: item.model,
+  lowStock: item.lowStockThreshold || 5
+}));
 
+updateState({ inventoryData: transformedInventoryData, transactionData });
       // ADD DEBUGGING HERE:
 console.log('Inventory data:', inventoryData);
 console.log('First item:', inventoryData[0]);
