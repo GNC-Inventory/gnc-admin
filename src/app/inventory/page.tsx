@@ -224,12 +224,15 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       let response;
       
       if (isDelete) {
+
+        console.log('Deleting product with ID:', product.id, 'Type:', typeof product.id);
+
         response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
   method: 'DELETE',
   headers: { 
-    'Content-Type': 'application/json',
     'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
   }
+  // Remove Content-Type header and don't send any body for DELETE
 });
         updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
