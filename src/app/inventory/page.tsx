@@ -90,9 +90,9 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       updateState({ loading: true, error: null });
 
       const [inventoryResponse, transactionResponse] = await Promise.all([
-        fetch('/.netlify/functions/inventory'),
-        fetch('/.netlify/functions/inventory/transactions')
-      ]);
+        fetch('https://gnc-inventory-backend.onrender.com/admin/inventory'),
+        fetch('https://gnc-inventory-backend.onrender.com/admin/inventory/transactions') // You'll need to check if this endpoint exists
+    ]);
 
       let inventoryData = [];
       let transactionData = [];
@@ -231,7 +231,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         );
         
         response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
-  method: 'PUT',
+        method: 'PUT',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(updatedProduct)
 });
