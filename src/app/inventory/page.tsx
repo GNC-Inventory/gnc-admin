@@ -220,9 +220,12 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       
       if (isDelete) {
         response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-    });
+  method: 'DELETE',
+  headers: { 
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+  }
+});
         updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
         const profitPercentage = product.profitPercentage || 0;
@@ -238,8 +241,11 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         );
         
         response = await fetch(`https://gnc-inventory-backend.onrender.com/admin/inventory/${product.id}`, {
-        method: 'PUT',
-  headers: { 'Content-Type': 'application/json' },
+  method: 'PUT',
+  headers: { 
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+  },
   body: JSON.stringify(updatedProduct)
 });
       }
