@@ -368,8 +368,8 @@ const Inventory: React.FC = () => {
               <div className="text-sm font-medium text-gray-600 ml-1">Category</div>
               <div className="text-sm font-medium text-gray-600 px-3">Date Added</div>
               <div className="text-sm font-medium text-gray-600 pr-3 pl-1">Stock left</div>
-              <div className="text-sm font-medium text-gray-600 px-3">Unit cost</div>
-              <div className="text-sm font-medium text-gray-600 px-3">Base Price</div>
+              <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
+              <div className="text-sm font-medium text-gray-600 px-1">Base Price</div>
               <div className="text-sm font-medium text-gray-600 px-3">Amount</div>
               <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
             </div>
