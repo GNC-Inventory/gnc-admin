@@ -270,42 +270,27 @@ console.log('First filtered item:', filteredInventoryData[0]);
   });
   updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
-  const profitPercentage = product.profitPercentage || 0;
-  const calculatedBasePrice = product.unitCost * (1 + profitPercentage / 100);
-  
-  // Structure the data to match what the backend expects
-  const updatePayload = {
-    quantity: product.quantity,
-    lowStockThreshold: product.lowStockThreshold,
-    product: {
-      name: product.name,
-      category: product.category,
-      model: product.model,
-      unitCost: product.unitCost,
-      basePrice: calculatedBasePrice,
-      imageUrl: product.image || null
-    }
-  };
-  
-  const updatedProduct = {
-    ...product,
-    basePrice: calculatedBasePrice,
-    amount: calculatedBasePrice * product.quantity
-  };
-  
-  updatedItems = state.inventoryData.map(item => 
-    item.id === product.id ? updatedProduct : item
-  );
-  
-  response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`, {
-    method: 'PUT',
-    headers: { 
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
-    },
-    body: JSON.stringify(updatePayload)
-  });
-}
+        const profitPercentage = product.profitPercentage || 0;
+        const calculatedBasePrice = product.unitCost * (1 + profitPercentage / 100);
+        const updatedProduct = {
+          ...product,
+          basePrice: calculatedBasePrice,
+          amount: calculatedBasePrice * product.quantity
+        };
+        
+        updatedItems = state.inventoryData.map(item => 
+          item.id === product.id ? updatedProduct : item
+        );
+        
+        response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`, {
+  method: 'PUT',
+  headers: { 
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+  },
+  body: JSON.stringify(updatedProduct)
+});
+      }
 
       const result = await response.json();
       dismissToast(loadingToastId);
