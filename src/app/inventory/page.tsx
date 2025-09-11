@@ -536,13 +536,14 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       {/* Edit Modal */}
       {state.showEditModal && state.productToEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div 
-  className="bg-white rounded-[32px] p-6 w-[727px] h-[700px] max-h-[90vh] overflow-y-auto"
-  style={{
-    scrollbarWidth: 'thin',
-    scrollbarColor: '#d1d5db #f3f4f6'
-  }}
->
+          <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
+            <div 
+              className="p-6 h-full overflow-y-auto"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#d1d5db #f3f4f6'
+                }}
+                >
             <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
             
             <div className="space-y-6">
@@ -665,6 +666,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
             </div>
           </div>
         </div>
+         </div>
       )}
 
       {/* Delete Modal */}
