@@ -135,16 +135,16 @@ const transformedInventoryData = inventoryData.map((item: any) => {
   console.log('Transforming item:', item);
   return {
     id: item.id?.toString() || '',
-    name: item.product?.name || '',                    // Changed: item.product.name
-    category: item.product?.category || '',            // Changed: item.product.category
+    name: item.product?.name || '',                    
+    category: item.product?.category || '',            
     lastUpdated: item.lastUpdated || '',        
     quantity: item.quantity || 0,              
-    unitCost: item.unitCost || 0,
-    basePrice: item.basePrice || 0,
+    unitCost: item.product?.unitCost || 0,             // Added: from product object
+    basePrice: item.product?.basePrice || 0,          // Added: from product object
     profitPercentage: item.profitPercentage || 0,
-    amount: item.amount || 0,
-    image: item.image || '',
-    model: item.product?.model || '',                  // Changed: item.product.model
+    amount: (item.product?.basePrice || 0) * (item.quantity || 0), // Calculate amount
+    image: item.product?.image || '',                  // Added: from product object
+    model: item.product?.model || '',                  
     lowStockThreshold: item.lowStockThreshold || 5
   };
 });
