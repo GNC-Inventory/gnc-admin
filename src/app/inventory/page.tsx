@@ -133,6 +133,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
 // Transform the data to match your interface
 const transformedInventoryData = inventoryData.map((item: any) => {
   console.log('Transforming item:', item);
+  console.log('Item image data:', item.product?.image);
   return {
     id: item.id?.toString() || '',
     name: item.product?.name || '',                    
