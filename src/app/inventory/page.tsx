@@ -324,16 +324,7 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
     </div>
   );
 
-  if (state.loading) {
-    return (
-      <div className="bg-gray-50 min-h-full p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading inventory...</p>
-        </div>
-      </div>
-    );
-    // Low Stock Dropdown Component
+// Low Stock Dropdown Component
   const LowStockDropdown = ({ lowStockItems }: { lowStockItems: InventoryItem[] }) => (
     <div className="relative w-full h-full">
       <button
@@ -386,6 +377,17 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       )}
     </div>
   );
+
+  if (state.loading) {
+    return (
+      <div className="bg-gray-50 min-h-full p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading inventory...</p>
+        </div>
+      </div>
+    );
+    
   }
 
   return (
@@ -440,8 +442,8 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
           <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
         </div>
-        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <LowInStockCard itemCount={stats.lowStockItems} />
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px]">
+          <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.stockLeft <= 5)} />
         </div>
       </div>
 
@@ -479,12 +481,13 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
 
           {/* Table Rows */}
           <div 
-            className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-hidden"
-            style={{
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#d1d5db #f3f4f6'
-            }}
-          >
+  ref={tableContainerRef}
+  className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-hidden"
+  style={{
+    scrollbarWidth: 'thin',
+    scrollbarColor: '#d1d5db #f3f4f6'
+  }}
+>
             {filteredInventoryData.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 {state.searchQuery || state.selectedCategory !== 'All Categories' 
@@ -493,7 +496,14 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
               </div>
             ) : (
               filteredInventoryData.map((item) => (
-                <div key={item.id} className="grid items-center py-4 border-b border-gray-100 hover:bg-gray-50" style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}>
+                <div 
+  key={item.id} 
+  data-item-id={item.id}
+  className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+    state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
+  }`} 
+  style={{ gridTemplateColumns: '220px 140px 150px 90px 110px 110px 120px 116px' }}
+>
                   <div className="pl-6 flex items-center gap-3">
                     {item.image ? (
                       <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
