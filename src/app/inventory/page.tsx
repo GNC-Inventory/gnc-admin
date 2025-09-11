@@ -132,11 +132,11 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
   // Transform the data to match your interface
 // Transform the data to match your interface
 const transformedInventoryData = inventoryData.map((item: any) => {
-  console.log('Transforming item:', item); // Debug each item
+  console.log('Transforming item:', item);
   return {
     id: item.id?.toString() || '',
-    name: item.name || '',                    
-    category: item.category || '',
+    name: item.product?.name || '',                    // Changed: item.product.name
+    category: item.product?.category || '',            // Changed: item.product.category
     lastUpdated: item.lastUpdated || '',        
     quantity: item.quantity || 0,              
     unitCost: item.unitCost || 0,
@@ -144,7 +144,7 @@ const transformedInventoryData = inventoryData.map((item: any) => {
     profitPercentage: item.profitPercentage || 0,
     amount: item.amount || 0,
     image: item.image || '',
-    model: item.model || '',
+    model: item.product?.model || '',                  // Changed: item.product.model
     lowStockThreshold: item.lowStockThreshold || 5
   };
 });
