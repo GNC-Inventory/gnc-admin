@@ -148,10 +148,10 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculated values
   const filteredInventoryData = state.inventoryData.filter(item => {
-    const matchesSearch = item.product.toLowerCase().includes(state.searchQuery.toLowerCase());
-    const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const matchesSearch = item.product?.toLowerCase().includes(state.searchQuery.toLowerCase()) || false;
+  const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
+  return matchesSearch && matchesCategory;
+});
 
   // Calculated values - now filtered by selected category
   const categoryFilteredData = state.inventoryData.filter(item => 
