@@ -131,6 +131,11 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
 
       updateState({ inventoryData, transactionData });
 
+      // ADD DEBUGGING HERE:
+console.log('Inventory data:', inventoryData);
+console.log('First item:', inventoryData[0]);
+console.log('Total items loaded:', inventoryData.length);
+
     } catch (err) {
       updateState({ error: 'Failed to load data' });
       const localInventory = localStorage.getItem('inventoryData');
