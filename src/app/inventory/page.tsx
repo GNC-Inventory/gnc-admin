@@ -90,9 +90,17 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       updateState({ loading: true, error: null });
 
       const [inventoryResponse, transactionResponse] = await Promise.all([
-        fetch('https://gnc-inventory-backend.onrender.com/admin/inventory'),
-        fetch('https://gnc-inventory-backend.onrender.com/admin/inventory/transactions') // You'll need to check if this endpoint exists
-    ]);
+  fetch('https://gnc-inventory-backend.onrender.com/admin/inventory', {
+    headers: { 
+      'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+    }
+  }),
+  fetch('https://gnc-inventory-backend.onrender.com/api/sales', {
+    headers: { 
+      'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+    }
+  })
+]);
 
       let inventoryData = [];
       let transactionData = [];
