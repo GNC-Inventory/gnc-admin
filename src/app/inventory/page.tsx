@@ -61,6 +61,26 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
   };
   const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
 
+  // Scroll to specific item in table
+  const scrollToItem = (itemId: string) => {
+    updateState({ highlightedItemId: itemId, lowStockDropdownOpen: false });
+    
+    setTimeout(() => {
+      const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+      if (itemElement && tableContainerRef.current) {
+        itemElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+      
+      // Clear highlight after 3 seconds
+      setTimeout(() => {
+        updateState({ highlightedItemId: null });
+      }, 3000);
+    }, 100);
+  };
+
   // Update state helper
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
 
@@ -313,6 +333,59 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         </div>
       </div>
     );
+    // Low Stock Dropdown Component
+  const LowStockDropdown = ({ lowStockItems }: { lowStockItems: InventoryItem[] }) => (
+    <div className="relative w-full h-full">
+      <button
+        onClick={() => updateState({ lowStockDropdownOpen: !state.lowStockDropdownOpen })}
+        className="w-full h-full flex flex-col items-start justify-center p-4 hover:bg-gray-50 transition-colors rounded-[32px]"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+          <span className="text-sm text-gray-600">Low in stock</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold text-gray-900">{lowStockItems.length}</span>
+          <span className="text-sm text-gray-600">items</span>
+          {state.lowStockDropdownOpen ? (
+            <ChevronUp className="w-4 h-4 text-gray-500 ml-auto" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-500 ml-auto" />
+          )}
+        </div>
+      </button>
+
+      {state.lowStockDropdownOpen && lowStockItems.length > 0 && (
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-[20px] shadow-lg z-50 max-h-60 overflow-y-auto">
+          <div className="p-3 border-b border-gray-100">
+            <span className="text-sm font-medium text-gray-900">Low Stock Items</span>
+          </div>
+          
+          <div className="p-2">
+            {lowStockItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => scrollToItem(item.id)}
+                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  {item.image ? (
+                    <img src={item.image} alt={item.product} className="w-8 h-8 bg-gray-200 rounded object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                  )}
+                  <span className="text-sm font-medium text-gray-900">{item.product}</span>
+                </div>
+                
+                <span className="text-sm text-red-600 font-medium">{item.stockLeft} left</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
   }
 
   return (
@@ -326,6 +399,8 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
           </button>
         </div>
       )}
+
+      
 
       {/* Header with Filters */}
       <div className="mb-6 flex items-center gap-4">
