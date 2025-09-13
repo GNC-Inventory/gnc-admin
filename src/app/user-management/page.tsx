@@ -61,19 +61,27 @@ export default function UserManagementPage() {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Create user
+  // Create user - handles both admin and salesman creation
   const handleCreateUser = async (userData: any) => {
-    const loadingToastId = showLoadingToast('Creating user...');
+    const loadingToastId = showLoadingToast(`Creating ${userData.role.toLowerCase()}...`);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`, {
+      // Choose endpoint based on role
+      const endpoint = userData.role === 'ADMIN' 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/users/admin`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`;
+      
+      // Prepare request body (remove role from body as backend expects it in the logic)
+      const { role, ...requestData } = userData;
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(requestData),
       });
       const data = await response.json();
       
@@ -83,13 +91,13 @@ export default function UserManagementPage() {
         await fetchUsers();
         return { tempPassword: data.data.tempPassword };
       } else {
-        showErrorToast(data.error?.message || 'Failed to create user');
-        throw new Error(data.error?.message || 'Failed to create user');
+        showErrorToast(data.error?.message || `Failed to create ${userData.role.toLowerCase()}`);
+        throw new Error(data.error?.message || `Failed to create ${userData.role.toLowerCase()}`);
       }
     } catch (error) {
       dismissToast(loadingToastId);
       console.error('Error creating user:', error);
-      showErrorToast('Error creating user. Please try again.');
+      showErrorToast(`Error creating ${userData.role.toLowerCase()}. Please try again.`);
       throw error;
     }
   };
@@ -233,7 +241,9 @@ export default function UserManagementPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                              user.role === 'ADMIN' ? 'bg-purple-600' : 'bg-blue-600'
+                            }`}>
                               <span className="text-white text-sm font-medium">
                                 {user.firstName[0]}{user.lastName[0]}
                               </span>
@@ -248,7 +258,13 @@ export default function UserManagementPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          user.role === 'ADMIN' 
+                            ? 'bg-purple-100 text-purple-800' 
+                            : user.role === 'MANAGER'
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
                           {user.role}
                         </span>
                       </td>
