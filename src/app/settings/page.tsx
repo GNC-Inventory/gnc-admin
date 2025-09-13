@@ -45,15 +45,18 @@ export default function SettingsPage() {
     setIsLoading(true);
 
     try {
-      // Here you would call an API to update profile
-      // For now, just update local state
-      updateUser({
-        firstName: profileData.firstName,
-        lastName: profileData.lastName,
-        phone: profileData.phone,
-      });
       
-      setMessage('Profile updated successfully');
+      const token = authService.getStoredToken();
+if (!token) throw new Error('No authentication token');
+
+const updatedUser = await authService.updateProfile(token, {
+  firstName: profileData.firstName,
+  lastName: profileData.lastName,
+  phone: profileData.phone,
+});
+
+updateUser(updatedUser);
+setMessage('Profile updated successfully');
     } catch (error) {
       setError('Failed to update profile');
     } finally {
