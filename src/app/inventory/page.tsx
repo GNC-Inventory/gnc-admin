@@ -530,141 +530,144 @@ console.log('First filtered item:', filteredInventoryData[0]);
         <div className="overflow-x-auto">
 
 
-{/* Table Header - Updated with new columns */}
-<div className="w-full h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center overflow-x-auto">
-  <div className="grid items-center h-full min-w-max" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
-    <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Brand</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Model</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Type</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Description</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Category</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Date Added</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Profit %</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Base Price</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Low Stock</div>
-    <div className="text-sm font-medium text-gray-600 px-2">Amount</div>
-    <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
-  </div>
-</div>
-
-
-
-{/* Table Rows - Updated with new columns */}
-<div 
-  ref={tableContainerRef}
-  className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-auto"
-  style={{
-    scrollbarWidth: 'thin',
-    scrollbarColor: '#d1d5db #f3f4f6'
-  }}
->
-  {filteredInventoryData.length === 0 ? (
-    <div className="text-center py-8 text-gray-500">
-      {state.searchQuery || state.selectedCategory !== 'All Categories' 
-        ? 'No items found matching your filters.' 
-        : 'No inventory items found. Add products to get started.'}
-    </div>
-  ) : (
-    filteredInventoryData.map((item) => (
-      <div 
-        key={item.id} 
-        data-item-id={item.id}
-        className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors min-w-max ${
-          state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
-        }`} 
-        style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}
-      >
-        {/* Product */}
-        <div className="pl-6 flex items-center gap-3">
-          {item.image ? (
-            <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
-          ) : (
-            <div className="w-8 h-8 bg-gray-200 rounded"></div>
-          )}
-          <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
-        </div>
-        
-        {/* Brand */}
-        <div className="px-2 text-sm text-gray-600 truncate" title={item.make || '-'}>
-          {item.make || '-'}
-        </div>
-        
-        {/* Model */}
-        <div className="px-2 text-sm text-gray-600 truncate" title={item.model || '-'}>
-          {item.model || '-'}
-        </div>
-        
-        {/* Type */}
-        <div className="px-2 text-sm text-gray-600 truncate" title={item.type || '-'}>
-          {item.type || '-'}
-        </div>
-        
-        {/* Capacity */}
-        <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
-          {item.capacity || '-'}
-        </div>
-        
-        {/* Description with tooltip */}
-        <div className="px-2 text-sm text-gray-600 relative group cursor-help">
-          <span className="truncate block" style={{ maxWidth: '120px' }}>
-            {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
-          </span>
-          {item.description && item.description.length > 15 && (
-            <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-normal max-w-xs shadow-lg">
-              {item.description}
-              <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
-            </div>
-          )}
-        </div>
-        
-        {/* Category */}
-        <div className="px-2 text-sm text-gray-600 truncate">{item.category}</div>
-        
-        {/* Date Added */}
-        <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
-        
-        {/* Stock left */}
-        <div className="px-2 text-sm text-gray-900">{item.quantity}</div>
-        
-        {/* Unit cost */}
-        <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
-        
-        {/* Profit Percentage */}
-        <div className="px-2 text-sm text-gray-600">
-          {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
-        </div>
-        
-        {/* Base Price */}
-        <div className="px-2 text-sm text-gray-900">
-          {item.basePrice ? formatCurrency(item.basePrice) : '-'}
-        </div>
-        
-        {/* Low Stock Threshold */}
-        <div className="px-2 text-sm text-gray-600">
-          {item.lowStockThreshold || '-'}
-        </div>
-        
-        {/* Amount */}
-        <div className="px-2 text-sm text-gray-900">
-          {typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}
-        </div>
-        
-        {/* Actions */}
-        <div className="px-3 flex gap-2">
-          <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
-            <Edit className="w-4 h-4" />
-          </button>
-          <button onClick={() => openModal('delete', item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+{/* Table Container with synchronized horizontal scrolling */}
+<div className="overflow-x-auto">
+  <div className="min-w-max">
+    {/* Table Header - Fixed, no separate scroll */}
+    <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
+      <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
+        <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Brand</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Model</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Type</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Description</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Category</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Date Added</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Profit %</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Base Price</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Low Stock</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Amount</div>
+        <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
       </div>
-    ))
-  )}
+    </div>
+
+    {/* Table Rows - Only vertical scroll, no horizontal scroll */}
+    <div 
+      ref={tableContainerRef}
+      className="space-y-1 max-h-[400px] overflow-y-auto"
+      style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#d1d5db #f3f4f6'
+      }}
+    >
+      {filteredInventoryData.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          {state.searchQuery || state.selectedCategory !== 'All Categories' 
+            ? 'No items found matching your filters.' 
+            : 'No inventory items found. Add products to get started.'}
+        </div>
+      ) : (
+        filteredInventoryData.map((item) => (
+          <div 
+            key={item.id} 
+            data-item-id={item.id}
+            className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+              state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
+            }`} 
+            style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}
+          >
+            {/* Product */}
+            <div className="pl-6 flex items-center gap-3">
+              {item.image ? (
+                <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
+              ) : (
+                <div className="w-8 h-8 bg-gray-200 rounded"></div>
+              )}
+              <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
+            </div>
+            
+            {/* Brand */}
+            <div className="px-2 text-sm text-gray-600 truncate" title={item.make || '-'}>
+              {item.make || '-'}
+            </div>
+            
+            {/* Model */}
+            <div className="px-2 text-sm text-gray-600 truncate" title={item.model || '-'}>
+              {item.model || '-'}
+            </div>
+            
+            {/* Type */}
+            <div className="px-2 text-sm text-gray-600 truncate" title={item.type || '-'}>
+              {item.type || '-'}
+            </div>
+            
+            {/* Capacity */}
+            <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
+              {item.capacity || '-'}
+            </div>
+            
+            {/* Description with tooltip */}
+            <div className="px-2 text-sm text-gray-600 relative group cursor-help">
+              <span className="truncate block" style={{ maxWidth: '120px' }}>
+                {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
+              </span>
+              {item.description && item.description.length > 15 && (
+                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-normal max-w-xs shadow-lg">
+                  {item.description}
+                  <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+              )}
+            </div>
+            
+            {/* Category */}
+            <div className="px-2 text-sm text-gray-600 truncate">{item.category}</div>
+            
+            {/* Date Added */}
+            <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
+            
+            {/* Stock left */}
+            <div className="px-2 text-sm text-gray-900">{item.quantity}</div>
+            
+            {/* Unit cost */}
+            <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
+            
+            {/* Profit Percentage */}
+            <div className="px-2 text-sm text-gray-600">
+              {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
+            </div>
+            
+            {/* Base Price */}
+            <div className="px-2 text-sm text-gray-900">
+              {item.basePrice ? formatCurrency(item.basePrice) : '-'}
+            </div>
+            
+            {/* Low Stock Threshold */}
+            <div className="px-2 text-sm text-gray-600">
+              {item.lowStockThreshold || '-'}
+            </div>
+            
+            {/* Amount */}
+            <div className="px-2 text-sm text-gray-900">
+              {typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}
+            </div>
+            
+            {/* Actions */}
+            <div className="px-3 flex gap-2">
+              <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
+                <Edit className="w-4 h-4" />
+              </button>
+              <button onClick={() => openModal('delete', item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
 </div>
         </div>
       </div>
