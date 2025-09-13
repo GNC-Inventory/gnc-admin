@@ -61,41 +61,46 @@ export default function UserManagementPage() {
   );
 
   // Create user
-  const handleCreateUser = async (userData: any) => {
-    const loadingToastId = showLoadingToast('Creating user...');
+const handleCreateUser = async (userData: any) => {
+  const loadingToastId = showLoadingToast('Creating user...');
+  
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
+      },
+      body: JSON.stringify(userData),
+    });
+    const data = await response.json();
     
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
-        },
-        body: JSON.stringify(userData),
-      });
-      const data = await response.json();
+    dismissToast(loadingToastId);
+    
+    if (data.success) {
+      await fetchUsers();
+      // Don't close modal here - let the modal handle it
+      // Remove these lines:
+      // setShowCreateModal(false);
+      // showSuccessToast(`User ${userData.firstName} ${userData.lastName} created successfully!`);
+      // setTimeout(() => {
+      //   showWarningToast(`Temporary password for ${userData.email}: ${data.data.tempPassword}`);
+      // }, 1000);
       
-      dismissToast(loadingToastId);
-      
-      if (data.success) {
-        await fetchUsers();
-        setShowCreateModal(false);
-        showSuccessToast(`User ${userData.firstName} ${userData.lastName} created successfully!`);
-        
-        // Show temp password in a separate success toast
-        setTimeout(() => {
-          showWarningToast(`Temporary password for ${userData.email}: ${data.data.tempPassword}`);
-        }, 1000);
-      } else {
-        showErrorToast(data.error?.message || 'Failed to create user');
-      }
-    } catch (error) {
-      dismissToast(loadingToastId);
-      console.error('Error creating user:', error);
-      showErrorToast('Error creating user. Please try again.');
+      // Return the password data to the modal instead:
+      return { tempPassword: data.data.tempPassword };
+    } else {
+      showErrorToast(data.error?.message || 'Failed to create user');
+      throw new Error(data.error?.message || 'Failed to create user');
     }
-  };
+  } catch (error) {
+    dismissToast(loadingToastId);
+    console.error('Error creating user:', error);
+    showErrorToast('Error creating user. Please try again.');
+    throw error; // Let the modal handle the error
+  }
+};
 
   // Delete user
   const handleDeleteUser = async (userId: number) => {
