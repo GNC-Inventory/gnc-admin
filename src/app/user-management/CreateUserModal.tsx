@@ -13,7 +13,7 @@ interface CreateUserModalProps {
     lastName: string;
     phone?: string;
     employeeId?: string;
-  }) => Promise<void>;
+   }) => Promise<{ tempPassword: string }>;
 }
 
 interface PasswordDisplayModalProps {
