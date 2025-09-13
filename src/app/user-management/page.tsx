@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Plus, Search, MoreVertical, Trash2, LogOut, Key } from 'lucide-react';
-import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
+import CreateUserModal from './CreateUserModal';
+import { Plus, Search, MoreVertical, Trash2, LogOut } from 'lucide-react';
+import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from '@/utils/toast';
 
 interface User {
   id: number;
@@ -61,53 +62,43 @@ export default function UserManagementPage() {
   );
 
   // Create user
-const handleCreateUser = async (userData: any) => {
-  const loadingToastId = showLoadingToast('Creating user...');
-  
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
-      },
-      body: JSON.stringify(userData),
-    });
-    const data = await response.json();
+  const handleCreateUser = async (userData: any) => {
+    const loadingToastId = showLoadingToast('Creating user...');
     
-    dismissToast(loadingToastId);
-    
-    if (data.success) {
-      await fetchUsers();
-      // Don't close modal here - let the modal handle it
-      // Remove these lines:
-      // setShowCreateModal(false);
-      // showSuccessToast(`User ${userData.firstName} ${userData.lastName} created successfully!`);
-      // setTimeout(() => {
-      //   showWarningToast(`Temporary password for ${userData.email}: ${data.data.tempPassword}`);
-      // }, 1000);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
+        },
+        body: JSON.stringify(userData),
+      });
+      const data = await response.json();
       
-      // Return the password data to the modal instead:
-      return { tempPassword: data.data.tempPassword };
-    } else {
-      showErrorToast(data.error?.message || 'Failed to create user');
-      throw new Error(data.error?.message || 'Failed to create user');
+      dismissToast(loadingToastId);
+      
+      if (data.success) {
+        await fetchUsers();
+        return { tempPassword: data.data.tempPassword };
+      } else {
+        showErrorToast(data.error?.message || 'Failed to create user');
+        throw new Error(data.error?.message || 'Failed to create user');
+      }
+    } catch (error) {
+      dismissToast(loadingToastId);
+      console.error('Error creating user:', error);
+      showErrorToast('Error creating user. Please try again.');
+      throw error;
     }
-  } catch (error) {
-    dismissToast(loadingToastId);
-    console.error('Error creating user:', error);
-    showErrorToast('Error creating user. Please try again.');
-    throw error; // Let the modal handle the error
-  }
-};
+  };
 
   // Delete user
   const handleDeleteUser = async (userId: number) => {
     const user = users.find(u => u.id === userId);
     if (!user) return;
     
-    // Using a custom confirm dialog through toast
     const confirmDelete = window.confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}? This action cannot be undone.`);
     if (!confirmDelete) return;
     
@@ -319,107 +310,12 @@ const handleCreateUser = async (userData: any) => {
         </div>
 
         {/* Create User Modal */}
-        {showCreateModal && (
-          <CreateUserModal 
-            onClose={() => setShowCreateModal(false)} 
-            onCreate={handleCreateUser} 
-          />
-        )}
+        <CreateUserModal 
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)} 
+          onCreate={handleCreateUser} 
+        />
       </div>
     </ProtectedRoute>
-  );
-}
-
-// Simple Create User Modal
-function CreateUserModal({ onClose, onCreate }: { onClose: () => void; onCreate: (data: any) => void }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    phone: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!formData.email || !formData.firstName || !formData.lastName) {
-      showErrorToast('Please fill in all required fields');
-      return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      showErrorToast('Please enter a valid email address');
-      return;
-    }
-
-    setIsSubmitting(true);
-    await onCreate(formData);
-    setIsSubmitting(false);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-lg font-bold mb-4">Create New User</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email*"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={isSubmitting}
-          />
-          <input
-            type="text"
-            placeholder="First Name*"
-            value={formData.firstName}
-            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={isSubmitting}
-          />
-          <input
-            type="text"
-            placeholder="Last Name*"
-            value={formData.lastName}
-            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={isSubmitting}
-          />
-          <input
-            type="tel"
-            placeholder="Phone (optional)"
-            value={formData.phone}
-            onChange={(e) => setFormData({...formData, phone: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isSubmitting}
-          />
-          <div className="flex gap-2 pt-4">
-            <button 
-              type="button" 
-              onClick={onClose} 
-              className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Creating...' : 'Create User'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 }
