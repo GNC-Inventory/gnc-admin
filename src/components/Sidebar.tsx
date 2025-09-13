@@ -5,6 +5,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard,
   Package,
@@ -13,19 +14,13 @@ import {
   BarChart3,
   Users,
   Settings,
-  HelpCircle
+  HelpCircle,
+  LogOut
 } from 'lucide-react';
 
-interface SidebarProps {
-  userEmail?: string;
-  userName?: string;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ 
-  userEmail = "joseph@gnc.com", 
-  userName = "Joseph Okoye" 
-}) => {
+const Sidebar: React.FC = () => {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   const mainMenuItems = [
     {
@@ -74,6 +69,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const isActive = (href: string) => pathname === href;
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  // Get user initials
+  const getUserInitials = () => {
+    if (!user) return 'AD';
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  };
+
+  // Get full name
+  const getFullName = () => {
+    if (!user) return 'Admin User';
+    return `${user.firstName} ${user.lastName}`;
+  };
 
   return (
     <div className="w-[272px] min-h-screen max-w-[272px] 2xl:w-[320px] 2xl:max-w-[320px] bg-white border-r border-[#E2E4E9] flex flex-col" style={{ opacity: 1 }}>
@@ -153,17 +164,29 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-medium">
-              {userName.split(' ').map(n => n[0]).join('')}
+              {getUserInitials()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {userName}
+              {getFullName()}
             </p>
             <p className="text-xs text-gray-500 truncate">
-              {userEmail}
+              {user?.email || 'admin@example.com'}
             </p>
+            {user?.role && (
+              <p className="text-xs text-blue-600 font-medium">
+                {user.role}
+              </p>
+            )}
           </div>
+          <button
+            onClick={handleLogout}
+            className="text-gray-400 hover:text-gray-600 p-1"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
