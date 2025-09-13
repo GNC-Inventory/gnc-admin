@@ -7,8 +7,8 @@ import Image from 'next/image';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('admin@gnc.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('inventory4gnc@gmail.com'); 
+const [password, setPassword] = useState('admin876'); 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
