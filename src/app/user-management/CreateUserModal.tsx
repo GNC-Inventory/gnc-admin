@@ -13,6 +13,7 @@ interface CreateUserModalProps {
     lastName: string;
     phone?: string;
     employeeId?: string;
+    role: 'ADMIN' | 'SALESMAN';
    }) => Promise<{ tempPassword: string }>;
 }
 
@@ -23,6 +24,7 @@ interface PasswordDisplayModalProps {
     firstName: string;
     lastName: string;
     email: string;
+    role: 'ADMIN' | 'SALESMAN';
   };
   tempPassword: string;
 }
@@ -54,7 +56,9 @@ function PasswordDisplayModal({ isOpen, onClose, userData, tempPassword }: Passw
       <div className="bg-white rounded-lg w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">User Created Successfully</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {userData.role === 'ADMIN' ? 'Admin' : 'User'} Created Successfully
+          </h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600"
@@ -72,6 +76,9 @@ function PasswordDisplayModal({ isOpen, onClose, userData, tempPassword }: Passw
             </p>
             <p className="text-green-700 text-sm">
               <span className="font-medium">Email:</span> {userData.email}
+            </p>
+            <p className="text-green-700 text-sm">
+              <span className="font-medium">Role:</span> {userData.role}
             </p>
           </div>
 
@@ -97,7 +104,7 @@ function PasswordDisplayModal({ isOpen, onClose, userData, tempPassword }: Passw
 
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <p className="text-amber-800 text-sm">
-              <span className="font-medium">Important:</span> Please share this password with the user. 
+              <span className="font-medium">Important:</span> Please share this password with the {userData.role.toLowerCase()}. 
               They will be required to change it on their first login.
             </p>
           </div>
@@ -124,12 +131,13 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
     lastName: '',
     phone: '',
     employeeId: '',
+    role: 'SALESMAN' as 'ADMIN' | 'SALESMAN',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState<{
-    userData: { firstName: string; lastName: string; email: string };
+    userData: { firstName: string; lastName: string; email: string; role: 'ADMIN' | 'SALESMAN' };
     tempPassword: string;
   } | null>(null);
 
@@ -163,6 +171,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
         lastName: formData.lastName.trim(),
         phone: formData.phone.trim() || undefined,
         employeeId: formData.employeeId.trim() || undefined,
+        role: formData.role,
       });
 
       // Store password data to show in the password modal
@@ -171,6 +180,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           email: formData.email.trim(),
+          role: formData.role,
         },
         tempPassword: (result as any)?.tempPassword || 'Password not available'
       });
@@ -182,6 +192,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
         lastName: '',
         phone: '',
         employeeId: '',
+        role: 'SALESMAN',
       });
       setErrors({});
       
@@ -205,6 +216,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
         lastName: '',
         phone: '',
         employeeId: '',
+        role: 'SALESMAN',
       });
       setErrors({});
       onClose();
@@ -236,6 +248,37 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Role Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  User Role <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="SALESMAN"
+                      checked={formData.role === 'SALESMAN'}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'SALESMAN' })}
+                      className="mr-2"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm text-gray-700">Salesperson</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="ADMIN"
+                      checked={formData.role === 'ADMIN'}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'SALESMAN' })}
+                      className="mr-2"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm text-gray-700">Admin</span>
+                  </label>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email <span className="text-red-500">*</span>
@@ -303,19 +346,22 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Employee ID
-                </label>
-                <input
-                  type="text"
-                  value={formData.employeeId}
-                  onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="EMP001"
-                  disabled={isSubmitting}
-                />
-              </div>
+              {/* Show Employee ID only for Salesman */}
+              {formData.role === 'SALESMAN' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Employee ID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.employeeId}
+                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="EMP001"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
 
               {/* Buttons */}
               <div className="flex gap-3 pt-4">
@@ -332,7 +378,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create User'}
+                  {isSubmitting ? 'Creating...' : `Create ${formData.role === 'ADMIN' ? 'Admin' : 'User'}`}
                 </button>
               </div>
             </form>
@@ -340,7 +386,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
             {/* Info */}
             <div className="px-6 pb-6">
               <p className="text-xs text-gray-500">
-                A temporary password will be generated and displayed after user creation.
+                A temporary password will be generated and displayed after {formData.role.toLowerCase()} creation.
               </p>
             </div>
           </div>
