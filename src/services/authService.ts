@@ -109,6 +109,23 @@ class AuthService {
     localStorage.removeItem('user');
   }
 
+  // Update profile
+  async updateProfile(token: string, profileData: { firstName: string; lastName: string; phone?: string }): Promise<User> {
+    const response = await fetch(`${API_BASE}/api/auth/profile`, {
+      method: 'PUT',
+      headers: this.getHeaders(token),
+      body: JSON.stringify(profileData),
+    });
+    
+    const data: ApiResponse<{ user: User }> = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.error?.message || 'Failed to update profile');
+    }
+    
+    return data.data!.user;
+  }
+
   // Check if token is expired (basic check)
   isTokenExpired(token: string): boolean {
     try {
