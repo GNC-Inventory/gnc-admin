@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Plus, Search, MoreVertical, Trash2, LogOut, Key } from 'lucide-react';
+import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
 interface User {
   id: number;
@@ -37,9 +38,12 @@ export default function UserManagementPage() {
       const data = await response.json();
       if (data.success) {
         setUsers(data.data);
+      } else {
+        showErrorToast('Failed to load users');
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+      showErrorToast('Error loading users. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -58,6 +62,8 @@ export default function UserManagementPage() {
 
   // Create user
   const handleCreateUser = async (userData: any) => {
+    const loadingToastId = showLoadingToast('Creating user...');
+    
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/salesman`, {
         method: 'POST',
@@ -69,19 +75,38 @@ export default function UserManagementPage() {
         body: JSON.stringify(userData),
       });
       const data = await response.json();
+      
+      dismissToast(loadingToastId);
+      
       if (data.success) {
-        fetchUsers();
+        await fetchUsers();
         setShowCreateModal(false);
-        alert(`User created! Temporary password: ${data.data.tempPassword}`);
+        showSuccessToast(`User ${userData.firstName} ${userData.lastName} created successfully!`);
+        
+        // Show temp password in a separate success toast
+        setTimeout(() => {
+          showWarningToast(`Temporary password for ${userData.email}: ${data.data.tempPassword}`);
+        }, 1000);
+      } else {
+        showErrorToast(data.error?.message || 'Failed to create user');
       }
     } catch (error) {
+      dismissToast(loadingToastId);
       console.error('Error creating user:', error);
+      showErrorToast('Error creating user. Please try again.');
     }
   };
 
   // Delete user
   const handleDeleteUser = async (userId: number) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    // Using a custom confirm dialog through toast
+    const confirmDelete = window.confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}? This action cannot be undone.`);
+    if (!confirmDelete) return;
+    
+    const loadingToastId = showLoadingToast(`Deleting ${user.firstName} ${user.lastName}...`);
     
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
@@ -91,16 +116,31 @@ export default function UserManagementPage() {
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
         },
       });
+      
+      dismissToast(loadingToastId);
+      
       if (response.ok) {
-        fetchUsers();
+        await fetchUsers();
+        showSuccessToast(`${user.firstName} ${user.lastName} has been deleted successfully`);
+        setActionUserId(null);
+      } else {
+        const errorData = await response.json();
+        showErrorToast(errorData.error?.message || 'Failed to delete user');
       }
     } catch (error) {
+      dismissToast(loadingToastId);
       console.error('Error deleting user:', error);
+      showErrorToast('Error deleting user. Please try again.');
     }
   };
 
   // Logout user
   const handleLogoutUser = async (userId: number) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    const loadingToastId = showLoadingToast(`Logging out ${user.firstName} ${user.lastName}...`);
+    
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/logout`, {
         method: 'POST',
@@ -109,11 +149,21 @@ export default function UserManagementPage() {
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
         },
       });
+      
+      dismissToast(loadingToastId);
+      
       if (response.ok) {
-        fetchUsers();
+        await fetchUsers();
+        showSuccessToast(`${user.firstName} ${user.lastName} has been logged out successfully`);
+        setActionUserId(null);
+      } else {
+        const errorData = await response.json();
+        showErrorToast(errorData.error?.message || 'Failed to logout user');
       }
     } catch (error) {
+      dismissToast(loadingToastId);
       console.error('Error logging out user:', error);
+      showErrorToast('Error logging out user. Please try again.');
     }
   };
 
@@ -181,80 +231,95 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                            <span className="text-white text-sm font-medium">
-                              {user.firstName[0]}{user.lastName[0]}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className={`w-2 h-2 rounded-full mr-2 ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span className="text-sm text-gray-900">
-                          {user.isOnline ? 'Online' : 'Offline'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="relative">
-                        <button
-                          onClick={() => setActionUserId(actionUserId === user.id ? null : user.id)}
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                        {actionUserId === user.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                            <div className="py-1">
-                              <button
-                                onClick={() => handleLogoutUser(user.id)}
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                              >
-                                <LogOut className="w-4 h-4 mr-2" />
-                                Force Logout
-                              </button>
-                              <button
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete User
-                              </button>
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
+                    <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                              <span className="text-white text-sm font-medium">
+                                {user.firstName[0]}{user.lastName[0]}
+                              </span>
                             </div>
                           </div>
-                        )}
-                      </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {user.firstName} {user.lastName}
+                            </div>
+                            <div className="text-sm text-gray-500">{user.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full mr-2 ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                          <span className="text-sm text-gray-900">
+                            {user.isOnline ? 'Online' : 'Offline'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="relative">
+                          <button
+                            onClick={() => setActionUserId(actionUserId === user.id ? null : user.id)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {actionUserId === user.id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => handleLogoutUser(user.id)}
+                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                  disabled={!user.isOnline}
+                                >
+                                  <LogOut className="w-4 h-4 mr-2" />
+                                  Force Logout
+                                  {!user.isOnline && <span className="ml-2 text-xs text-gray-400">(Offline)</span>}
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete User
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      {searchTerm ? 'No users found matching your search.' : 'No users found.'}
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
         {/* Create User Modal */}
-        {showCreateModal && <CreateUserModal onClose={() => setShowCreateModal(false)} onCreate={handleCreateUser} />}
+        {showCreateModal && (
+          <CreateUserModal 
+            onClose={() => setShowCreateModal(false)} 
+            onCreate={handleCreateUser} 
+          />
+        )}
       </div>
     </ProtectedRoute>
   );
@@ -268,10 +333,27 @@ function CreateUserModal({ onClose, onCreate }: { onClose: () => void; onCreate:
     lastName: '',
     phone: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onCreate(formData);
+    
+    // Basic validation
+    if (!formData.email || !formData.firstName || !formData.lastName) {
+      showErrorToast('Please fill in all required fields');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showErrorToast('Please enter a valid email address');
+      return;
+    }
+
+    setIsSubmitting(true);
+    await onCreate(formData);
+    setIsSubmitting(false);
   };
 
   return (
@@ -281,41 +363,54 @@ function CreateUserModal({ onClose, onCreate }: { onClose: () => void; onCreate:
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Email*"
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isSubmitting}
           />
           <input
             type="text"
-            placeholder="First Name"
+            placeholder="First Name*"
             value={formData.firstName}
             onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isSubmitting}
           />
           <input
             type="text"
-            placeholder="Last Name"
+            placeholder="Last Name*"
             value={formData.lastName}
             onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={isSubmitting}
           />
           <input
             type="tel"
             placeholder="Phone (optional)"
             value={formData.phone}
             onChange={(e) => setFormData({...formData, phone: e.target.value})}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isSubmitting}
           />
-          <div className="flex gap-2">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 rounded">
+          <div className="flex gap-2 pt-4">
+            <button 
+              type="button" 
+              onClick={onClose} 
+              className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+              disabled={isSubmitting}
+            >
               Cancel
             </button>
-            <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded">
-              Create
+            <button 
+              type="submit" 
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating...' : 'Create User'}
             </button>
           </div>
         </form>

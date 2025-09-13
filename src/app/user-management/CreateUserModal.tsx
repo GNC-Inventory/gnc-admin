@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { showSuccessToast, showErrorToast } from '@/utils/toast';
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -42,7 +43,10 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      showErrorToast('Please fill in all required fields');
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -63,8 +67,12 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }: CreateUse
         employeeId: '',
       });
       setErrors({});
+      
+      showSuccessToast(`User ${formData.firstName} ${formData.lastName} created successfully`);
+      onClose();
     } catch (error) {
       console.error('Error creating user:', error);
+      showErrorToast('Failed to create user. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

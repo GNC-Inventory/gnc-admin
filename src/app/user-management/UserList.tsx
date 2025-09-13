@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { MoreVertical, LogOut, Trash2, Key } from 'lucide-react';
+import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
 interface User {
   id: number;
@@ -20,15 +21,96 @@ interface UserListProps {
   onDeleteUser: (userId: number) => void;
   onLogoutUser: (userId: number) => void;
   onResetPassword?: (userId: number) => void;
+  token?: string; // Add token for API calls if needed
 }
 
-export default function UserList({ users, onDeleteUser, onLogoutUser, onResetPassword }: UserListProps) {
+export default function UserList({ users, onDeleteUser, onLogoutUser, onResetPassword, token }: UserListProps) {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [processingAction, setProcessingAction] = useState<number | null>(null);
+
+  const handleDeleteUser = async (userId: number) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    // Show confirmation dialog
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${user.firstName} ${user.lastName}? This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+    
+    setProcessingAction(userId);
+    const loadingToastId = showLoadingToast(`Deleting ${user.firstName} ${user.lastName}...`);
+    
+    try {
+      await onDeleteUser(userId);
+      dismissToast(loadingToastId);
+      showSuccessToast(`${user.firstName} ${user.lastName} has been deleted successfully`);
+    } catch (error) {
+      dismissToast(loadingToastId);
+      showErrorToast(`Failed to delete ${user.firstName} ${user.lastName}. Please try again.`);
+    } finally {
+      setProcessingAction(null);
+      setOpenDropdown(null);
+    }
+  };
+
+  const handleLogoutUser = async (userId: number) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    if (!user.isOnline) {
+      showWarningToast(`${user.firstName} ${user.lastName} is already offline`);
+      setOpenDropdown(null);
+      return;
+    }
+    
+    setProcessingAction(userId);
+    const loadingToastId = showLoadingToast(`Logging out ${user.firstName} ${user.lastName}...`);
+    
+    try {
+      await onLogoutUser(userId);
+      dismissToast(loadingToastId);
+      showSuccessToast(`${user.firstName} ${user.lastName} has been logged out successfully`);
+    } catch (error) {
+      dismissToast(loadingToastId);
+      showErrorToast(`Failed to logout ${user.firstName} ${user.lastName}. Please try again.`);
+    } finally {
+      setProcessingAction(null);
+      setOpenDropdown(null);
+    }
+  };
+
+  const handleResetPassword = async (userId: number) => {
+    const user = users.find(u => u.id === userId);
+    if (!user || !onResetPassword) return;
+    
+    const confirmReset = window.confirm(
+      `Are you sure you want to reset the password for ${user.firstName} ${user.lastName}? They will need to use the new temporary password.`
+    );
+    if (!confirmReset) return;
+    
+    setProcessingAction(userId);
+    const loadingToastId = showLoadingToast(`Resetting password for ${user.firstName} ${user.lastName}...`);
+    
+    try {
+      await onResetPassword(userId);
+      dismissToast(loadingToastId);
+      showSuccessToast(`Password reset for ${user.firstName} ${user.lastName}. New temporary password has been generated.`);
+    } catch (error) {
+      dismissToast(loadingToastId);
+      showErrorToast(`Failed to reset password for ${user.firstName} ${user.lastName}. Please try again.`);
+    } finally {
+      setProcessingAction(null);
+      setOpenDropdown(null);
+    }
+  };
 
   const handleAction = (action: () => void) => {
     setOpenDropdown(null);
     action();
   };
+
+  const isUserBeingProcessed = (userId: number) => processingAction === userId;
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -54,13 +136,18 @@ export default function UserList({ users, onDeleteUser, onLogoutUser, onResetPas
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {users.map((user) => (
-            <tr key={user.id} className="hover:bg-gray-50">
+            <tr key={user.id} className={`hover:bg-gray-50 ${isUserBeingProcessed(user.id) ? 'opacity-50 pointer-events-none' : ''}`}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center relative">
                     <span className="text-white text-sm font-medium">
                       {user.firstName[0]}{user.lastName[0]}
                     </span>
+                    {isUserBeingProcessed(user.id) && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-blue-600 bg-opacity-75 rounded-full">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      </div>
+                    )}
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">
@@ -96,12 +183,13 @@ export default function UserList({ users, onDeleteUser, onLogoutUser, onResetPas
                 <div className="relative">
                   <button
                     onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isUserBeingProcessed(user.id)}
                   >
                     <MoreVertical className="w-4 h-4" />
                   </button>
                   
-                  {openDropdown === user.id && (
+                  {openDropdown === user.id && !isUserBeingProcessed(user.id) && (
                     <>
                       <div 
                         className="fixed inset-0 z-10" 
@@ -111,23 +199,29 @@ export default function UserList({ users, onDeleteUser, onLogoutUser, onResetPas
                         <div className="py-1">
                           {onResetPassword && (
                             <button
-                              onClick={() => handleAction(() => onResetPassword(user.id))}
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                              onClick={() => handleResetPassword(user.id)}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left transition-colors"
                             >
                               <Key className="w-4 h-4 mr-2" />
                               Reset Password
                             </button>
                           )}
                           <button
-                            onClick={() => handleAction(() => onLogoutUser(user.id))}
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                            onClick={() => handleLogoutUser(user.id)}
+                            className={`flex items-center px-4 py-2 text-sm w-full text-left transition-colors ${
+                              user.isOnline 
+                                ? 'text-gray-700 hover:bg-gray-100' 
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
+                            disabled={!user.isOnline}
                           >
                             <LogOut className="w-4 h-4 mr-2" />
                             Force Logout
+                            {!user.isOnline && <span className="ml-auto text-xs">(Offline)</span>}
                           </button>
                           <button
-                            onClick={() => handleAction(() => onDeleteUser(user.id))}
-                            className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left transition-colors"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete User
