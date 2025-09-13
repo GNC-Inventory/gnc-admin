@@ -173,8 +173,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     setIsLoading(false);
 
-    // Redirect to login
-    router.push('/login');
+    // Redirect to login page (root path since login is at components/loginpage.tsx)
+    router.push('/');
   };
 
   // Update user data
