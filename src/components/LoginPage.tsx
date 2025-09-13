@@ -1,17 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState(''); 
-const [password, setPassword] = useState(''); 
-  const [isLoading, setIsLoading] = useState(false);
+  const [password, setPassword] = useState(''); 
   const [error, setError] = useState('');
   const router = useRouter();
+  
+  const { login, isLoading, isAuthenticated } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -26,38 +35,20 @@ const [password, setPassword] = useState('');
       return;
     }
 
-    setIsLoading(true);
     setError('');
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.data.token) {
-        // Store token and user data
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('user', JSON.stringify(data.data.user));
-        
-        // Redirect to dashboard
+      const result = await login(email.trim(), password.trim());
+      
+      if (result.success) {
+        // AuthContext handles storage and redirect
         router.push('/dashboard');
       } else {
-        setError(data.error?.message || 'Login failed');
+        setError(result.error || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Network error. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -72,7 +63,6 @@ const [password, setPassword] = useState('');
         priority
       />
 
-      
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md mx-4">
         <form onSubmit={handleSubmit}>
@@ -140,7 +130,7 @@ const [password, setPassword] = useState('');
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-              placeholder="admin@gnc.com"
+              placeholder="inventory4gnc@gmail.com"
               style={{
                 fontFamily: 'var(--font-inter), Inter, sans-serif',
                 fontSize: '14px',
