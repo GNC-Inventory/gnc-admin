@@ -529,6 +529,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
 
         <div className="overflow-x-auto">
 
+
 {/* Table Header - Updated with new columns */}
 <div className="w-full h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center overflow-x-auto">
   <div className="grid items-center h-full min-w-max" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
@@ -551,7 +552,8 @@ console.log('First filtered item:', filteredInventoryData[0]);
 </div>
 
 
-          {/* Table Rows - Updated with new columns */}
+
+{/* Table Rows - Updated with new columns */}
 <div 
   ref={tableContainerRef}
   className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-auto"
