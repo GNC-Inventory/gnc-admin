@@ -208,8 +208,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
   );
   const stats = {
     totalItems: categoryFilteredData.length,
-    totalValue: categoryFilteredData.reduce((sum, item) => 
-      sum + (typeof item.amount === 'number' ? item.amount : 0), 0),
+    totalValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0), // Changed: Total Stock In - inventory value based on unit cost
     lowStockItems: categoryFilteredData.filter(item => item.quantity <= 5).length,
     totalItemsSold: categoryFilteredTransactions.reduce((sum, transaction) => 
       sum + transaction.items.reduce((itemSum: number, item: any) => {
@@ -226,7 +225,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
         return itemSum;
       }, 0);
       return sum + categoryRevenue;
-    }, 0),
+    }, 0), // This will be used for both "Total Stock Out" and "Gross Total Sales Value"
     currentInventoryValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0)
   };
 
@@ -504,7 +503,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
           <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
+          <InventoryValueCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px]">
           <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.quantity <= 5)} />
