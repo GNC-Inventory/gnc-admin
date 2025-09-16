@@ -530,7 +530,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
 
         <div className="overflow-x-auto">
 
-
 {/* Table Container with synchronized horizontal scrolling */}
 <div className="overflow-x-auto">
   <div className="min-w-max">
@@ -576,8 +575,8 @@ console.log('First filtered item:', filteredInventoryData[0]);
             }`} 
             style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}
           >
-            {/* Product */}
-            <div className="pl-6 flex items-center gap-3">
+            {/* Product - Keep left-aligned */}
+            <div className="text-left pl-4 flex items-center gap-3">
               {item.image ? (
                 <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
               ) : (
@@ -586,33 +585,33 @@ console.log('First filtered item:', filteredInventoryData[0]);
               <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
             </div>
             
-            {/* Brand */}
-            <div className="px-2 text-sm text-gray-600 truncate" title={item.make || '-'}>
+            {/* Brand - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate" title={item.make || '-'}>
               {item.make || '-'}
             </div>
             
-            {/* Model */}
-            <div className="px-2 text-sm text-gray-600 truncate" title={item.model || '-'}>
+            {/* Model - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate" title={item.model || '-'}>
               {item.model || '-'}
             </div>
             
-            {/* Type */}
-            <div className="px-2 text-sm text-gray-600 truncate" title={item.type || '-'}>
+            {/* Type - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate" title={item.type || '-'}>
               {item.type || '-'}
             </div>
 
-            {/* Size */}
-          <div className="px-2 text-sm text-gray-600 truncate" title={item.size || '-'}>
-            {item.size || '-'}
-          </div>
+            {/* Size - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate" title={item.size || '-'}>
+              {item.size || '-'}
+            </div>
             
-            {/* Capacity */}
-            <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
+            {/* Capacity - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate" title={item.capacity || '-'}>
               {item.capacity || '-'}
             </div>
             
-            {/* Description with tooltip */}
-            <div className="px-2 text-sm text-gray-600 relative group cursor-help">
+            {/* Description with tooltip - Centered */}
+            <div className="text-center text-sm text-gray-600 relative group cursor-help">
               <span className="truncate block" style={{ maxWidth: '120px' }}>
                 {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
               </span>
@@ -624,40 +623,40 @@ console.log('First filtered item:', filteredInventoryData[0]);
               )}
             </div>
             
-            {/* Category */}
-            <div className="px-2 text-sm text-gray-600 truncate">{item.category}</div>
+            {/* Category - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate">{item.category}</div>
             
-            {/* Date Added */}
-            <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
+            {/* Date Added - Centered */}
+            <div className="text-center text-sm text-gray-600 truncate">{item.lastUpdated}</div>
             
-            {/* Stock left */}
-            <div className="px-2 text-sm text-gray-900">{item.quantity}</div>
+            {/* Stock left - Centered */}
+            <div className="text-center text-sm text-gray-900">{item.quantity}</div>
             
-            {/* Unit cost */}
-            <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
+            {/* Unit cost - Centered */}
+            <div className="text-center text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
             
-            {/* Profit Percentage */}
-            <div className="px-2 text-sm text-gray-600">
+            {/* Profit Percentage - Centered */}
+            <div className="text-center text-sm text-gray-600">
               {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
             </div>
             
-            {/* Base Price */}
-            <div className="px-2 text-sm text-gray-900">
+            {/* Base Price - Centered */}
+            <div className="text-center text-sm text-gray-900">
               {item.basePrice ? formatCurrency(item.basePrice) : '-'}
             </div>
             
-            {/* Low Stock Threshold */}
-            <div className="px-2 text-sm text-gray-600">
+            {/* Low Stock Threshold - Centered */}
+            <div className="text-center text-sm text-gray-600">
               {item.lowStockThreshold || '-'}
             </div>
             
-            {/* Amount */}
-            <div className="px-2 text-sm text-gray-900">
+            {/* Amount - Centered */}
+            <div className="text-center text-sm text-gray-900">
               {typeof item.amount === 'number' ? formatCurrency(item.amount) : item.amount}
             </div>
             
-            {/* Actions */}
-            <div className="px-3 flex gap-2">
+            {/* Actions - Centered with justified buttons */}
+            <div className="text-center flex gap-2 justify-center">
               <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
                 <Edit className="w-4 h-4" />
               </button>
