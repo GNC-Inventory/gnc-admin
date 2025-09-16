@@ -6,7 +6,6 @@ import Image from 'next/image';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
 import InventoryValueCard from '@/components/products/InventoryValueCard';
-import LowInStockCard from '@/components/products/LowInStockCard';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from '@/utils/toast';
 
 interface InventoryItem {
@@ -23,7 +22,8 @@ interface InventoryItem {
   model?: string;
   lowStockThreshold?: number;
   make?: string;      
-  type?: string;      
+  type?: string;
+  size?: string;       
   capacity?: string;  
   description?: string; 
 }
@@ -153,6 +153,7 @@ const transformedInventoryData = inventoryData.map((item: any) => {
     lowStockThreshold: item.lowStockThreshold || 5,
     make: item.product?.make || '',
     type: item.product?.type || '',
+    size: item.product?.size || '',
     capacity: item.product?.capacity || '',
     description: item.product?.description || '',
   };
@@ -535,11 +536,12 @@ console.log('First filtered item:', filteredInventoryData[0]);
   <div className="min-w-max">
     {/* Table Header - Fixed, no separate scroll */}
     <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
-      <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
+      <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
         <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
         <div className="text-sm font-medium text-gray-600 px-2">Brand</div>
         <div className="text-sm font-medium text-gray-600 px-2">Model</div>
         <div className="text-sm font-medium text-gray-600 px-2">Type</div>
+        <div className="text-sm font-medium text-gray-600 px-2">Size</div>
         <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
         <div className="text-sm font-medium text-gray-600 px-2">Description</div>
         <div className="text-sm font-medium text-gray-600 px-2">Category</div>
@@ -603,6 +605,11 @@ console.log('First filtered item:', filteredInventoryData[0]);
             <div className="px-2 text-sm text-gray-600 truncate" title={item.type || '-'}>
               {item.type || '-'}
             </div>
+
+            {/* Size */}
+          <div className="px-2 text-sm text-gray-600 truncate" title={item.size || '-'}>
+            {item.size || '-'}
+          </div>
             
             {/* Capacity */}
             <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
@@ -672,7 +679,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </div>
       </div>
 
-      {/* Edit Modal */}
+{/* Edit Modal */}
       {state.showEditModal && state.productToEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
@@ -690,17 +697,32 @@ console.log('First filtered item:', filteredInventoryData[0]);
               {[
                 { label: 'Product category', value: state.productToEdit.category, field: 'category', placeholder: 'Start typing...', helper: 'To add a category, press enter after typing the name' },
                 { label: 'Product name', value: state.productToEdit.name, field: 'name', placeholder: 'Enter product name...' },
-                { label: 'Product model', value: state.productToEdit.model || '', field: 'model', placeholder: 'Start typing...' }
+                { label: 'Brand', value: state.productToEdit.make || '', field: 'make', placeholder: 'Enter brand...' },
+                { label: 'Model', value: state.productToEdit.model || '', field: 'model', placeholder: 'Enter model...' },
+                { label: 'Type', value: state.productToEdit.type || '', field: 'type', placeholder: 'Enter type...' },
+                { label: 'Size', value: state.productToEdit.size || '', field: 'size', placeholder: 'Enter size...' },
+                { label: 'Capacity', value: state.productToEdit.capacity || '', field: 'capacity', placeholder: 'Enter capacity...' },
+                { label: 'Description', value: state.productToEdit.description || '', field: 'description', placeholder: 'Enter description...' }
               ].map(({ label, value, field, placeholder, helper }) => (
                 <div key={field}>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
-                  <input
-                    type="text"
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  {field === 'description' ? (
+                    <textarea
+                      placeholder={placeholder}
+                      value={value}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
+                      rows={4}
+                      className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder={placeholder}
+                      value={value}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
+                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  )}
                   {helper && (
                     <div className="flex items-center gap-2 mt-2">
                       <Info className="w-4 h-4 text-gray-400" />
@@ -831,12 +853,12 @@ console.log('First filtered item:', filteredInventoryData[0]);
               </div>
               
               {state.productToDelete.quantity > 0 && (
-  <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
-    <p className="text-sm text-orange-800">
-      <strong>Warning:</strong> This product has {state.productToDelete.quantity} items remaining in stock.
-    </p>
-  </div>
-)}
+            <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+              <p className="text-sm text-orange-800">
+                <strong>Warning:</strong> This product has {state.productToDelete.quantity} items remaining in stock.
+              </p>
+            </div>
+          )}
             </div>
 
             <div className="flex gap-3 justify-end">
