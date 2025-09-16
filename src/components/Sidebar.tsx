@@ -93,13 +93,13 @@ const Sidebar: React.FC = () => {
         <div className="w-8 h-8 relative">
           <Image
             src="/logo.png"
-            alt="Apex Logo"
+            alt="GNC Logo"
             width={32}
             height={32}
             className="object-contain"
           />
         </div>
-        <h1 className="text-lg font-semibold text-gray-900">Apex Manager</h1>
+        <h1 className="text-lg font-semibold text-gray-900">GNC Manager</h1>
       </div>
 
       {/* Horizontal line */}
