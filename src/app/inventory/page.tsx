@@ -535,7 +535,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
   <div className="min-w-max">
     {/* Table Header - Fixed, no separate scroll */}
     <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
-      <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
+      <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 116px' }}>
         <div className="text-sm font-medium text-gray-600 text-left pl-4">Product name</div>
         <div className="text-sm font-medium text-gray-600 text-center">Brand</div>
         <div className="text-sm font-medium text-gray-600 text-center">Model</div>
@@ -573,7 +573,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
             className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
               state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
             }`} 
-            style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}
+            style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 120px 150px 100px 120px 116px' }}
           >
             {/* Product - Keep left-aligned */}
             <div className="text-left pl-4 flex items-center gap-3">
@@ -605,11 +605,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
               {item.size || '-'}
             </div>
             
-            {/* Capacity - Centered */}
-            <div className="text-center text-sm text-gray-600 truncate" title={item.capacity || '-'}>
-              {item.capacity || '-'}
-            </div>
-            
             {/* Description with tooltip - Centered */}
             <div className="text-center text-sm text-gray-600 relative group cursor-help">
               <span className="truncate block" style={{ maxWidth: '120px' }}>
@@ -623,32 +618,11 @@ console.log('First filtered item:', filteredInventoryData[0]);
               )}
             </div>
             
-            {/* Category - Centered */}
-            <div className="text-center text-sm text-gray-600 truncate">{item.category}</div>
-            
-            {/* Date Added - Centered */}
-            <div className="text-center text-sm text-gray-600 truncate">{item.lastUpdated}</div>
-            
             {/* Stock left - Centered */}
             <div className="text-center text-sm text-gray-900">{item.quantity}</div>
             
             {/* Unit cost - Centered */}
             <div className="text-center text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
-            
-            {/* Profit Percentage - Centered */}
-            <div className="text-center text-sm text-gray-600">
-              {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
-            </div>
-            
-            {/* Base Price - Centered */}
-            <div className="text-center text-sm text-gray-900">
-              {item.basePrice ? formatCurrency(item.basePrice) : '-'}
-            </div>
-            
-            {/* Low Stock Threshold - Centered */}
-            <div className="text-center text-sm text-gray-600">
-              {item.lowStockThreshold || '-'}
-            </div>
             
             {/* Amount - Centered */}
             <div className="text-center text-sm text-gray-900">
