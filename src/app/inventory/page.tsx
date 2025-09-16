@@ -537,19 +537,20 @@ console.log('First filtered item:', filteredInventoryData[0]);
     {/* Table Header - Fixed, no separate scroll */}
     <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
       <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
-        <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Brand</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Model</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Type</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Size</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Description</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Profit %</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Amount</div>
-        <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
+        <div className="text-sm font-medium text-gray-600 text-left pl-4">Product Name</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Brand</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Model</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Type</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Size</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Description</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Stock left</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Unit cost</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Profit %</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Amount</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Actions</div>
       </div>
     </div>
+  
 
     {/* Table Rows - Only vertical scroll, no horizontal scroll */}
     <div 
