@@ -13,6 +13,7 @@ interface Product {
   make: string;
   model: string;
   type: string;
+  size: string;
   capacity: string;
   description: string;
   image: string;
@@ -42,6 +43,7 @@ const AddProductPage: React.FC = () => {
     make: '',
     model: '',
     type: '',
+    size: '',
     capacity: '',
     description: '',
     image: '',
@@ -92,6 +94,7 @@ const AddProductPage: React.FC = () => {
       make: currentProduct.make,
       model: currentProduct.model,
       type: currentProduct.type,
+       size: currentProduct.size,
       capacity: currentProduct.capacity,
       description: currentProduct.description,
       image: currentProduct.image,
@@ -109,6 +112,7 @@ const AddProductPage: React.FC = () => {
       make: '',
       model: '',
       type: '',
+      size: '',
       capacity: '',
       description: '',
       image: '',
@@ -156,6 +160,7 @@ const response = await fetch('https://gnc-inventory-backend.onrender.com/api/adm
     make: product.make,
     model: product.model,
     type: product.type,
+    size: product.size,
     capacity: product.capacity,
     description: product.description,
     image: product.image, // This sends the base64 string
@@ -179,6 +184,7 @@ if (!response.ok) {
     make: product.make,
     model: product.model,
     type: product.type,
+    size: product.size,
     capacity: product.capacity,
     description: product.description,
     image_url: product.image || '/products/default.png',
@@ -361,6 +367,7 @@ if (!response.ok) {
               { label: 'Brand', field: 'make', placeholder: 'Enter Brand...' },
               { label: 'Model', field: 'model', placeholder: 'Enter model...' },
               { label: 'Type', field: 'type', placeholder: 'Enter type...' },
+               { label: 'Size', field: 'size', placeholder: 'Enter size...' },
               { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' }
             ].map(({ label, field, placeholder }) => (
               <div key={field}>
