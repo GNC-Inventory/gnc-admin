@@ -542,15 +542,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
         <div className="text-sm font-medium text-gray-600 px-2">Model</div>
         <div className="text-sm font-medium text-gray-600 px-2">Type</div>
         <div className="text-sm font-medium text-gray-600 px-2">Size</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
         <div className="text-sm font-medium text-gray-600 px-2">Description</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Category</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Date Added</div>
         <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
         <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
         <div className="text-sm font-medium text-gray-600 px-2">Profit %</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Base Price</div>
-        <div className="text-sm font-medium text-gray-600 px-2">Low Stock</div>
         <div className="text-sm font-medium text-gray-600 px-2">Amount</div>
         <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
       </div>
