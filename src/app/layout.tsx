@@ -19,8 +19,8 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
-  const title = 'Apex Manager';
-  const description = 'Apex Manager Dashboard';
+  const title = 'GNC Manager';
+  const description = 'GNC Manager Dashboard';
 
   return (
     <html lang="en">
