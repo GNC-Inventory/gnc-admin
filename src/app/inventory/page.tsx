@@ -544,7 +544,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
         <div className="text-sm font-medium text-gray-600 text-center">Description</div>
         <div className="text-sm font-medium text-gray-600 text-center">Stock left</div>
         <div className="text-sm font-medium text-gray-600 text-center">Unit cost</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Amount</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Total Amount</div>
         <div className="text-sm font-medium text-gray-600 text-center">Actions</div>
       </div>
     </div>
