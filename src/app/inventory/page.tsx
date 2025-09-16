@@ -537,7 +537,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
     {/* Table Header - Fixed, no separate scroll */}
     <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
       <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
-        <div className="text-sm font-medium text-gray-600 text-left pl-4">Product Name</div>
+        <div className="text-sm font-medium text-gray-600 text-left pl-4">Product name</div>
         <div className="text-sm font-medium text-gray-600 text-center">Brand</div>
         <div className="text-sm font-medium text-gray-600 text-center">Model</div>
         <div className="text-sm font-medium text-gray-600 text-center">Type</div>
