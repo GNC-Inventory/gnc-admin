@@ -21,7 +21,7 @@ const InventoryValueCard: React.FC<InventoryValueCardProps> = ({
     <div className="flex flex-col justify-between h-full">
       {/* Title */}
 <h3 className="font-inter font-medium text-base leading-6 text-[#868C98] mb-4" style={{ letterSpacing: '-1.1%' }}>
-  Inventory value
+  Gross Total Sales Value
 </h3>
       
       {/* Main Content */}
