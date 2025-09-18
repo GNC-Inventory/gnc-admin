@@ -314,7 +314,7 @@ if (!response.ok) {
         {/* Left Section - Selected Products */}
         <div className="w-[377px] h-[764px] bg-white rounded-[32px] p-6 overflow-y-auto">
           <h3 className="text-[#0A0D14] font-medium text-sm leading-5 mb-6 font-inter tracking-[-0.6%]">
-            Add selected products
+            Save newly added products
           </h3>
           
           <div className="space-y-4 mb-6">
