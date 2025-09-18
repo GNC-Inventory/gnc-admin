@@ -363,7 +363,7 @@ if (!response.ok) {
 
             {/* New Fields */}
             {[
-              { label: 'Name', field: 'name', placeholder: 'Enter product name...' },
+              { label: 'Product name', field: 'name', placeholder: 'Enter product name...' },
               { label: 'Brand', field: 'make', placeholder: 'Enter Brand...' },
               { label: 'Model', field: 'model', placeholder: 'Enter model...' },
               { label: 'Type', field: 'type', placeholder: 'Enter type...' },
