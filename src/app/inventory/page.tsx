@@ -10,10 +10,10 @@ import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from
 
 interface InventoryItem {
   id: string;
-  name: string;           // Changed from 'product' to 'name'
+  name: string;
   category: string;
-  lastUpdated: string;    // Changed from 'dateAdded' to 'lastUpdated'
-  quantity: number;       // Changed from 'stockLeft' to 'quantity'
+  lastUpdated: string;
+  quantity: number;
   unitCost: number;
   basePrice?: number;
   profitPercentage?: number;
@@ -30,9 +30,9 @@ interface InventoryItem {
 
 const periods = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
 const categories = ['All Categories', 'Building Materials', 'Electricals', 'Electronics'];
+const categoryOptions = ['Building Materials', 'Electricals', 'Electronics'];
 
 const Inventory: React.FC = () => {
-  // Consolidated state
   const [state, setState] = useState({
   selectedPeriod: 'Today',
   selectedCategory: 'All Categories',
@@ -55,7 +55,6 @@ const Inventory: React.FC = () => {
 
 const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  // Utility functions
   const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
   const formatNumberWithCommas = (value: string) => {
     const cleaned = value.replace(/[^\d.]/g, '');
@@ -65,7 +64,6 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
   };
   const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
 
-  // Scroll to specific item in table
   const scrollToItem = (itemId: string) => {
     updateState({ highlightedItemId: itemId, lowStockDropdownOpen: false });
     
@@ -78,17 +76,14 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         });
       }
       
-      // Clear highlight after 3 seconds
       setTimeout(() => {
         updateState({ highlightedItemId: null });
       }, 3000);
     }, 100);
   };
 
-  // Update state helper
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
 
-  // Data loading
   const loadInventoryData = async () => {
     try {
       updateState({ loading: true, error: null });
@@ -125,7 +120,6 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         }
       }
 
-      // Fallback to localStorage if API fails
       if (!inventoryResponse.ok || !transactionResponse.ok) {
         const localInventory = localStorage.getItem('inventoryData');
         const localTransactions = localStorage.getItem('transactionData');
@@ -133,8 +127,6 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         if (localTransactions) transactionData = JSON.parse(localTransactions);
       }
 
-  // Transform the data to match your interface
-// Transform the data to match your interface
 const transformedInventoryData = inventoryData.map((item: any) => {
   console.log('Transforming item:', item);
   console.log('Item image data:', item.product?.imageUrl);
@@ -144,11 +136,11 @@ const transformedInventoryData = inventoryData.map((item: any) => {
     category: item.product?.category || '',            
     lastUpdated: item.lastUpdated || '',        
     quantity: item.quantity || 0,              
-    unitCost: item.product?.unitCost || 0,             // Added: from product object
-    basePrice: item.product?.basePrice || 0,          // Added: from product object
+    unitCost: item.product?.unitCost || 0,
+    basePrice: item.product?.basePrice || 0,
     profitPercentage: item.profitPercentage || 0,
-    amount: (item.product?.unitCost || 0) * (item.quantity || 0), // Changed: Calculate amount based on unit cost
-    image: item.product?.imageUrl || '',                  // Added: from product object
+    amount: (item.product?.unitCost || 0) * (item.quantity || 0),
+    image: item.product?.imageUrl || '',
     model: item.product?.model || '',                  
     lowStockThreshold: item.lowStockThreshold || 5,
     make: item.product?.make || '',
@@ -162,7 +154,6 @@ const transformedInventoryData = inventoryData.map((item: any) => {
 console.log('Transformed data:', transformedInventoryData);
 
 updateState({ inventoryData: transformedInventoryData, transactionData });
-      // ADD DEBUGGING HERE:
 console.log('Inventory data:', inventoryData);
 console.log('First item:', inventoryData[0]);
 console.log('Total items loaded:', inventoryData.length);
@@ -182,21 +173,18 @@ console.log('Total items loaded:', inventoryData.length);
     loadInventoryData();
   }, []);
 
-  // Calculated values
   const filteredInventoryData = state.inventoryData.filter(item => {
   const matchesSearch = item.name ? item.name.toLowerCase().includes(state.searchQuery.toLowerCase()) : false;
   const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
   return matchesSearch && matchesCategory;
 });
 
-// ADD THIS DEBUGGING:
 console.log('Raw inventory data:', state.inventoryData);
 console.log('Filtered inventory data:', filteredInventoryData);
 console.log('Search query:', state.searchQuery);
 console.log('Selected category:', state.selectedCategory);
 console.log('First filtered item:', filteredInventoryData[0]);
 
-  // Calculated values - now filtered by selected category
   const categoryFilteredData = state.inventoryData.filter(item => 
     state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
   );
@@ -206,9 +194,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
       state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
     )
   );
+  
   const stats = {
     totalItems: categoryFilteredData.length,
-    totalValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0), // Changed: Total Stock In - inventory value based on unit cost
+    totalValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0),
     lowStockItems: categoryFilteredData.filter(item => item.quantity <= 5).length,
     totalItemsSold: categoryFilteredTransactions.reduce((sum, transaction) => 
       sum + transaction.items.reduce((itemSum: number, item: any) => {
@@ -225,11 +214,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
         return itemSum;
       }, 0);
       return sum + categoryRevenue;
-    }, 0), // This will be used for both "Total Stock Out" and "Gross Total Sales Value"
+    }, 0),
     currentInventoryValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0)
   };
 
-  // Event handlers
   const openModal = (type: 'edit' | 'delete', product: InventoryItem) => {
     if (type === 'edit') {
       updateState({ productToEdit: product, showEditModal: true });
@@ -257,8 +245,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
     const loadingToastId = showLoadingToast(isDelete ? 'Deleting product...' : 'Updating product...');
     
     try {
-
-       // ADD DEBUGGING HERE:
       console.log('API Key:', process.env.NEXT_PUBLIC_API_KEY);
       console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`);
          
@@ -283,7 +269,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
         const updatedProduct = {
           ...product,
           basePrice: calculatedBasePrice,
-          amount: product.unitCost * product.quantity // Changed: Calculate amount based on unit cost
+          amount: product.unitCost * product.quantity
         };
         
         updatedItems = state.inventoryData.map(item => 
@@ -345,7 +331,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
     }
   };
 
-  // Dropdown component
   const Dropdown = ({ 
     options, 
     selected, 
@@ -387,7 +372,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
     </div>
   );
 
-// Low Stock Dropdown Component
   const LowStockDropdown = ({ lowStockItems }: { lowStockItems: InventoryItem[] }) => (
     <div className="relative w-full h-full">
       <button
@@ -450,12 +434,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </div>
       </div>
     );
-    
   }
 
   return (
     <div className="bg-gray-50 min-h-full p-8">
-      {/* Error Message */}
       {state.error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-700">{state.error}</p>
@@ -465,13 +447,9 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </div>
       )}
 
-      
-
-      {/* Header with Filters */}
       <div className="mb-6 flex items-center gap-4">
         <p className="text-gray-600">Showing</p>
         
-        {/* Date Filter */}
         <Dropdown
           options={periods}
           selected={state.selectedPeriod}
@@ -480,7 +458,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
           onToggle={() => updateState({ dropdownOpen: !state.dropdownOpen })}
         />
 
-        {/* Category Filter */}
         <Dropdown
           options={categories}
           selected={state.selectedCategory}
@@ -494,7 +471,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
           <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
@@ -510,7 +486,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </div>
       </div>
 
-      {/* Inventory Table */}
       <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6">
         <div className="mb-6">
           <div className="relative w-[540px] h-9 rounded-[20px] p-2 border border-gray-200">
@@ -528,11 +503,8 @@ console.log('First filtered item:', filteredInventoryData[0]);
         <h2 className="font-medium text-lg text-[#0A0D14] mb-4">Inventory</h2>
 
         <div className="overflow-x-auto">
-
-{/* Table Container with synchronized horizontal scrolling */}
 <div className="overflow-x-auto">
   <div className="min-w-max">
-    {/* Table Header - Fixed, no separate scroll */}
     <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
       <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 116px' }}>
         <div className="text-sm font-medium text-gray-600 text-left pl-4">Product name</div>
@@ -549,8 +521,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
       </div>
     </div>
   
-
-    {/* Table Rows - Only vertical scroll, no horizontal scroll */}
     <div 
       ref={tableContainerRef}
       className="space-y-1 max-h-[400px] overflow-y-auto"
@@ -575,7 +545,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
             }`} 
             style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 116px' }}
           >
-            {/* Product - Keep left-aligned */}
             <div className="text-left pl-4 flex items-center gap-3">
               {item.image ? (
                 <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
@@ -585,32 +554,26 @@ console.log('First filtered item:', filteredInventoryData[0]);
               <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
             </div>
             
-            {/* Brand - Centered */}
             <div className="text-center text-sm text-gray-600 truncate" title={item.make || '-'}>
               {item.make || '-'}
             </div>
             
-            {/* Model - Centered */}
             <div className="text-center text-sm text-gray-600 truncate" title={item.model || '-'}>
               {item.model || '-'}
             </div>
             
-            {/* Type - Centered */}
             <div className="text-center text-sm text-gray-600 truncate" title={item.type || '-'}>
               {item.type || '-'}
             </div>
 
-            {/* Size - Centered */}
             <div className="text-center text-sm text-gray-600 truncate" title={item.size || '-'}>
               {item.size || '-'}
             </div>
             
-            {/* Capacity - Centered */}
             <div className="text-center text-sm text-gray-600 truncate" title={item.capacity || '-'}>
               {item.capacity || '-'}
             </div>
             
-            {/* Description with tooltip - Centered */}
             <div className="text-center text-sm text-gray-600 relative group cursor-help">
               <span className="truncate block" style={{ maxWidth: '120px' }}>
                 {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
@@ -623,18 +586,14 @@ console.log('First filtered item:', filteredInventoryData[0]);
               )}
             </div>
             
-            {/* Stock left - Centered */}
             <div className="text-center text-sm text-gray-900">{item.quantity}</div>
             
-            {/* Unit cost - Centered */}
             <div className="text-center text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
             
-            {/* Amount - Centered (Changed: Now shows unitCost * quantity) */}
             <div className="text-center text-sm text-gray-900">
               {formatCurrency(item.unitCost * item.quantity)}
             </div>
             
-            {/* Actions - Centered with justified buttons */}
             <div className="text-center flex gap-2 justify-center">
               <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
                 <Edit className="w-4 h-4" />
@@ -658,52 +617,65 @@ console.log('First filtered item:', filteredInventoryData[0]);
           <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
             <div 
               className="p-6 h-full overflow-y-auto"
-                style={{
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#d1d5db #f3f4f6'
-                }}
-                >
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#d1d5db #f3f4f6'
+              }}
+            >
             <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
             
             <div className="space-y-6">
-              {/* Form Fields */}
+              {/* Category Dropdown */}
+              <div>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
+                  Product category
+                </label>
+                <select
+                  value={state.productToEdit.category}
+                  onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, category: e.target.value } })}
+                  className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select category...</option>
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Text Input Fields */}
               {[
-                { label: 'Product category', value: state.productToEdit.category, field: 'category', placeholder: 'Start typing...', helper: 'To add a category, press enter after typing the name' },
                 { label: 'Product name', value: state.productToEdit.name, field: 'name', placeholder: 'Enter product name...' },
                 { label: 'Brand', value: state.productToEdit.make || '', field: 'make', placeholder: 'Enter brand...' },
                 { label: 'Model', value: state.productToEdit.model || '', field: 'model', placeholder: 'Enter model...' },
                 { label: 'Type', value: state.productToEdit.type || '', field: 'type', placeholder: 'Enter type...' },
                 { label: 'Size', value: state.productToEdit.size || '', field: 'size', placeholder: 'Enter size...' },
-                { label: 'Capacity', value: state.productToEdit.capacity || '', field: 'capacity', placeholder: 'Enter capacity...' },
-                { label: 'Description', value: state.productToEdit.description || '', field: 'description', placeholder: 'Enter description...' }
-              ].map(({ label, value, field, placeholder, helper }) => (
+                { label: 'Capacity', value: state.productToEdit.capacity || '', field: 'capacity', placeholder: 'Enter capacity...' }
+              ].map(({ label, value, field, placeholder }) => (
                 <div key={field}>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
-                  {field === 'description' ? (
-                    <textarea
-                      placeholder={placeholder}
-                      value={value}
-                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
-                      rows={4}
-                      className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      placeholder={placeholder}
-                      value={value}
-                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
-                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  )}
-                  {helper && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <Info className="w-4 h-4 text-gray-400" />
-                      <span className="font-sora text-xs leading-4 text-[#525866]">{helper}</span>
-                    </div>
-                  )}
+                  <input
+                    type="text"
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
               ))}
+
+              {/* Description Field */}
+              <div>
+                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description</label>
+                <textarea
+                  placeholder="Enter product description..."
+                  value={state.productToEdit.description || ''}
+                  onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, description: e.target.value } })}
+                  rows={4}
+                  className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                />
+              </div>
 
               {/* Product image */}
               <div>
@@ -729,6 +701,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
                     placeholder="0.00"
                     value={state.productToEdit.unitCost ? formatNumberWithCommas(state.productToEdit.unitCost.toString()) : ''}
                     onChange={(e) => handleNumericInput('unitCost', e)}
+                    onKeyDown={(e) => {
+                      if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
+                      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
+                    }}
                     className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -750,6 +726,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
                   />
                   <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
                 </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Info className="w-4 h-4 text-gray-400" />
+                  <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 for 25%)</span>
+                </div>
               </div>
 
               {/* Calculated Base Price */}
@@ -758,6 +738,12 @@ console.log('First filtered item:', filteredInventoryData[0]);
                 <div className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-gray-50 flex items-center">
                   <span className="text-gray-700 font-medium">
                     {formatCurrency((state.productToEdit.unitCost || 0) * (1 + (state.productToEdit.profitPercentage || 0) / 100))}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Info className="w-4 h-4 text-gray-400" />
+                  <span className="font-sora text-xs leading-4 text-[#525866]">
+                    Calculation: ₦{(state.productToEdit.unitCost || 0).toLocaleString()} × (1 + {state.productToEdit.profitPercentage || 0}%) = {formatCurrency((state.productToEdit.unitCost || 0) * (1 + (state.productToEdit.profitPercentage || 0) / 100))}
                   </span>
                 </div>
               </div>
