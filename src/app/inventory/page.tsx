@@ -55,14 +55,34 @@ const Inventory: React.FC = () => {
 
 const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const formatCurrency = (value: number) => `₦ ${value.toLocaleString()}`;
-  const formatNumberWithCommas = (value: string) => {
-    const cleaned = value.replace(/[^\d.]/g, '');
-    const parts = cleaned.split('.');
-    const formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return parts[1] !== undefined ? `${formatted}.${parts[1]}` : formatted;
-  };
-  const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
+  const formatCurrency = (value: number) => {
+  // Handle zero and invalid values
+  if (!value || value === 0) return '₦ 0';
+  
+  // Split the number into integer and decimal parts
+  const parts = value.toFixed(2).split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+  
+  // Add commas to the integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  // Only include decimals if they're not .00
+  if (decimalPart && decimalPart !== '00') {
+    return `₦ ${formattedInteger}.${decimalPart}`;
+  }
+  
+  return `₦ ${formattedInteger}`;
+};
+
+const formatNumberWithCommas = (value: string) => {
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const parts = cleaned.split('.');
+  const formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts[1] !== undefined ? `${formatted}.${parts[1]}` : formatted;
+};
+
+const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
 
   const scrollToItem = (itemId: string) => {
     updateState({ highlightedItemId: itemId, lowStockDropdownOpen: false });
