@@ -26,6 +26,13 @@ export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionUserId, setActionUserId] = useState<number | null>(null);
+  
+  // HYDRATION FIX: Add mounted state to prevent hydration mismatch
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -51,8 +58,10 @@ export default function UserManagementPage() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, [token]);
+    if (mounted) {
+      fetchUsers();
+    }
+  }, [token, mounted]);
 
   // Filter users
   const filteredUsers = users.filter(user =>
@@ -171,7 +180,8 @@ export default function UserManagementPage() {
     }
   };
 
-  if (loading) {
+  // HYDRATION FIX: Don't render anything until mounted on client
+  if (!mounted || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -234,86 +244,93 @@ export default function UserManagementPage() {
                   </th>
                 </tr>
               </thead>
+              {/* HYDRATION FIX: Split conditional rendering into separate conditions with && */}
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <tr key={user.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                              user.role === 'ADMIN' ? 'bg-purple-600' : 'bg-blue-600'
-                            }`}>
-                              <span className="text-white text-sm font-medium">
-                                {user.firstName[0]}{user.lastName[0]}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                            user.role === 'ADMIN' ? 'bg-purple-600' : 'bg-blue-600'
+                          }`}>
+                            <span className="text-white text-sm font-medium">
+                              {user.firstName[0]}{user.lastName[0]}
+                            </span>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          user.role === 'ADMIN' 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : user.role === 'MANAGER'
-                            ? 'bg-orange-100 text-orange-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {user.role}
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        user.role === 'ADMIN' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : user.role === 'MANAGER'
+                          ? 'bg-orange-100 text-orange-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full mr-2 ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                        <span className="text-sm text-gray-900">
+                          {user.isOnline ? 'Online' : 'Offline'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className={`w-2 h-2 rounded-full mr-2 ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                          <span className="text-sm text-gray-900">
-                            {user.isOnline ? 'Online' : 'Offline'}
-                          </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="relative">
+                        <button
+                          onClick={() => setActionUserId(actionUserId === user.id ? null : user.id)}
+                          className="text-gray-400 hover:text-gray-600"
+                          aria-label="User actions"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        {/* HYDRATION FIX: Always render dropdown but use opacity and pointer-events for visibility */}
+                        <div 
+                          className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border transition-all duration-200 ${
+                            actionUserId === user.id 
+                              ? 'opacity-100 visible pointer-events-auto' 
+                              : 'opacity-0 invisible pointer-events-none'
+                          }`}
+                        >
+                          <div className="py-1">
+                            <button
+                              onClick={() => handleLogoutUser(user.id)}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={!user.isOnline}
+                            >
+                              <LogOut className="w-4 h-4 mr-2" />
+                              Force Logout
+                              {!user.isOnline && <span className="ml-2 text-xs text-gray-400">(Offline)</span>}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete User
+                            </button>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="relative">
-                          <button
-                            onClick={() => setActionUserId(actionUserId === user.id ? null : user.id)}
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          {actionUserId === user.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                              <div className="py-1">
-                                <button
-                                  onClick={() => handleLogoutUser(user.id)}
-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                                  disabled={!user.isOnline}
-                                >
-                                  <LogOut className="w-4 h-4 mr-2" />
-                                  Force Logout
-                                  {!user.isOnline && <span className="ml-2 text-xs text-gray-400">(Offline)</span>}
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteUser(user.id)}
-                                  className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete User
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {/* HYDRATION FIX: Empty state as separate condition */}
+                {filteredUsers.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       {searchTerm ? 'No users found matching your search.' : 'No users found.'}
