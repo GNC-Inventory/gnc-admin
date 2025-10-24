@@ -264,11 +264,12 @@ console.log('First filtered item:', filteredInventoryData[0]);
   });
   updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
-        const profitPercentage = product.profitPercentage || 0;
-        const calculatedBasePrice = product.unitCost * (1 + profitPercentage / 100);
+        // Use manually edited basePrice if available, otherwise calculate it
+        const basePrice = product.basePrice || (product.unitCost * (1 + (product.profitPercentage || 0) / 100));
+        
         const updatedProduct = {
           ...product,
-          basePrice: calculatedBasePrice,
+          basePrice: basePrice,
           amount: product.unitCost * product.quantity
         };
         
@@ -305,10 +306,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
     }
   };
 
-  const handleNumericInput = (field: 'unitCost' | 'profitPercentage', e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNumericInput = (field: 'unitCost' | 'profitPercentage' | 'basePrice', e: React.ChangeEvent<HTMLInputElement>) => {
     if (!state.productToEdit) return;
     
-    if (field === 'unitCost') {
+    if (field === 'unitCost' || field === 'basePrice') {
       const formattedValue = formatNumberWithCommas(e.target.value);
       const numericValue = parseFormattedNumber(formattedValue);
       e.target.value = formattedValue;
@@ -399,393 +400,376 @@ console.log('First filtered item:', filteredInventoryData[0]);
           <div className="p-3 border-b border-gray-100">
             <span className="text-sm font-medium text-gray-900">Low Stock Items</span>
           </div>
-          
-          <div className="p-2">
-            {lowStockItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToItem(item.id)}
-                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                  )}
-                  <span className="text-sm font-medium text-gray-900">{item.name}</span>
+          {lowStockItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => scrollToItem(item.id)}
+              className="w-full p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-left"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                  <p className="text-xs text-gray-500">{item.category}</p>
                 </div>
-                
-                <span className="text-sm text-red-600 font-medium">{item.quantity} left</span>
-              </button>
-            ))}
-          </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-red-600">{item.quantity}</p>
+                  <p className="text-xs text-gray-500">in stock</p>
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>
   );
 
-  if (state.loading) {
-    return (
-      <div className="bg-gray-50 min-h-full p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading inventory...</p>
-        </div>
-      </div>
-    );
-  }
+  const lowStockItems = state.inventoryData.filter(item => item.quantity <= (item.lowStockThreshold || 5));
 
   return (
-    <div className="bg-gray-50 min-h-full p-8">
-      {state.error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">{state.error}</p>
-          <button onClick={loadInventoryData} className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
-            Retry
-          </button>
-        </div>
-      )}
-
-      <div className="mb-6 flex items-center gap-4">
-        <p className="text-gray-600">Showing</p>
-        
-        <Dropdown
-          options={periods}
-          selected={state.selectedPeriod}
-          onSelect={(period) => updateState({ selectedPeriod: period })}
-          isOpen={state.dropdownOpen}
-          onToggle={() => updateState({ dropdownOpen: !state.dropdownOpen })}
-        />
-
-        <Dropdown
-          options={categories}
-          selected={state.selectedCategory}
-          onSelect={(category) => updateState({ selectedCategory: category })}
-          isOpen={state.categoryDropdownOpen}
-          onToggle={() => updateState({ categoryDropdownOpen: !state.categoryDropdownOpen })}
-        />
-
-        <button onClick={loadInventoryData} className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-[10px] hover:bg-blue-700 text-sm">
-          Refresh
+    <div className="p-6 min-h-screen">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-sora text-[32px] font-bold leading-[40.32px] text-left text-[#0A0D14]">
+          Inventory
+        </h1>
+        <button 
+          onClick={() => window.location.href = '/inventory/add-product'}
+          className="bg-[#375DFB] text-white font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center px-3.5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Add Product
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
-        </div>
-        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
-        </div>
-        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <InventoryValueCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
-        </div>
-        <div className="w-[258px] h-[172px] bg-white rounded-[32px]">
-          <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.quantity <= 5)} />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
+        <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
+        <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
+        <div className="bg-white rounded-[32px] border border-[#E2E4E9] shadow-sm">
+          <LowStockDropdown lowStockItems={lowStockItems} />
         </div>
       </div>
 
-      <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6">
-        <div className="mb-6">
-          <div className="relative w-[540px] h-9 rounded-[20px] p-2 border border-gray-200">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search items by name or SKU"
-              value={state.searchQuery}
-              onChange={(e) => updateState({ searchQuery: e.target.value })}
-              className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none"
-            />
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div className="relative flex-1 w-full sm:w-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={state.searchQuery}
+            onChange={(e) => updateState({ searchQuery: e.target.value })}
+            className="w-full sm:w-[342px] pl-10 pr-4 py-2.5 border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <div className="flex gap-3">
+          <Dropdown
+            options={categories}
+            selected={state.selectedCategory}
+            onSelect={(category) => updateState({ selectedCategory: category })}
+            isOpen={state.categoryDropdownOpen}
+            onToggle={() => updateState({ categoryDropdownOpen: !state.categoryDropdownOpen })}
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div ref={tableContainerRef} className="bg-white rounded-[32px] border border-[#E2E4E9] overflow-hidden shadow-sm">
+        {state.loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
-        </div>
-
-        <h2 className="font-medium text-lg text-[#0A0D14] mb-4">Inventory</h2>
-
-        <div className="overflow-x-auto">
-<div className="overflow-x-auto">
-  <div className="min-w-max">
-    <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
-      <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 116px' }}>
-        <div className="text-sm font-medium text-gray-600 text-left pl-4">Product name</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Brand</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Model</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Type</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Size</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Capacity</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Description</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Stock left</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Unit cost</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Amount</div>
-        <div className="text-sm font-medium text-gray-600 text-center">Actions</div>
-      </div>
-    </div>
-  
-    <div 
-      ref={tableContainerRef}
-      className="space-y-1 max-h-[400px] overflow-y-auto"
-      style={{
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#d1d5db #f3f4f6'
-      }}
-    >
-      {filteredInventoryData.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          {state.searchQuery || state.selectedCategory !== 'All Categories' 
-            ? 'No items found matching your filters.' 
-            : 'No inventory items found. Add products to get started.'}
-        </div>
-      ) : (
-        filteredInventoryData.map((item) => (
-          <div 
-            key={item.id} 
-            data-item-id={item.id}
-            className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-              state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
-            }`} 
-            style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 116px' }}
-          >
-            <div className="text-left pl-4 flex items-center gap-3">
-              {item.image ? (
-                <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
-              ) : (
-                <div className="w-8 h-8 bg-gray-200 rounded"></div>
-              )}
-              <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
-            </div>
-            
-            <div className="text-center text-sm text-gray-600 truncate" title={item.make || '-'}>
-              {item.make || '-'}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600 truncate" title={item.model || '-'}>
-              {item.model || '-'}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600 truncate" title={item.type || '-'}>
-              {item.type || '-'}
-            </div>
-
-            <div className="text-center text-sm text-gray-600 truncate" title={item.size || '-'}>
-              {item.size || '-'}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600 truncate" title={item.capacity || '-'}>
-              {item.capacity || '-'}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600 relative group cursor-help">
-              <span className="truncate block" style={{ maxWidth: '120px' }}>
-                {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
-              </span>
-              {item.description && item.description.length > 15 && (
-                <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-normal max-w-xs shadow-lg">
-                  {item.description}
-                  <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
-                </div>
-              )}
-            </div>
-            
-            <div className="text-center text-sm text-gray-900">{item.quantity}</div>
-            
-            <div className="text-center text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
-            
-            <div className="text-center text-sm text-gray-900">
-              {formatCurrency(item.unitCost * item.quantity)}
-            </div>
-            
-            <div className="text-center flex gap-2 justify-center">
-              <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
-                <Edit className="w-4 h-4" />
-              </button>
-              <button onClick={() => openModal('delete', item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+        ) : filteredInventoryData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+            <p className="text-lg font-medium">No products found</p>
+            <p className="text-sm">Try adjusting your search or filters</p>
           </div>
-        ))
-      )}
-    </div>
-  </div>
-</div>
-        </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[#E2E4E9]">
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">PRODUCTS</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">CATEGORY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">LAST UPDATED</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">UNIT COST</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">BASE PRICE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">QTY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">AMOUNT</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInventoryData.map((item) => (
+                  <tr 
+                    key={item.id} 
+                    data-item-id={item.id}
+                    className={`border-b border-[#E2E4E9] hover:bg-gray-50 transition-colors ${
+                      state.highlightedItemId === item.id ? 'bg-blue-50 animate-pulse' : ''
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.image ? (
+                          <Image 
+                            src={item.image} 
+                            alt={item.name}
+                            width={40}
+                            height={40}
+                            className="rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">No image</span>
+                          </div>
+                        )}
+                        <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">{item.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.category}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter text-sm leading-5 text-[#525866]">
+                        {new Date(item.lastUpdated).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">
+                        {formatCurrency(item.unitCost)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">
+                        {item.basePrice ? formatCurrency(item.basePrice) : '-'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`font-inter font-medium text-sm leading-5 ${
+                        item.quantity <= (item.lowStockThreshold || 5) ? 'text-red-600' : 'text-[#0A0D14]'
+                      }`}>
+                        {item.quantity}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">
+                        {formatCurrency(typeof item.amount === 'number' ? item.amount : parseFloat(item.amount))}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openModal('edit', item)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit product"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openModal('delete', item)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete product"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-{/* Edit Modal */}
+      {/* Edit Modal */}
       {state.showEditModal && state.productToEdit && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
-            <div 
-              className="p-6 h-full overflow-y-auto"
-              style={{
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#d1d5db #f3f4f6'
-              }}
-            >
-            <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
-            
-            <div className="space-y-6">
-              {/* Category Dropdown */}
-              <div>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                  Product category
-                </label>
-                <select
-                  value={state.productToEdit.category}
-                  onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, category: e.target.value } })}
-                  className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select category...</option>
-                  {categoryOptions.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Text Input Fields */}
-              {[
-                { label: 'Product name', value: state.productToEdit.name, field: 'name', placeholder: 'Enter product name...' },
-                { label: 'Brand', value: state.productToEdit.make || '', field: 'make', placeholder: 'Enter brand...' },
-                { label: 'Model', value: state.productToEdit.model || '', field: 'model', placeholder: 'Enter model...' },
-                { label: 'Type', value: state.productToEdit.type || '', field: 'type', placeholder: 'Enter type...' },
-                { label: 'Size', value: state.productToEdit.size || '', field: 'size', placeholder: 'Enter size...' },
-                { label: 'Capacity', value: state.productToEdit.capacity || '', field: 'capacity', placeholder: 'Enter capacity...' }
-              ].map(({ label, value, field, placeholder }) => (
-                <div key={field}>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
-                  <input
-                    type="text"
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              ))}
-
-              {/* Description Field */}
-              <div>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description</label>
-                <textarea
-                  placeholder="Enter product description..."
-                  value={state.productToEdit.description || ''}
-                  onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, description: e.target.value } })}
-                  rows={4}
-                  className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
-                />
-              </div>
-
-              {/* Product image */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="font-inter font-semibold text-2xl leading-8 text-[#0A0D14] mb-6">Edit Product</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Product Name */}
                 <div>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
-                <div className="flex flex-col gap-3">
-                  <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  {state.productToEdit.image && <Image src={state.productToEdit.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
-                </div>
-                </div>
-
-              {/* Unit Cost */}
-              <div>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Unit Cost</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product Name</label>
                   <input
                     type="text"
-                    placeholder="0.00"
-                    value={state.productToEdit.unitCost ? formatNumberWithCommas(state.productToEdit.unitCost.toString()) : ''}
-                    onChange={(e) => handleNumericInput('unitCost', e)}
-                    onKeyDown={(e) => {
-                      if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
-                      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
-                    }}
-                    className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Profit Percentage */}
-              <div>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Profit Percentage</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    max="1000"
-                    step="0.1"
-                    value={state.productToEdit.profitPercentage || ''}
-                    onChange={(e) => handleNumericInput('profitPercentage', e)}
+                    value={state.productToEdit.name}
+                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, name: e.target.value } })}
                     className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
                 </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <Info className="w-4 h-4 text-gray-400" />
-                  <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 for 25%)</span>
-                </div>
-              </div>
 
-              {/* Calculated Base Price */}
-              <div>
-                <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price (Auto-calculated)</label>
-                <div className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-gray-50 flex items-center">
-                  <span className="text-gray-700 font-medium">
-                    {formatCurrency((state.productToEdit.unitCost || 0) * (1 + (state.productToEdit.profitPercentage || 0) / 100))}
-                  </span>
+                {/* Category Dropdown */}
+                <div>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Category</label>
+                  <select
+                    value={state.productToEdit.category}
+                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, category: e.target.value } })}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {categoryOptions.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <Info className="w-4 h-4 text-gray-400" />
-                  <span className="font-sora text-xs leading-4 text-[#525866]">
-                    Calculation: ₦{(state.productToEdit.unitCost || 0).toLocaleString()} × (1 + {state.productToEdit.profitPercentage || 0}%) = {formatCurrency((state.productToEdit.unitCost || 0) * (1 + (state.productToEdit.profitPercentage || 0) / 100))}
-                  </span>
-                </div>
-              </div>
 
-              {/* Quantity and Low Stock */}
-              {[
-                { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
-                { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
-              ].map(({ label, value, field }) => (
-                <div key={field}>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
-                  <input
-                    type="number"
-                    value={value}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: parseInt(e.target.value) || 0 } })}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                {/* Optional Fields */}
+                {[
+                  { label: 'Make', field: 'make' },
+                  { label: 'Model', field: 'model' },
+                  { label: 'Type', field: 'type' },
+                  { label: 'Size', field: 'size' },
+                  { label: 'Capacity', field: 'capacity' }
+                ].map(({ label, field }) => (
+                  <div key={field}>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label} (Optional)</label>
+                    <input
+                      type="text"
+                      value={(state.productToEdit as any)[field] || ''}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
+                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+
+                {/* Description */}
+                <div className="md:col-span-2">
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description (Optional)</label>
+                  <textarea
+                    value={state.productToEdit.description || ''}
+                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, description: e.target.value } })}
+                    rows={4}
+                    className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
                   />
                 </div>
-              ))}
-            </div>
 
-            <div className="flex gap-3 justify-end mt-8">
-              <button onClick={closeModals} disabled={state.isUpdating} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                Cancel
-              </button>
-              <button
-                onClick={() => processAction('update')}
-                disabled={state.isUpdating}
-                className="w-[347px] h-9 rounded-lg p-2 bg-[#375DFB] text-white flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {state.isUpdating ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Updating...
-                  </>
-                ) : (
-                  <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center">Update Product</span>
-                )}
-              </button>
+                {/* Product image */}
+                  <div>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
+                  <div className="flex flex-col gap-3">
+                    <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    {state.productToEdit.image && <Image src={state.productToEdit.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
+                  </div>
+                  </div>
+
+                {/* Unit Cost */}
+                <div>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Unit Cost</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
+                    <input
+                      type="text"
+                      placeholder="0.00"
+                      value={state.productToEdit.unitCost ? formatNumberWithCommas(state.productToEdit.unitCost.toString()) : ''}
+                      onChange={(e) => handleNumericInput('unitCost', e)}
+                      onKeyDown={(e) => {
+                        if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
+                        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
+                      }}
+                      className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Profit Percentage */}
+                <div>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Profit Percentage</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      placeholder="0"
+                      min="0"
+                      max="1000"
+                      step="0.1"
+                      value={state.productToEdit.profitPercentage || ''}
+                      onChange={(e) => handleNumericInput('profitPercentage', e)}
+                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 for 25%)</span>
+                  </div>
+                </div>
+
+                {/* Base Price (Editable) */}
+                <div>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
+                    Base Price
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
+                    <input
+                      type="text"
+                      placeholder="0.00"
+                      value={state.productToEdit.basePrice ? formatNumberWithCommas(state.productToEdit.basePrice.toString()) : ''}
+                      onChange={(e) => handleNumericInput('basePrice', e)}
+                      onKeyDown={(e) => {
+                        if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
+                        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
+                      }}
+                      className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="font-sora text-xs leading-4 text-[#525866]">
+                      Auto-calculated: {formatCurrency((state.productToEdit.unitCost || 0) * (1 + (state.productToEdit.profitPercentage || 0) / 100))}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quantity and Low Stock */}
+                {[
+                  { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
+                  { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
+                ].map(({ label, value, field }) => (
+                  <div key={field}>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                    <input
+                      type="number"
+                      value={value}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: parseInt(e.target.value) || 0 } })}
+                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3 justify-end mt-8">
+                <button onClick={closeModals} disabled={state.isUpdating} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => processAction('update')}
+                  disabled={state.isUpdating}
+                  className="w-[347px] h-9 rounded-lg p-2 bg-[#375DFB] text-white flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {state.isUpdating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center">Update Product</span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
          </div>
       )}
 
