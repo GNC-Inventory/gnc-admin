@@ -187,36 +187,36 @@ if (!response.ok) {
     size: product.size,
     capacity: product.capacity,
     description: product.description,
-    image_url: product.image || '/products/default.png',
     unit_cost: product.unitCost,
     base_price: product.basePrice,
     stock_quantity: product.quantity,
     low_stock_threshold: product.lowStock,
     locationId: 1
   }, null, 2));
-  throw new Error(`Failed to add ${product.name}: ${response.statusText}`);
+  throw new Error(`API returned ${response.status}: ${errorText}`);
 }
 
-          const result = await response.json();
-          if (!result.success) {
-            throw new Error(result.error?.message || `Failed to add ${product.name}`);
-          }
+const result = await response.json();
+console.log('API Success Response:', result);
 
-          addedProducts.push(product.name);
+if (result.success) {
+  addedProducts.push(product);
+  console.log(`Successfully added: ${product.name}`);
+} else {
+  throw new Error(result.error || 'Failed to add product');
+}
+
         } catch (error) {
-          console.error(`Error adding ${product.name}:`, error);
+          console.error(`Failed to add ${product.name}:`, error);
           showErrorToast(`Failed to add ${product.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
-      // Clear local storage and state
-      localStorage.removeItem('selectedProducts');
-      setSelectedProducts([]);
-
-      // Dismiss loading toast and show success
       dismissToast(loadingToastId);
-      
+
       if (addedProducts.length > 0) {
+        setSelectedProducts([]);
+        localStorage.removeItem('selectedProducts');
         showSuccessToast(`Successfully added ${addedProducts.length} product(s) to inventory!`);
         setTimeout(() => router.push('/inventory'), 1000);
       } else {
@@ -361,18 +361,18 @@ if (!response.ok) {
               </select>
             </div>
 
-            {/* New Fields */}
+            {/* Text Fields - All accepting any characters including decimals */}
             {[
-              { label: 'Product name', field: 'name', placeholder: 'Enter product name...' },
-              { label: 'Brand', field: 'make', placeholder: 'Enter Brand...' },
-              { label: 'Model', field: 'model', placeholder: 'Enter model...' },
-              { label: 'Type', field: 'type', placeholder: 'Enter type...' },
-               { label: 'Size', field: 'size', placeholder: 'Enter size...' },
-              { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' }
-            ].map(({ label, field, placeholder }) => (
+              { label: 'Product name', field: 'name', placeholder: 'Enter product name...', required: true },
+              { label: 'Brand', field: 'make', placeholder: 'Enter Brand (e.g., Samsung, Dangote)...', required: false },
+              { label: 'Model', field: 'model', placeholder: 'Enter model (e.g., S21, X500)...', required: false },
+              { label: 'Type', field: 'type', placeholder: 'Enter type (e.g., LED, Concrete)...', required: false },
+              { label: 'Size', field: 'size', placeholder: 'Enter size (e.g., 2.5 inches, 10mm)...', required: false },
+              { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity (e.g., 1.5L, 50kg)...', required: false }
+            ].map(({ label, field, placeholder, required }) => (
               <div key={field}>
                 <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                  {label}
+                  {label}{required ? '' : ' (Optional)'}
                 </label>
                 <input
                   type="text"
@@ -381,26 +381,40 @@ if (!response.ok) {
                   onChange={(e) => handleInputChange(field, e.target.value)}
                   className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                {(field === 'size' || field === 'capacity') && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Info className="w-3 h-3 text-gray-400" />
+                    <span className="font-sora text-xs leading-4 text-[#525866]">
+                      You can enter decimals (e.g., {field === 'size' ? '2.5 inches, 10.5mm' : '1.5L, 0.75kg'})
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
 
-            {/* Description Field - Larger */}
+            {/* Description Field - Larger textarea with helper text */}
             <div>
               <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                Description
+                Description (Optional)
               </label>
               <textarea
-                placeholder="Enter product description..."
+                placeholder="Enter detailed product description (supports all characters including decimals, e.g., '2.5mm thickness')..."
                 value={currentProduct.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 rows={4}
                 className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
               />
+              <div className="flex items-center gap-2 mt-1">
+                <Info className="w-3 h-3 text-gray-400" />
+                <span className="font-sora text-xs leading-4 text-[#525866]">
+                  Accepts all text including numbers and decimals
+                </span>
+              </div>
             </div>
 
             {/* Product image */}
             <div>
-              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
+              <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image (Optional)</label>
               <div className="flex flex-col gap-3">
                 <input
                   type="file"
@@ -429,6 +443,10 @@ if (!response.ok) {
                   className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Info className="w-3 h-3 text-gray-400" />
+                <span className="font-sora text-xs leading-4 text-[#525866]">Supports decimals (e.g., 1,250.50)</span>
+              </div>
             </div>
 
             {/* Profit Percentage */}
@@ -449,7 +467,7 @@ if (!response.ok) {
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <Info className="w-4 h-4 text-gray-400" />
-                <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 for 25%)</span>
+                <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 or 25.5 for 25.5%)</span>
               </div>
             </div>
 
