@@ -452,6 +452,23 @@ console.log('First filtered item:', filteredInventoryData[0]);
 
   return (
     <div className="p-6 min-h-screen">
+      {/* Custom scrollbar styles for description column */}
+      <style jsx>{`
+        .scrollbar-thin::-webkit-scrollbar {
+          height: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: #cbd5e0;
+          border-radius: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: #a0aec0;
+        }
+      `}</style>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-sora text-[32px] font-bold leading-[40.32px] text-left text-[#0A0D14]">
@@ -517,6 +534,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
                 <tr className="border-b border-[#E2E4E9]">
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">PRODUCTS</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">CATEGORY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">DESCRIPTION</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">LAST UPDATED</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">UNIT COST</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">BASE PRICE</th>
@@ -554,6 +572,28 @@ console.log('First filtered item:', filteredInventoryData[0]);
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-inter text-sm leading-5 text-[#525866]">{item.category}</span>
+                    </td>
+                    {/* ENHANCED: Scrollable Description Column with Tooltip */}
+                    <td className="px-6 py-4 max-w-xs relative group">
+                      <div 
+                        className="font-inter text-sm leading-5 text-[#525866] overflow-x-auto whitespace-nowrap hover:pr-2 cursor-pointer scrollbar-thin"
+                        style={{
+                          maxWidth: '200px',
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: '#cbd5e0 transparent'
+                        }}
+                      >
+                        {item.description || '-'}
+                      </div>
+                      
+                      {/* Tooltip - shows on hover if description exists and is longer than 50 characters */}
+                      {item.description && item.description.length > 50 && (
+                        <div className="absolute left-0 top-full mt-2 w-80 bg-gray-900 text-white text-xs rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 shadow-xl">
+                          <p className="whitespace-normal leading-relaxed">{item.description}</p>
+                          {/* Tooltip arrow */}
+                          <div className="absolute -top-1 left-8 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-inter text-sm leading-5 text-[#525866]">
