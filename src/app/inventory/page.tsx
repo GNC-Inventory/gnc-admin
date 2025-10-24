@@ -55,34 +55,38 @@ const Inventory: React.FC = () => {
 
 const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  const formatCurrency = (value: number) => {
-  // Handle zero and invalid values
-  if (!value || value === 0) return '₦ 0';
-  
-  // Split the number into integer and decimal parts
-  const parts = value.toFixed(2).split('.');
-  const integerPart = parts[0];
-  const decimalPart = parts[1];
-  
-  // Add commas to the integer part
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  
-  // Only include decimals if they're not .00
-  if (decimalPart && decimalPart !== '00') {
-    return `₦ ${formattedInteger}.${decimalPart}`;
-  }
-  
-  return `₦ ${formattedInteger}`;
-};
+  // UPDATED: formatCurrency now handles both strings and numbers
+  const formatCurrency = (value: number | string) => {
+    // Convert to number if it's a string
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    
+    // Handle zero, invalid values, or NaN
+    if (!numValue || numValue === 0 || isNaN(numValue)) return '₦ 0';
+    
+    // Split the number into integer and decimal parts
+    const parts = numValue.toFixed(2).split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1];
+    
+    // Add commas to the integer part
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    // Only include decimals if they're not .00
+    if (decimalPart && decimalPart !== '00') {
+      return `₦ ${formattedInteger}.${decimalPart}`;
+    }
+    
+    return `₦ ${formattedInteger}`;
+  };
 
-const formatNumberWithCommas = (value: string) => {
-  const cleaned = value.replace(/[^\d.]/g, '');
-  const parts = cleaned.split('.');
-  const formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts[1] !== undefined ? `${formatted}.${parts[1]}` : formatted;
-};
-
-const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
+  const formatNumberWithCommas = (value: string) => {
+    const cleaned = value.replace(/[^\d.]/g, '');
+    const parts = cleaned.split('.');
+    const formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts[1] !== undefined ? `${formatted}.${parts[1]}` : formatted;
+  };
+  
+  const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
 
   const scrollToItem = (itemId: string) => {
     updateState({ highlightedItemId: itemId, lowStockDropdownOpen: false });
@@ -147,6 +151,7 @@ const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '
         if (localTransactions) transactionData = JSON.parse(localTransactions);
       }
 
+// UPDATED: Ensure all numeric values are properly converted from strings to numbers
 const transformedInventoryData = inventoryData.map((item: any) => {
   console.log('Transforming item:', item);
   console.log('Item image data:', item.product?.imageUrl);
@@ -155,14 +160,14 @@ const transformedInventoryData = inventoryData.map((item: any) => {
     name: item.product?.name || '',                    
     category: item.product?.category || '',            
     lastUpdated: item.lastUpdated || '',        
-    quantity: item.quantity || 0,              
-    unitCost: item.product?.unitCost || 0,
-    basePrice: item.product?.basePrice || 0,
-    profitPercentage: item.profitPercentage || 0,
-    amount: (item.product?.unitCost || 0) * (item.quantity || 0),
+    quantity: parseInt(item.quantity) || 0,              
+    unitCost: parseFloat(item.product?.unitCost) || 0,
+    basePrice: parseFloat(item.product?.basePrice) || 0,
+    profitPercentage: parseFloat(item.profitPercentage) || 0,
+    amount: (parseFloat(item.product?.unitCost) || 0) * (parseInt(item.quantity) || 0),
     image: item.product?.imageUrl || '',
     model: item.product?.model || '',                  
-    lowStockThreshold: item.lowStockThreshold || 5,
+    lowStockThreshold: parseInt(item.lowStockThreshold) || 5,
     make: item.product?.make || '',
     type: item.product?.type || '',
     size: item.product?.size || '',
