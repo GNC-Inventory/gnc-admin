@@ -357,6 +357,37 @@ console.log('First filtered item:', filteredInventoryData[0]);
     }
   };
 
+  // Paste functionality for Edit Modal
+  const handlePasteInEditModal = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasteData = e.clipboardData.getData('text');
+    
+    // Check if data contains tabs (from Excel/CSV) or commas
+    const delimiter = pasteData.includes('\t') ? '\t' : ',';
+    const values = pasteData.split(delimiter).map(v => v.trim());
+    
+    // Only auto-fill if we have multiple values
+    if (values.length > 1) {
+      e.preventDefault();
+      
+      // Map CSV columns: Product name, Category, Brand, Model, Type, Size, Capacity, Description
+      updateState({
+        productToEdit: state.productToEdit ? {
+          ...state.productToEdit,
+          name: values[0] || state.productToEdit.name,
+          category: values[1] || state.productToEdit.category,
+          make: values[2] || state.productToEdit.make,
+          model: values[3] || state.productToEdit.model,
+          type: values[4] || state.productToEdit.type,
+          size: values[5] || state.productToEdit.size,
+          capacity: values[6] || state.productToEdit.capacity,
+          description: values[7] || state.productToEdit.description,
+        } : null
+      });
+      
+      showSuccessToast('Data pasted successfully! Please review and fill in pricing details.');
+    }
+  };
+
   const Dropdown = ({ 
     options, 
     selected, 
@@ -474,12 +505,6 @@ console.log('First filtered item:', filteredInventoryData[0]);
         <h1 className="font-sora text-[32px] font-bold leading-[40.32px] text-left text-[#0A0D14]">
           Inventory
         </h1>
-        <button 
-          onClick={() => window.location.href = '/inventory/add-product'}
-          className="bg-[#375DFB] text-white font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center px-3.5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Add Product
-        </button>
       </div>
 
       {/* Stats Cards */}
@@ -530,10 +555,14 @@ console.log('First filtered item:', filteredInventoryData[0]);
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
+              <thead className="sticky top-0 bg-white z-40">
                 <tr className="border-b border-[#E2E4E9]">
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">PRODUCTS</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">CATEGORY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">BRAND</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">MODEL</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">TYPE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">SIZE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">CAPACITY</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">DESCRIPTION</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">LAST UPDATED</th>
                   <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">UNIT COST</th>
@@ -571,14 +600,26 @@ console.log('First filtered item:', filteredInventoryData[0]);
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.category}</span>
+                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.make || '-'}</span>
                     </td>
-                    {/* ENHANCED: Scrollable Description Column with Tooltip */}
+                    <td className="px-6 py-4">
+                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.model || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.type || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.size || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.capacity || '-'}</span>
+                    </td>
+                    {/* ENHANCED: Scrollable Description Column with Tooltip - Width reduced to 120px */}
                     <td className="px-6 py-4 max-w-xs relative group">
                       <div 
                         className="font-inter text-sm leading-5 text-[#525866] overflow-x-auto whitespace-nowrap hover:pr-2 cursor-pointer scrollbar-thin"
                         style={{
-                          maxWidth: '200px',
+                          maxWidth: '120px',
                           scrollbarWidth: 'thin',
                           scrollbarColor: '#cbd5e0 transparent'
                         }}
@@ -667,8 +708,11 @@ console.log('First filtered item:', filteredInventoryData[0]);
                     type="text"
                     value={state.productToEdit.name}
                     onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, name: e.target.value } })}
+                    onPaste={handlePasteInEditModal}
+                    placeholder="Paste data from CSV/Excel here"
                     className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">💡 Tip: Paste copied row from CSV/Excel to auto-fill fields</p>
                 </div>
 
                 {/* Category Dropdown */}
@@ -799,14 +843,15 @@ console.log('First filtered item:', filteredInventoryData[0]);
 
                 {/* Quantity and Low Stock */}
                 {[
-                  { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
-                  { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
-                ].map(({ label, value, field }) => (
+                  { label: 'Quantity', value: state.productToEdit.quantity || '', field: 'quantity', placeholder: 'Enter quantity' },
+                  { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || '', field: 'lowStockThreshold', placeholder: 'Enter low stock threshold' }
+                ].map(({ label, value, field, placeholder }) => (
                   <div key={field}>
                     <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
                     <input
                       type="number"
                       value={value}
+                      placeholder={placeholder}
                       onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: parseInt(e.target.value) || 0 } })}
                       className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
