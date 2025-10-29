@@ -507,37 +507,40 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </h1>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
-        <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
-        <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
-        <div className="bg-white rounded-[32px] border border-[#E2E4E9] shadow-sm">
-          <LowStockDropdown lowStockItems={lowStockItems} />
+      {/* Sticky Container for Stats and Filters */}
+      <div className="sticky top-0 z-50 bg-white pb-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
+          <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
+          <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
+          <div className="bg-white rounded-[32px] border border-[#E2E4E9] shadow-sm">
+            <LowStockDropdown lowStockItems={lowStockItems} />
+          </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-        <div className="relative flex-1 w-full sm:w-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={state.searchQuery}
-            onChange={(e) => updateState({ searchQuery: e.target.value })}
-            className="w-full sm:w-[342px] pl-10 pr-4 py-2.5 border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        
-        <div className="flex gap-3">
-          <Dropdown
-            options={categories}
-            selected={state.selectedCategory}
-            onSelect={(category) => updateState({ selectedCategory: category })}
-            isOpen={state.categoryDropdownOpen}
-            onToggle={() => updateState({ categoryDropdownOpen: !state.categoryDropdownOpen })}
-          />
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="relative flex-1 w-full sm:w-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={state.searchQuery}
+              onChange={(e) => updateState({ searchQuery: e.target.value })}
+              className="w-full sm:w-[342px] pl-10 pr-4 py-2.5 border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div className="flex gap-3">
+            <Dropdown
+              options={categories}
+              selected={state.selectedCategory}
+              onSelect={(category) => updateState({ selectedCategory: category })}
+              isOpen={state.categoryDropdownOpen}
+              onToggle={() => updateState({ categoryDropdownOpen: !state.categoryDropdownOpen })}
+            />
+          </div>
         </div>
       </div>
 
@@ -553,23 +556,23 @@ console.log('First filtered item:', filteredInventoryData[0]);
             <p className="text-sm">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-white z-40">
+          <div className="overflow-x-auto overflow-y-visible" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+            <table className="w-full" style={{ minWidth: '1400px' }}>
+              <thead className="sticky top-0 bg-white z-40 shadow-sm">
                 <tr className="border-b border-[#E2E4E9]">
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">PRODUCTS</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">BRAND</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">MODEL</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">TYPE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">SIZE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">CAPACITY</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">DESCRIPTION</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">LAST UPDATED</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">UNIT COST</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">BASE PRICE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">QTY</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">AMOUNT</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866]">ACTIONS</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">PRODUCTS</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">BRAND</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">MODEL</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">TYPE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">SIZE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">CAPACITY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">DESCRIPTION</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">LAST UPDATED</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">UNIT COST</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">BASE PRICE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">QTY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">AMOUNT</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -646,24 +649,24 @@ console.log('First filtered item:', filteredInventoryData[0]);
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">
+                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14] whitespace-nowrap">
                         {formatCurrency(item.unitCost)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">
+                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14] whitespace-nowrap">
                         {item.basePrice ? formatCurrency(item.basePrice) : '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`font-inter font-medium text-sm leading-5 ${
+                      <span className={`font-inter font-medium text-sm leading-5 whitespace-nowrap ${
                         item.quantity <= (item.lowStockThreshold || 5) ? 'text-red-600' : 'text-[#0A0D14]'
                       }`}>
                         {item.quantity}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">
+                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14] whitespace-nowrap">
                         {formatCurrency(typeof item.amount === 'number' ? item.amount : parseFloat(item.amount))}
                       </span>
                     </td>
