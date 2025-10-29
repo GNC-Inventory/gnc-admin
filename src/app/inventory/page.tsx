@@ -482,7 +482,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
   const lowStockItems = state.inventoryData.filter(item => item.quantity <= (item.lowStockThreshold || 5));
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className="p-6 min-h-screen overflow-x-hidden">
       {/* Custom scrollbar styles for description column */}
       <style jsx>{`
         .scrollbar-thin::-webkit-scrollbar {
@@ -497,6 +497,22 @@ console.log('First filtered item:', filteredInventoryData[0]);
         }
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
           background: #a0aec0;
+        }
+        
+        /* Ensure horizontal scrollbar is visible and functional */
+        .overflow-x-scroll::-webkit-scrollbar {
+          height: 8px;
+        }
+        .overflow-x-scroll::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .overflow-x-scroll::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+        }
+        .overflow-x-scroll::-webkit-scrollbar-thumb:hover {
+          background: #555;
         }
       `}</style>
 
@@ -544,8 +560,8 @@ console.log('First filtered item:', filteredInventoryData[0]);
         </div>
       </div>
 
-      {/* Table */}
-      <div ref={tableContainerRef} className="bg-white rounded-[32px] border border-[#E2E4E9] overflow-hidden shadow-sm">
+      {/* Table - with proper horizontal scroll */}
+      <div className="bg-white rounded-[32px] border border-[#E2E4E9] shadow-sm">
         {state.loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -556,23 +572,31 @@ console.log('First filtered item:', filteredInventoryData[0]);
             <p className="text-sm">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="overflow-x-auto overflow-y-visible" style={{ maxHeight: 'calc(100vh - 400px)' }}>
-            <table className="w-full" style={{ minWidth: '1400px' }}>
+          <div 
+            ref={tableContainerRef} 
+            className="overflow-x-scroll overflow-y-visible w-full" 
+            style={{ 
+              maxHeight: 'calc(100vh - 450px)',
+              overflowX: 'scroll',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            <table className="w-full border-collapse" style={{ minWidth: '1600px' }}>
               <thead className="sticky top-0 bg-white z-40 shadow-sm">
-                <tr className="border-b border-[#E2E4E9]">
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">PRODUCTS</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">BRAND</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">MODEL</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">TYPE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">SIZE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">CAPACITY</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">DESCRIPTION</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">LAST UPDATED</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">UNIT COST</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">BASE PRICE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">QTY</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">AMOUNT</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap">ACTIONS</th>
+                <tr className="border-b-2 border-[#E2E4E9]">
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">PRODUCTS</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">BRAND</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">MODEL</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">TYPE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">SIZE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">CAPACITY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">DESCRIPTION</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">LAST UPDATED</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">UNIT COST</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">BASE PRICE</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">QTY</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">AMOUNT</th>
+                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
