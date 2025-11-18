@@ -478,6 +478,24 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-full p-8">
+      {/* ONLY NEW ADDITION: Custom CSS for description scrollbar */}
+      <style jsx>{`
+        .description-scroll::-webkit-scrollbar {
+          height: 4px;
+        }
+        .description-scroll::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+        .description-scroll::-webkit-scrollbar-thumb {
+          background: #cbd5e0;
+          border-radius: 4px;
+        }
+        .description-scroll::-webkit-scrollbar-thumb:hover {
+          background: #a0aec0;
+        }
+      `}</style>
+
       {state.error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-700">{state.error}</p>
@@ -624,15 +642,22 @@ const Inventory: React.FC = () => {
                       {item.capacity || '-'}
                     </div>
                     
-                    {/* Description with tooltip */}
-                    <div className="px-2 text-sm text-gray-600 relative group cursor-help">
-                      <span className="truncate block" style={{ maxWidth: '120px' }}>
-                        {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
-                      </span>
-                      {item.description && item.description.length > 15 && (
-                        <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-normal max-w-xs shadow-lg">
-                          {item.description}
-                          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
+                    {/* ENHANCED: Description with horizontal scroll AND hover tooltip */}
+                    <div className="px-2 text-sm text-gray-600 relative group">
+                      <div 
+                        className="description-scroll overflow-x-auto whitespace-nowrap cursor-pointer"
+                        style={{ maxWidth: '120px' }}
+                        title="Scroll horizontally or hover to see full text"
+                      >
+                        {item.description || '-'}
+                      </div>
+                      
+                      {/* Hover Tooltip - Shows full description */}
+                      {item.description && item.description.length > 20 && (
+                        <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl pointer-events-none" style={{ maxWidth: '300px', width: 'max-content' }}>
+                          <p className="whitespace-normal leading-relaxed">{item.description}</p>
+                          {/* Tooltip arrow */}
+                          <div className="absolute top-full left-8 w-2 h-2 bg-gray-900 transform rotate-45"></div>
                         </div>
                       )}
                     </div>
