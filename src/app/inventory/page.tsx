@@ -34,48 +34,38 @@ const categoryOptions = ['Building Materials', 'Electricals', 'Electronics'];
 
 const Inventory: React.FC = () => {
   const [state, setState] = useState({
-  selectedPeriod: 'Today',
-  selectedCategory: 'All Categories',
-  dropdownOpen: false,
-  categoryDropdownOpen: false,
-  searchQuery: '',
-  inventoryData: [] as InventoryItem[],
-  transactionData: [] as any[],
-  loading: true,
-  error: null as string | null,
-  showDeleteModal: false,
-  showEditModal: false,
-  productToDelete: null as InventoryItem | null,
-  productToEdit: null as InventoryItem | null,
-  isDeleting: false,
-  isUpdating: false,
-  lowStockDropdownOpen: false,
-  highlightedItemId: null as string | null,
-});
+    selectedPeriod: 'Today',
+    selectedCategory: 'All Categories',
+    dropdownOpen: false,
+    categoryDropdownOpen: false,
+    searchQuery: '',
+    inventoryData: [] as InventoryItem[],
+    transactionData: [] as any[],
+    loading: true,
+    error: null as string | null,
+    showDeleteModal: false,
+    showEditModal: false,
+    productToDelete: null as InventoryItem | null,
+    productToEdit: null as InventoryItem | null,
+    isDeleting: false,
+    isUpdating: false,
+    lowStockDropdownOpen: false,
+    highlightedItemId: null as string | null,
+  });
 
-const tableContainerRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // UPDATED: formatCurrency now handles both strings and numbers
   const formatCurrency = (value: number | string) => {
-    // Convert to number if it's a string
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    
-    // Handle zero, invalid values, or NaN
     if (!numValue || numValue === 0 || isNaN(numValue)) return '₦ 0';
-    
-    // Split the number into integer and decimal parts
     const parts = numValue.toFixed(2).split('.');
     const integerPart = parts[0];
     const decimalPart = parts[1];
-    
-    // Add commas to the integer part
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    
-    // Only include decimals if they're not .00
     if (decimalPart && decimalPart !== '00') {
       return `₦ ${formattedInteger}.${decimalPart}`;
     }
-    
     return `₦ ${formattedInteger}`;
   };
 
@@ -113,17 +103,17 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
       updateState({ loading: true, error: null });
 
       const [inventoryResponse, transactionResponse] = await Promise.all([
-  fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
-    headers: { 
-      'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
-    }
-  }),
-  fetch('https://gnc-inventory-backend.onrender.com/api/sales', {
-    headers: { 
-      'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
-    }
-  })
-]);
+        fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+          headers: { 
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+          }
+        }),
+        fetch('https://gnc-inventory-backend.onrender.com/api/sales', {
+          headers: { 
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+          }
+        })
+      ]);
 
       let inventoryData = [];
       let transactionData = [];
@@ -151,37 +141,36 @@ const tableContainerRef = useRef<HTMLDivElement>(null);
         if (localTransactions) transactionData = JSON.parse(localTransactions);
       }
 
-// UPDATED: Ensure all numeric values are properly converted from strings to numbers
-const transformedInventoryData = inventoryData.map((item: any) => {
-  console.log('Transforming item:', item);
-  console.log('Item image data:', item.product?.imageUrl);
-  return {
-    id: item.id?.toString() || '',
-    name: item.product?.name || '',                    
-    category: item.product?.category || '',            
-    lastUpdated: item.lastUpdated || '',        
-    quantity: parseInt(item.quantity) || 0,              
-    unitCost: parseFloat(item.product?.unitCost) || 0,
-    basePrice: parseFloat(item.product?.basePrice) || 0,
-    profitPercentage: parseFloat(item.profitPercentage) || 0,
-    amount: (parseFloat(item.product?.unitCost) || 0) * (parseInt(item.quantity) || 0),
-    image: item.product?.imageUrl || '',
-    model: item.product?.model || '',                  
-    lowStockThreshold: parseInt(item.lowStockThreshold) || 5,
-    make: item.product?.make || '',
-    type: item.product?.type || '',
-    size: item.product?.size || '',
-    capacity: item.product?.capacity || '',
-    description: item.product?.description || '',
-  };
-});
+      const transformedInventoryData = inventoryData.map((item: any) => {
+        console.log('Transforming item:', item);
+        console.log('Item image data:', item.product?.imageUrl);
+        return {
+          id: item.id?.toString() || '',
+          name: item.product?.name || '',                    
+          category: item.product?.category || '',            
+          lastUpdated: item.lastUpdated || '',        
+          quantity: parseInt(item.quantity) || 0,              
+          unitCost: parseFloat(item.product?.unitCost) || 0,
+          basePrice: parseFloat(item.product?.basePrice) || 0,
+          profitPercentage: parseFloat(item.profitPercentage) || 0,
+          amount: (parseFloat(item.product?.unitCost) || 0) * (parseInt(item.quantity) || 0),
+          image: item.product?.imageUrl || '',
+          model: item.product?.model || '',                  
+          lowStockThreshold: parseInt(item.lowStockThreshold) || 5,
+          make: item.product?.make || '',
+          type: item.product?.type || '',
+          size: item.product?.size || '',
+          capacity: item.product?.capacity || '',
+          description: item.product?.description || '',
+        };
+      });
 
-console.log('Transformed data:', transformedInventoryData);
+      console.log('Transformed data:', transformedInventoryData);
 
-updateState({ inventoryData: transformedInventoryData, transactionData });
-console.log('Inventory data:', inventoryData);
-console.log('First item:', inventoryData[0]);
-console.log('Total items loaded:', inventoryData.length);
+      updateState({ inventoryData: transformedInventoryData, transactionData });
+      console.log('Inventory data:', inventoryData);
+      console.log('First item:', inventoryData[0]);
+      console.log('Total items loaded:', inventoryData.length);
 
     } catch (err) {
       updateState({ error: 'Failed to load data' });
@@ -199,16 +188,16 @@ console.log('Total items loaded:', inventoryData.length);
   }, []);
 
   const filteredInventoryData = state.inventoryData.filter(item => {
-  const matchesSearch = item.name ? item.name.toLowerCase().includes(state.searchQuery.toLowerCase()) : false;
-  const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
-  return matchesSearch && matchesCategory;
-});
+    const matchesSearch = item.name ? item.name.toLowerCase().includes(state.searchQuery.toLowerCase()) : false;
+    const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-console.log('Raw inventory data:', state.inventoryData);
-console.log('Filtered inventory data:', filteredInventoryData);
-console.log('Search query:', state.searchQuery);
-console.log('Selected category:', state.selectedCategory);
-console.log('First filtered item:', filteredInventoryData[0]);
+  console.log('Raw inventory data:', state.inventoryData);
+  console.log('Filtered inventory data:', filteredInventoryData);
+  console.log('Search query:', state.searchQuery);
+  console.log('Selected category:', state.selectedCategory);
+  console.log('First filtered item:', filteredInventoryData[0]);
 
   const categoryFilteredData = state.inventoryData.filter(item => 
     state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
@@ -277,19 +266,18 @@ console.log('First filtered item:', filteredInventoryData[0]);
       let response;
       
       if (isDelete) {
-  const productId = parseInt(product.id);
-  console.log('Original product ID:', product.id, 'Type:', typeof product.id);
-  console.log('Converted product ID:', productId, 'Type:', typeof productId);
-  
-  response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${productId}`, {
-    method: 'DELETE',
-    headers: { 
-      'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
-    }
-  });
-  updatedItems = state.inventoryData.filter(item => item.id !== product.id);
+        const productId = parseInt(product.id);
+        console.log('Original product ID:', product.id, 'Type:', typeof product.id);
+        console.log('Converted product ID:', productId, 'Type:', typeof productId);
+        
+        response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${productId}`, {
+          method: 'DELETE',
+          headers: { 
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+          }
+        });
+        updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
-        // Use manually edited basePrice if available, otherwise calculate it
         const basePrice = product.basePrice || (product.unitCost * (1 + (product.profitPercentage || 0) / 100));
         
         const updatedProduct = {
@@ -303,13 +291,13 @@ console.log('First filtered item:', filteredInventoryData[0]);
         );
         
         response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`, {
-  method: 'PUT',
-  headers: { 
-    'Content-Type': 'application/json',
-    'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
-  },
-  body: JSON.stringify(updatedProduct)
-});
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+          },
+          body: JSON.stringify(updatedProduct)
+        });
       }
 
       const result = await response.json();
@@ -357,19 +345,14 @@ console.log('First filtered item:', filteredInventoryData[0]);
     }
   };
 
-  // Paste functionality for Edit Modal
   const handlePasteInEditModal = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pasteData = e.clipboardData.getData('text');
-    
-    // Check if data contains tabs (from Excel/CSV) or commas
     const delimiter = pasteData.includes('\t') ? '\t' : ',';
     const values = pasteData.split(delimiter).map(v => v.trim());
     
-    // Only auto-fill if we have multiple values
     if (values.length > 1) {
       e.preventDefault();
       
-      // Map CSV columns: Product name, Category, Brand, Model, Type, Size, Capacity, Description
       updateState({
         productToEdit: state.productToEdit ? {
           ...state.productToEdit,
@@ -456,295 +439,275 @@ console.log('First filtered item:', filteredInventoryData[0]);
           <div className="p-3 border-b border-gray-100">
             <span className="text-sm font-medium text-gray-900">Low Stock Items</span>
           </div>
-          {lowStockItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => scrollToItem(item.id)}
-              className="w-full p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 text-left"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.category}</p>
+          
+          <div className="p-2">
+            {lowStockItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => scrollToItem(item.id)}
+                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                  )}
+                  <span className="text-sm font-medium text-gray-900">{item.name}</span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-red-600">{item.quantity}</p>
-                  <p className="text-xs text-gray-500">in stock</p>
-                </div>
-              </div>
-            </button>
-          ))}
+                
+                <span className="text-sm text-red-600 font-medium">{item.quantity} left</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 
-  const lowStockItems = state.inventoryData.filter(item => item.quantity <= (item.lowStockThreshold || 5));
+  if (state.loading) {
+    return (
+      <div className="bg-gray-50 min-h-full p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading inventory...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 min-h-screen overflow-x-hidden">
-      {/* Custom scrollbar styles for description column */}
-      <style jsx>{`
-        .scrollbar-thin::-webkit-scrollbar {
-          height: 4px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #cbd5e0;
-          border-radius: 4px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #a0aec0;
-        }
-        
-        /* Ensure horizontal scrollbar is visible and functional */
-        .overflow-x-scroll::-webkit-scrollbar {
-          height: 8px;
-        }
-        .overflow-x-scroll::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        .overflow-x-scroll::-webkit-scrollbar-thumb {
-          background: #888;
-          border-radius: 10px;
-        }
-        .overflow-x-scroll::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-      `}</style>
+    <div className="bg-gray-50 min-h-full p-8">
+      {state.error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700">{state.error}</p>
+          <button onClick={loadInventoryData} className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
+            Retry
+          </button>
+        </div>
+      )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-sora text-[32px] font-bold leading-[40.32px] text-left text-[#0A0D14]">
-          Inventory
-        </h1>
+      {/* Header with Filters - FROM DOCUMENT 7 */}
+      <div className="mb-6 flex items-center gap-4">
+        <p className="text-gray-600">Showing</p>
+        
+        <Dropdown
+          options={periods}
+          selected={state.selectedPeriod}
+          onSelect={(period) => updateState({ selectedPeriod: period })}
+          isOpen={state.dropdownOpen}
+          onToggle={() => updateState({ dropdownOpen: !state.dropdownOpen })}
+        />
+
+        <Dropdown
+          options={categories}
+          selected={state.selectedCategory}
+          onSelect={(category) => updateState({ selectedCategory: category })}
+          isOpen={state.categoryDropdownOpen}
+          onToggle={() => updateState({ categoryDropdownOpen: !state.categoryDropdownOpen })}
+        />
+
+        <button onClick={loadInventoryData} className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-[10px] hover:bg-blue-700 text-sm">
+          Refresh
+        </button>
       </div>
 
-      {/* Sticky Container for Stats and Filters */}
-      <div className="sticky top-0 z-50 bg-white pb-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      {/* Stats Cards - RESTORED FROM DOCUMENT 7 */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
           <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
-          <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
-          <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
-          <div className="bg-white rounded-[32px] border border-[#E2E4E9] shadow-sm">
-            <LowStockDropdown lowStockItems={lowStockItems} />
-          </div>
         </div>
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
+          <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
+        </div>
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
+          <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
+        </div>
+        <div className="w-[258px] h-[172px] bg-white rounded-[32px]">
+          <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.quantity <= 5)} />
+        </div>
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="relative flex-1 w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      {/* Inventory Table - FIXED FROM DOCUMENT 7 WITH DOCUMENT 8 FEATURES */}
+      <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6">
+        <div className="mb-6">
+          <div className="relative w-[540px] h-9 rounded-[20px] p-2 border border-gray-200">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search items by name or SKU"
               value={state.searchQuery}
               onChange={(e) => updateState({ searchQuery: e.target.value })}
-              className="w-full sm:w-[342px] pl-10 pr-4 py-2.5 border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none"
             />
           </div>
-          
-          <div className="flex gap-3">
-            <Dropdown
-              options={categories}
-              selected={state.selectedCategory}
-              onSelect={(category) => updateState({ selectedCategory: category })}
-              isOpen={state.categoryDropdownOpen}
-              onToggle={() => updateState({ categoryDropdownOpen: !state.categoryDropdownOpen })}
-            />
+        </div>
+
+        <h2 className="font-medium text-lg text-[#0A0D14] mb-4">Inventory</h2>
+
+        {/* FIXED: Horizontal scroll wrapper */}
+        <div className="overflow-x-auto">
+          <div className="min-w-max">
+            {/* Table Header */}
+            <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
+              <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
+                <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Brand</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Model</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Type</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Size</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Description</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Category</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Date Added</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Profit %</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Base Price</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Low Stock</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Amount</div>
+                <div className="text-sm font-medium text-gray-600 px-3">Actions</div>
+              </div>
+            </div>
+
+            {/* Table Rows */}
+            <div 
+              ref={tableContainerRef}
+              className="space-y-1 max-h-[400px] overflow-y-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#d1d5db #f3f4f6'
+              }}
+            >
+              {filteredInventoryData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  {state.searchQuery || state.selectedCategory !== 'All Categories' 
+                    ? 'No items found matching your filters.' 
+                    : 'No inventory items found. Add products to get started.'}
+                </div>
+              ) : (
+                filteredInventoryData.map((item) => (
+                  <div 
+                    key={item.id} 
+                    data-item-id={item.id}
+                    className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                      state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
+                    }`} 
+                    style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}
+                  >
+                    <div className="pl-6 flex items-center gap-3">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-8 h-8 bg-gray-200 rounded object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                      )}
+                      <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-600 truncate" title={item.make || '-'}>
+                      {item.make || '-'}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-600 truncate" title={item.model || '-'}>
+                      {item.model || '-'}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-600 truncate" title={item.type || '-'}>
+                      {item.type || '-'}
+                    </div>
+
+                    <div className="px-2 text-sm text-gray-600 truncate" title={item.size || '-'}>
+                      {item.size || '-'}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
+                      {item.capacity || '-'}
+                    </div>
+                    
+                    {/* Description with tooltip */}
+                    <div className="px-2 text-sm text-gray-600 relative group cursor-help">
+                      <span className="truncate block" style={{ maxWidth: '120px' }}>
+                        {item.description ? (item.description.length > 15 ? `${item.description.substring(0, 15)}...` : item.description) : '-'}
+                      </span>
+                      {item.description && item.description.length > 15 && (
+                        <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-normal max-w-xs shadow-lg">
+                          {item.description}
+                          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-600 truncate">{item.category}</div>
+                    
+                    <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
+                    
+                    <div className="px-2 text-sm text-gray-900">{item.quantity}</div>
+                    
+                    <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
+                    
+                    <div className="px-2 text-sm text-gray-600">
+                      {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-900">
+                      {item.basePrice ? formatCurrency(item.basePrice) : '-'}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-600">
+                      {item.lowStockThreshold || '-'}
+                    </div>
+                    
+                    <div className="px-2 text-sm text-gray-900">
+                      {formatCurrency(typeof item.amount === 'number' ? item.amount : parseFloat(item.amount.toString()))}
+                    </div>
+                    
+                    <div className="px-3 flex gap-2">
+                      <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => openModal('delete', item)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Table - with proper horizontal scroll */}
-      <div className="bg-white rounded-[32px] border border-[#E2E4E9] shadow-sm">
-        {state.loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : filteredInventoryData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-            <p className="text-lg font-medium">No products found</p>
-            <p className="text-sm">Try adjusting your search or filters</p>
-          </div>
-        ) : (
-          <div 
-            ref={tableContainerRef} 
-            className="overflow-x-scroll overflow-y-visible w-full" 
-            style={{ 
-              maxHeight: 'calc(100vh - 450px)',
-              overflowX: 'scroll',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            <table className="w-full border-collapse" style={{ minWidth: '1600px' }}>
-              <thead className="sticky top-0 bg-white z-40 shadow-sm">
-                <tr className="border-b-2 border-[#E2E4E9]">
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">PRODUCTS</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">BRAND</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">MODEL</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">TYPE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">SIZE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">CAPACITY</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">DESCRIPTION</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">LAST UPDATED</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">UNIT COST</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">BASE PRICE</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">QTY</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">AMOUNT</th>
-                  <th className="px-6 py-4 text-left font-inter font-medium text-xs leading-4 tracking-[0.5px] text-[#525866] whitespace-nowrap bg-white">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInventoryData.map((item) => (
-                  <tr 
-                    key={item.id} 
-                    data-item-id={item.id}
-                    className={`border-b border-[#E2E4E9] hover:bg-gray-50 transition-colors ${
-                      state.highlightedItemId === item.id ? 'bg-blue-50 animate-pulse' : ''
-                    }`}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <Image 
-                            src={item.image} 
-                            alt={item.name}
-                            width={40}
-                            height={40}
-                            className="rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <span className="text-gray-400 text-xs">No image</span>
-                          </div>
-                        )}
-                        <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14]">{item.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.make || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.model || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.type || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.size || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">{item.capacity || '-'}</span>
-                    </td>
-                    {/* ENHANCED: Scrollable Description Column with Tooltip - Width reduced to 120px */}
-                    <td className="px-6 py-4 max-w-xs relative group">
-                      <div 
-                        className="font-inter text-sm leading-5 text-[#525866] overflow-x-auto whitespace-nowrap hover:pr-2 cursor-pointer scrollbar-thin"
-                        style={{
-                          maxWidth: '120px',
-                          scrollbarWidth: 'thin',
-                          scrollbarColor: '#cbd5e0 transparent'
-                        }}
-                      >
-                        {item.description || '-'}
-                      </div>
-                      
-                      {/* Tooltip - shows on hover if description exists and is longer than 50 characters */}
-                      {item.description && item.description.length > 50 && (
-                        <div className="absolute left-0 top-full mt-2 w-80 bg-gray-900 text-white text-xs rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 shadow-xl">
-                          <p className="whitespace-normal leading-relaxed">{item.description}</p>
-                          {/* Tooltip arrow */}
-                          <div className="absolute -top-1 left-8 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter text-sm leading-5 text-[#525866]">
-                        {new Date(item.lastUpdated).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14] whitespace-nowrap">
-                        {formatCurrency(item.unitCost)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14] whitespace-nowrap">
-                        {item.basePrice ? formatCurrency(item.basePrice) : '-'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-inter font-medium text-sm leading-5 whitespace-nowrap ${
-                        item.quantity <= (item.lowStockThreshold || 5) ? 'text-red-600' : 'text-[#0A0D14]'
-                      }`}>
-                        {item.quantity}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-inter font-medium text-sm leading-5 text-[#0A0D14] whitespace-nowrap">
-                        {formatCurrency(typeof item.amount === 'number' ? item.amount : parseFloat(item.amount))}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => openModal('edit', item)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit product"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => openModal('delete', item)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete product"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Edit Modal */}
+      {/* Edit Modal - FROM DOCUMENT 8 */}
       {state.showEditModal && state.productToEdit && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h3 className="font-inter font-semibold text-2xl leading-8 text-[#0A0D14] mb-6">Edit Product</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
+            <div 
+              className="p-6 h-full overflow-y-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#d1d5db #f3f4f6'
+              }}
+            >
+              <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Product Name */}
+              <div className="space-y-6">
+                {/* Product Name with paste */}
                 <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product Name</label>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product name</label>
                   <input
                     type="text"
+                    placeholder="Enter product name..."
                     value={state.productToEdit.name}
                     onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, name: e.target.value } })}
                     onPaste={handlePasteInEditModal}
-                    placeholder="Paste data from CSV/Excel here"
                     className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">💡 Tip: Paste copied row from CSV/Excel to auto-fill fields</p>
                 </div>
 
-                {/* Category Dropdown */}
+                {/* Category */}
                 <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Category</label>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product category</label>
                   <select
                     value={state.productToEdit.category}
                     onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, category: e.target.value } })}
@@ -758,16 +721,17 @@ console.log('First filtered item:', filteredInventoryData[0]);
 
                 {/* Optional Fields */}
                 {[
-                  { label: 'Make', field: 'make' },
-                  { label: 'Model', field: 'model' },
-                  { label: 'Type', field: 'type' },
-                  { label: 'Size', field: 'size' },
-                  { label: 'Capacity', field: 'capacity' }
-                ].map(({ label, field }) => (
+                  { label: 'Brand', field: 'make', placeholder: 'Enter brand...' },
+                  { label: 'Model', field: 'model', placeholder: 'Enter model...' },
+                  { label: 'Type', field: 'type', placeholder: 'Enter type...' },
+                  { label: 'Size', field: 'size', placeholder: 'Enter size...' },
+                  { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' }
+                ].map(({ label, field, placeholder }) => (
                   <div key={field}>
                     <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label} (Optional)</label>
                     <input
                       type="text"
+                      placeholder={placeholder}
                       value={(state.productToEdit as any)[field] || ''}
                       onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
                       className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -776,9 +740,10 @@ console.log('First filtered item:', filteredInventoryData[0]);
                 ))}
 
                 {/* Description */}
-                <div className="md:col-span-2">
+                <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description (Optional)</label>
                   <textarea
+                    placeholder="Enter description..."
                     value={state.productToEdit.description || ''}
                     onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, description: e.target.value } })}
                     rows={4}
@@ -787,18 +752,18 @@ console.log('First filtered item:', filteredInventoryData[0]);
                 </div>
 
                 {/* Product image */}
-                  <div>
+                <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
                   <div className="flex flex-col gap-3">
                     <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                     {state.productToEdit.image && <Image src={state.productToEdit.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
                   </div>
-                  </div>
+                </div>
 
                 {/* Unit Cost */}
                 <div>
@@ -835,17 +800,11 @@ console.log('First filtered item:', filteredInventoryData[0]);
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="font-sora text-xs leading-4 text-[#525866]">Enter profit margin as percentage (e.g., 25 for 25%)</span>
-                  </div>
                 </div>
 
                 {/* Base Price (Editable) */}
                 <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
-                    Base Price
-                  </label>
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
                     <input
@@ -870,15 +829,14 @@ console.log('First filtered item:', filteredInventoryData[0]);
 
                 {/* Quantity and Low Stock */}
                 {[
-                  { label: 'Quantity', value: state.productToEdit.quantity || '', field: 'quantity', placeholder: 'Enter quantity' },
-                  { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || '', field: 'lowStockThreshold', placeholder: 'Enter low stock threshold' }
-                ].map(({ label, value, field, placeholder }) => (
+                  { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
+                  { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
+                ].map(({ label, value, field }) => (
                   <div key={field}>
                     <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
                     <input
                       type="number"
                       value={value}
-                      placeholder={placeholder}
                       onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: parseInt(e.target.value) || 0 } })}
                       className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -907,7 +865,7 @@ console.log('First filtered item:', filteredInventoryData[0]);
               </div>
             </div>
           </div>
-         </div>
+        </div>
       )}
 
       {/* Delete Modal */}
@@ -933,12 +891,12 @@ console.log('First filtered item:', filteredInventoryData[0]);
               </div>
               
               {state.productToDelete.quantity > 0 && (
-            <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
-              <p className="text-sm text-orange-800">
-                <strong>Warning:</strong> This product has {state.productToDelete.quantity} items remaining in stock.
-              </p>
-            </div>
-          )}
+                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                  <p className="text-sm text-orange-800">
+                    <strong>Warning:</strong> This product has {state.productToDelete.quantity} items remaining in stock.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 justify-end">
