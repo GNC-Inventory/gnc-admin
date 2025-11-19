@@ -187,11 +187,36 @@ const Inventory: React.FC = () => {
     loadInventoryData();
   }, []);
 
+  // ==================== UPDATED: ADVANCED SEARCH FUNCTIONALITY ====================
   const filteredInventoryData = state.inventoryData.filter(item => {
-    const matchesSearch = item.name ? item.name.toLowerCase().includes(state.searchQuery.toLowerCase()) : false;
+    // Category filter
     const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
+    
+    // If no search query, return based on category only
+    if (!state.searchQuery.trim()) {
+      return matchesCategory;
+    }
+
+    // Advanced search: Split search query into terms and match ANY term against ANY field
+    const searchLower = state.searchQuery.toLowerCase().trim();
+    const searchTerms = searchLower.split(' ').filter(term => term.length > 0);
+    
+    // Check if ANY search term matches ANY field
+    const matchesSearch = searchTerms.some(term => 
+      (item.name && item.name.toLowerCase().includes(term)) ||
+      (item.make && item.make.toLowerCase().includes(term)) ||
+      (item.model && item.model.toLowerCase().includes(term)) ||
+      (item.type && item.type.toLowerCase().includes(term)) ||
+      (item.category && item.category.toLowerCase().includes(term)) ||
+      (item.description && item.description.toLowerCase().includes(term)) ||
+      (item.size && item.size.toLowerCase().includes(term)) ||
+      (item.capacity && item.capacity.toLowerCase().includes(term)) ||
+      (item.id && item.id.toLowerCase().includes(term))
+    );
+
     return matchesSearch && matchesCategory;
   });
+  // ==================== END ADVANCED SEARCH FUNCTIONALITY ====================
 
   console.log('Raw inventory data:', state.inventoryData);
   console.log('Filtered inventory data:', filteredInventoryData);
@@ -478,7 +503,7 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-full p-8">
-      {/* ONLY NEW ADDITION: Custom CSS for description scrollbar */}
+      {/* Custom CSS for description scrollbar */}
       <style jsx>{`
         .description-scroll::-webkit-scrollbar {
           height: 4px;
@@ -505,7 +530,7 @@ const Inventory: React.FC = () => {
         </div>
       )}
 
-      {/* Header with Filters - FROM DOCUMENT 7 */}
+      {/* Header with Filters */}
       <div className="mb-6 flex items-center gap-4">
         <p className="text-gray-600">Showing</p>
         
@@ -530,7 +555,7 @@ const Inventory: React.FC = () => {
         </button>
       </div>
 
-      {/* Stats Cards - RESTORED FROM DOCUMENT 7 */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
           <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
@@ -546,18 +571,20 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
-      {/* Inventory Table - FIXED FROM DOCUMENT 7 WITH DOCUMENT 8 FEATURES */}
+      {/* Inventory Table */}
       <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6">
         <div className="mb-6">
           <div className="relative w-[540px] h-9 rounded-[20px] p-2 border border-gray-200">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            {/* ==================== UPDATED: PLACEHOLDER TEXT ==================== */}
             <input
               type="text"
-              placeholder="Search items by name or SKU"
+              placeholder="Search by name, brand, model, type, category, or description..."
               value={state.searchQuery}
               onChange={(e) => updateState({ searchQuery: e.target.value })}
               className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none"
             />
+            {/* ==================== END UPDATED PLACEHOLDER ==================== */}
           </div>
         </div>
 
@@ -702,7 +729,7 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Modal - FROM DOCUMENT 8 */}
+      {/* Edit Modal */}
       {state.showEditModal && state.productToEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
