@@ -6,7 +6,7 @@ import Image from 'next/image';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
 import InventoryValueCard from '@/components/products/InventoryValueCard';
-import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from '@/utils/toast';
+import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
 interface InventoryItem {
   id: string;
@@ -98,6 +98,17 @@ const Inventory: React.FC = () => {
 
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
 
+  // TASK 3: Duplicate detection helper function
+  const checkForDuplicate = (name: string, brand: string, model: string, currentId?: string): boolean => {
+    const existingProduct = state.inventoryData.find(item => 
+      item.id !== currentId && // Exclude current item when editing
+      item.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+      (item.make || '').toLowerCase().trim() === (brand || '').toLowerCase().trim() &&
+      (item.model || '').toLowerCase().trim() === (model || '').toLowerCase().trim()
+    );
+    return !!existingProduct;
+  };
+
   const loadInventoryData = async () => {
     try {
       updateState({ loading: true, error: null });
@@ -187,7 +198,7 @@ const Inventory: React.FC = () => {
     loadInventoryData();
   }, []);
 
-  // ==================== UPDATED: ADVANCED SEARCH FUNCTIONALITY ====================
+  // ADVANCED SEARCH FUNCTIONALITY
   const filteredInventoryData = state.inventoryData.filter(item => {
     // Category filter
     const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
@@ -216,7 +227,6 @@ const Inventory: React.FC = () => {
 
     return matchesSearch && matchesCategory;
   });
-  // ==================== END ADVANCED SEARCH FUNCTIONALITY ====================
 
   console.log('Raw inventory data:', state.inventoryData);
   console.log('Filtered inventory data:', filteredInventoryData);
@@ -277,6 +287,26 @@ const Inventory: React.FC = () => {
   const processAction = async (action: 'delete' | 'update') => {
     const product = action === 'delete' ? state.productToDelete : state.productToEdit;
     if (!product) return;
+    
+    // TASK 3: Check for duplicate before updating (Name + Brand + Model)
+    if (action === 'update' && state.productToEdit) {
+      const isDuplicate = checkForDuplicate(
+        state.productToEdit.name,
+        state.productToEdit.make || '',
+        state.productToEdit.model || '',
+        state.productToEdit.id
+      );
+      
+      if (isDuplicate) {
+        showErrorToast('⚠️ Duplicate detected: A product with the same name, brand, and model already exists');
+        return;
+      }
+    }
+
+    // TASK 4: Check for zero/empty quantity and show warning
+    if (action === 'update' && state.productToEdit && (!state.productToEdit.quantity || state.productToEdit.quantity === 0)) {
+      showWarningToast('⚠️ Warning: Product Quantity Is Empty');
+    }
     
     const isDelete = action === 'delete';
     updateState({ [isDelete ? 'isDeleting' : 'isUpdating']: true });
@@ -576,7 +606,6 @@ const Inventory: React.FC = () => {
         <div className="mb-6">
           <div className="relative w-[540px] h-9 rounded-[20px] p-2 border border-gray-200">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            {/* ==================== UPDATED: PLACEHOLDER TEXT ==================== */}
             <input
               type="text"
               placeholder="Search by name, brand, model, type, category, or description..."
@@ -584,7 +613,6 @@ const Inventory: React.FC = () => {
               onChange={(e) => updateState({ searchQuery: e.target.value })}
               className="w-full h-full pl-10 pr-4 bg-transparent border-none focus:outline-none"
             />
-            {/* ==================== END UPDATED PLACEHOLDER ==================== */}
           </div>
         </div>
 
@@ -594,8 +622,9 @@ const Inventory: React.FC = () => {
         <div className="overflow-x-auto">
           <div className="min-w-max">
             {/* Table Header */}
+            {/* TASK 1: Adjusted grid - Last Date Modified column 100px→120px, Stock left column 120px→110px */}
             <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
-              <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}>
+              <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 120px 110px 120px 100px 110px 110px 120px 116px' }}>
                 <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Brand</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Model</div>
@@ -604,7 +633,8 @@ const Inventory: React.FC = () => {
                 <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Description</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Category</div>
-                <div className="text-sm font-medium text-gray-600 px-2">Date Added</div>
+                {/* TASK 2: Renamed header from "Date Added" to "Last Date Modified" */}
+                <div className="text-sm font-medium text-gray-600 px-2">Last Date Modified</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Profit %</div>
@@ -638,7 +668,8 @@ const Inventory: React.FC = () => {
                     className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                       state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
                     }`} 
-                    style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 100px 120px 120px 100px 110px 110px 120px 116px' }}
+                    /* TASK 1: Adjusted grid - Last Date Modified 100px→120px, Stock left 120px→110px */
+                    style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 120px 110px 120px 100px 110px 110px 120px 116px' }}
                   >
                     <div className="pl-6 flex items-center gap-3">
                       {item.image ? (
@@ -693,7 +724,8 @@ const Inventory: React.FC = () => {
                     
                     <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
                     
-                    <div className="px-2 text-sm text-gray-900">{item.quantity}</div>
+                    {/* TASK 1: Centered "Stock left" column */}
+                    <div className="px-2 text-sm text-gray-900 text-center">{item.quantity}</div>
                     
                     <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
                     
