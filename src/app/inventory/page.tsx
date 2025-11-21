@@ -98,13 +98,14 @@ const Inventory: React.FC = () => {
 
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
 
-  // TASK 3: Duplicate detection helper function
-  const checkForDuplicate = (name: string, brand: string, model: string, currentId?: string): boolean => {
+  // TASK: Expanded duplicate check to include Type (Name + Brand + Model + Type)
+  const checkForDuplicate = (name: string, brand: string, model: string, type: string, currentId?: string): boolean => {
     const existingProduct = state.inventoryData.find(item => 
       item.id !== currentId && // Exclude current item when editing
       item.name.toLowerCase().trim() === name.toLowerCase().trim() &&
       (item.make || '').toLowerCase().trim() === (brand || '').toLowerCase().trim() &&
-      (item.model || '').toLowerCase().trim() === (model || '').toLowerCase().trim()
+      (item.model || '').toLowerCase().trim() === (model || '').toLowerCase().trim() &&
+      (item.type || '').toLowerCase().trim() === (type || '').toLowerCase().trim()
     );
     return !!existingProduct;
   };
@@ -288,17 +289,18 @@ const Inventory: React.FC = () => {
     const product = action === 'delete' ? state.productToDelete : state.productToEdit;
     if (!product) return;
     
-    // TASK 3: Check for duplicate before updating (Name + Brand + Model)
+    // TASK: Expanded duplicate check - added Type parameter
     if (action === 'update' && state.productToEdit) {
       const isDuplicate = checkForDuplicate(
         state.productToEdit.name,
         state.productToEdit.make || '',
         state.productToEdit.model || '',
+        state.productToEdit.type || '',
         state.productToEdit.id
       );
       
       if (isDuplicate) {
-        showErrorToast('⚠️ Duplicate detected: A product with the same name, brand, and model already exists');
+        showErrorToast('⚠️ Duplicate detected: A product with the same name, brand, model, and type already exists');
         return;
       }
     }
