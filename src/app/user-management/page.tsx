@@ -26,13 +26,6 @@ export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionUserId, setActionUserId] = useState<number | null>(null);
-  
-  // HYDRATION FIX: Add mounted state to prevent hydration mismatch
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -58,11 +51,8 @@ export default function UserManagementPage() {
   };
 
   useEffect(() => {
-    if (mounted && token) {
-      fetchUsers();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, mounted]);
+    fetchUsers();
+  }, [token]);
 
   // Filter users
   const filteredUsers = users.filter(user =>
@@ -181,8 +171,7 @@ export default function UserManagementPage() {
     }
   };
 
-  // HYDRATION FIX: Don't render anything until mounted on client
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -246,7 +235,6 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* FIX: Proper conditional rendering with length check */}
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <tr key={user.id}>
@@ -296,17 +284,15 @@ export default function UserManagementPage() {
                           <button
                             onClick={() => setActionUserId(actionUserId === user.id ? null : user.id)}
                             className="text-gray-400 hover:text-gray-600"
-                            aria-label="User actions"
                           >
                             <MoreVertical className="w-4 h-4" />
                           </button>
-                          {/* FIX: Conditional rendering instead of always-rendered dropdown */}
                           {actionUserId === user.id && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
                               <div className="py-1">
                                 <button
                                   onClick={() => handleLogoutUser(user.id)}
-                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                   disabled={!user.isOnline}
                                 >
                                   <LogOut className="w-4 h-4 mr-2" />
