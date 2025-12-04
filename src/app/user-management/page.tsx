@@ -29,6 +29,11 @@ export default function UserManagementPage() {
 
   // Fetch users
   const fetchUsers = async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         headers: {
@@ -36,9 +41,14 @@ export default function UserManagementPage() {
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
         },
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       if (data.success) {
-        setUsers(data.data);
+        setUsers(data.data || []);
       } else {
         showErrorToast('Failed to load users');
       }
@@ -83,6 +93,7 @@ export default function UserManagementPage() {
         },
         body: JSON.stringify(requestData),
       });
+      
       const data = await response.json();
       
       dismissToast(loadingToastId);
@@ -173,9 +184,11 @@ export default function UserManagementPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <ProtectedRoute allowedRoles={['ADMIN']}>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </ProtectedRoute>
     );
   }
 
