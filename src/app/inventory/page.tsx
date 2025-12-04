@@ -98,15 +98,32 @@ const Inventory: React.FC = () => {
 
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
 
-  // TASK: Expanded duplicate check to include Type (Name + Brand + Model + Type)
-  const checkForDuplicate = (name: string, brand: string, model: string, type: string, currentId?: string): boolean => {
+  // ENHANCED: Comprehensive duplicate check - ALL fields must match 100%
+  const checkForDuplicate = (
+    name: string,
+    category: string,
+    brand: string,
+    model: string,
+    type: string,
+    size: string,
+    capacity: string,
+    description: string,
+    currentId?: string
+  ): boolean => {
+    const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
+    
     const existingProduct = state.inventoryData.find(item => 
       item.id !== currentId && // Exclude current item when editing
-      item.name.toLowerCase().trim() === name.toLowerCase().trim() &&
-      (item.make || '').toLowerCase().trim() === (brand || '').toLowerCase().trim() &&
-      (item.model || '').toLowerCase().trim() === (model || '').toLowerCase().trim() &&
-      (item.type || '').toLowerCase().trim() === (type || '').toLowerCase().trim()
+      normalizeString(item.name) === normalizeString(name) &&
+      normalizeString(item.category) === normalizeString(category) &&
+      normalizeString(item.make) === normalizeString(brand) &&
+      normalizeString(item.model) === normalizeString(model) &&
+      normalizeString(item.type) === normalizeString(type) &&
+      normalizeString(item.size) === normalizeString(size) &&
+      normalizeString(item.capacity) === normalizeString(capacity) &&
+      normalizeString(item.description) === normalizeString(description)
     );
+    
     return !!existingProduct;
   };
 
@@ -289,23 +306,27 @@ const Inventory: React.FC = () => {
     const product = action === 'delete' ? state.productToDelete : state.productToEdit;
     if (!product) return;
     
-    // TASK: Expanded duplicate check - added Type parameter
+    // ENHANCED: Comprehensive duplicate check with ALL fields
     if (action === 'update' && state.productToEdit) {
       const isDuplicate = checkForDuplicate(
         state.productToEdit.name,
+        state.productToEdit.category,
         state.productToEdit.make || '',
         state.productToEdit.model || '',
         state.productToEdit.type || '',
+        state.productToEdit.size || '',
+        state.productToEdit.capacity || '',
+        state.productToEdit.description || '',
         state.productToEdit.id
       );
       
       if (isDuplicate) {
-        showErrorToast('⚠️ Duplicate detected: A product with the same name, brand, model, and type already exists');
+        showErrorToast('⚠️ Duplicate detected: A product with identical name, category, brand, model, type, size, capacity, and description already exists');
         return;
       }
     }
 
-    // TASK 4: Check for zero/empty quantity and show warning
+    // Check for zero/empty quantity and show warning
     if (action === 'update' && state.productToEdit && (!state.productToEdit.quantity || state.productToEdit.quantity === 0)) {
       showWarningToast('⚠️ Warning: Product Quantity Is Empty');
     }
@@ -624,7 +645,6 @@ const Inventory: React.FC = () => {
         <div className="overflow-x-auto">
           <div className="min-w-max">
             {/* Table Header */}
-            {/* TASK 1: Adjusted grid - Last Date Modified column 100px→120px, Stock left column 120px→110px */}
             <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
               <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 120px 110px 120px 100px 110px 110px 120px 116px' }}>
                 <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
@@ -635,7 +655,6 @@ const Inventory: React.FC = () => {
                 <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Description</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Category</div>
-                {/* TASK 2: Renamed header from "Date Added" to "Last Date Modified" */}
                 <div className="text-sm font-medium text-gray-600 px-2">Last Date Modified</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Stock left</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Unit cost</div>
@@ -670,7 +689,6 @@ const Inventory: React.FC = () => {
                     className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                       state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
                     }`} 
-                    /* TASK 1: Adjusted grid - Last Date Modified 100px→120px, Stock left 120px→110px */
                     style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 120px 150px 120px 110px 120px 100px 110px 110px 120px 116px' }}
                   >
                     <div className="pl-6 flex items-center gap-3">
@@ -726,7 +744,6 @@ const Inventory: React.FC = () => {
                     
                     <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
                     
-                    {/* TASK 1: Centered "Stock left" column */}
                     <div className="px-2 text-sm text-gray-900 text-center">{item.quantity}</div>
                     
                     <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>

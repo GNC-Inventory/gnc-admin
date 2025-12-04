@@ -54,12 +54,54 @@ const AddProductPage: React.FC = () => {
     lowStock: 8
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingInventory, setExistingInventory] = useState<Product[]>([]);
 
   const categoryOptions = [
     'Building Materials',
     'Electricals',
     'Electronics'
   ];
+
+  // ENHANCED: Load existing inventory for duplicate checking
+  useEffect(() => {
+    const loadExistingInventory = async () => {
+      try {
+        const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+          headers: { 
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            const transformedData = result.data.map((item: any) => ({
+              id: item.id?.toString() || '',
+              name: item.product?.name || '',
+              category: item.product?.category || '',
+              make: item.product?.make || '',
+              model: item.product?.model || '',
+              type: item.product?.type || '',
+              size: item.product?.size || '',
+              capacity: item.product?.capacity || '',
+              description: item.product?.description || '',
+              image: item.product?.imageUrl || '',
+              unitCost: parseFloat(item.product?.unitCost) || 0,
+              profitPercentage: parseFloat(item.profitPercentage) || 0,
+              basePrice: parseFloat(item.product?.basePrice) || 0,
+              quantity: parseInt(item.quantity) || 0,
+              lowStock: parseInt(item.lowStockThreshold) || 8
+            }));
+            setExistingInventory(transformedData);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load existing inventory:', error);
+      }
+    };
+
+    loadExistingInventory();
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('selectedProducts');
@@ -81,9 +123,77 @@ const AddProductPage: React.FC = () => {
     return now.toISOString();
   };
 
+  // ENHANCED: Comprehensive duplicate check - ALL fields must match 100%
+  const checkForDuplicate = (
+    name: string,
+    category: string,
+    brand: string,
+    model: string,
+    type: string,
+    size: string,
+    capacity: string,
+    description: string
+  ): { isDuplicate: boolean; location: 'inventory' | 'selection' | null } => {
+    const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
+    
+    // Check against existing inventory
+    const existsInInventory = existingInventory.find(item => 
+      normalizeString(item.name) === normalizeString(name) &&
+      normalizeString(item.category) === normalizeString(category) &&
+      normalizeString(item.make) === normalizeString(brand) &&
+      normalizeString(item.model) === normalizeString(model) &&
+      normalizeString(item.type) === normalizeString(type) &&
+      normalizeString(item.size) === normalizeString(size) &&
+      normalizeString(item.capacity) === normalizeString(capacity) &&
+      normalizeString(item.description) === normalizeString(description)
+    );
+
+    if (existsInInventory) {
+      return { isDuplicate: true, location: 'inventory' };
+    }
+
+    // Check against currently selected products
+    const existsInSelection = selectedProducts.find(item => 
+      normalizeString(item.name) === normalizeString(name) &&
+      normalizeString(item.category) === normalizeString(category) &&
+      normalizeString(item.make) === normalizeString(brand) &&
+      normalizeString(item.model) === normalizeString(model) &&
+      normalizeString(item.type) === normalizeString(type) &&
+      normalizeString(item.size) === normalizeString(size) &&
+      normalizeString(item.capacity) === normalizeString(capacity) &&
+      normalizeString(item.description) === normalizeString(description)
+    );
+
+    if (existsInSelection) {
+      return { isDuplicate: true, location: 'selection' };
+    }
+
+    return { isDuplicate: false, location: null };
+  };
+
   const handleSelectProduct = () => {
     if (!currentProduct.category || !currentProduct.name || currentProduct.unitCost <= 0 || currentProduct.profitPercentage < 0) {
       showErrorToast('Please fill in required fields: category, name, unit cost, and profit percentage');
+      return;
+    }
+
+    // ENHANCED: Check for duplicates before adding
+    const duplicateCheck = checkForDuplicate(
+      currentProduct.name,
+      currentProduct.category,
+      currentProduct.make,
+      currentProduct.model,
+      currentProduct.type,
+      currentProduct.size,
+      currentProduct.capacity,
+      currentProduct.description
+    );
+
+    if (duplicateCheck.isDuplicate) {
+      const locationText = duplicateCheck.location === 'inventory' 
+        ? 'already exists in inventory' 
+        : 'is already in your current selection';
+      showErrorToast(`⚠️ Duplicate detected: A product with identical name, category, brand, model, type, size, capacity, and description ${locationText}`);
       return;
     }
 
@@ -94,7 +204,7 @@ const AddProductPage: React.FC = () => {
       make: currentProduct.make,
       model: currentProduct.model,
       type: currentProduct.type,
-       size: currentProduct.size,
+      size: currentProduct.size,
       capacity: currentProduct.capacity,
       description: currentProduct.description,
       image: currentProduct.image,
