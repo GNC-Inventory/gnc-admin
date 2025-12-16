@@ -23,6 +23,11 @@ interface Product {
   basePrice: number;
   quantity: number;
   lowStock: number;
+  // ADD THESE THREE NEW LINES:
+  hasUnitConversion?: boolean;
+  baseUnit?: string;
+  secondaryUnit?: string;
+  conversionRate?: number;
 }
 
 const formatNumberWithCommas = (value: string): string => {
