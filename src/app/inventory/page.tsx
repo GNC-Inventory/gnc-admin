@@ -25,7 +25,11 @@ interface InventoryItem {
   type?: string;
   size?: string;       
   capacity?: string;  
-  description?: string; 
+  description?: string;
+  hasUnitConversion?: boolean;
+  baseUnit?: string;
+  secondaryUnit?: string;
+  conversionRate?: number; 
 }
 
 const periods = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
