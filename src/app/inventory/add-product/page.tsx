@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Package, Ruler} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
@@ -56,7 +56,11 @@ const AddProductPage: React.FC = () => {
     profitPercentage: 0,
     basePrice: 0,
     quantity: 16,
-    lowStock: 8
+    lowStock: 8,
+    hasUnitConversion: false,
+    baseUnit: 'Roll',
+    secondaryUnit: 'Yard',
+    conversionRate: 100
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingInventory, setExistingInventory] = useState<Product[]>([]);
@@ -95,7 +99,11 @@ const AddProductPage: React.FC = () => {
               profitPercentage: parseFloat(item.profitPercentage) || 0,
               basePrice: parseFloat(item.product?.basePrice) || 0,
               quantity: parseInt(item.quantity) || 0,
-              lowStock: parseInt(item.lowStockThreshold) || 8
+              lowStock: parseInt(item.lowStockThreshold) || 8,
+              hasUnitConversion: item.product?.hasUnitConversion || false,
+              baseUnit: item.product?.baseUnit || '',
+              secondaryUnit: item.product?.secondaryUnit || '',
+              conversionRate: parseFloat(item.product?.conversionRate) || 0
             }));
             setExistingInventory(transformedData);
           }
@@ -217,7 +225,11 @@ const AddProductPage: React.FC = () => {
       profitPercentage: currentProduct.profitPercentage,
       basePrice: currentProduct.basePrice,
       quantity: currentProduct.quantity,
-      lowStock: currentProduct.lowStock
+      lowStock: currentProduct.lowStock,
+      hasUnitConversion: currentProduct.hasUnitConversion,
+      baseUnit: currentProduct.hasUnitConversion ? currentProduct.baseUnit : undefined,
+      secondaryUnit: currentProduct.hasUnitConversion ? currentProduct.secondaryUnit : undefined,
+      conversionRate: currentProduct.hasUnitConversion ? currentProduct.conversionRate : undefined
     };
 
     setSelectedProducts(prev => [...prev, newProduct]);
@@ -235,7 +247,11 @@ const AddProductPage: React.FC = () => {
       profitPercentage: 0,
       basePrice: 0,
       quantity: 16,
-      lowStock: 8
+      lowStock: 8,
+      hasUnitConversion: false,
+      baseUnit: 'Roll',
+      secondaryUnit: 'Yard',
+      conversionRate: 100
     });
     showSuccessToast(`${newProduct.name} added to selection`);
   };
@@ -283,6 +299,10 @@ const response = await fetch('https://gnc-inventory-backend.onrender.com/api/adm
     base_price: product.basePrice,
     stock_quantity: product.quantity,
     low_stock_threshold: product.lowStock,
+    has_unit_conversion: product.hasUnitConversion || false,
+    base_unit: product.baseUnit || null,
+    secondary_unit: product.secondaryUnit || null,
+    conversion_rate: product.conversionRate || null,
     locationId: 1
   })
 });
@@ -346,7 +366,7 @@ if (result.success) {
     }
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setCurrentProduct(prev => ({ ...prev, [field]: value }));
   };
 
@@ -397,6 +417,13 @@ if (result.success) {
 
   const total = selectedProducts.reduce((sum, product) => sum + (product.basePrice * product.quantity), 0);
 
+  const totalSecondaryUnits = currentProduct.hasUnitConversion 
+  ? currentProduct.quantity * currentProduct.conversionRate 
+  : 0;
+  const pricePerSecondaryUnit = currentProduct.hasUnitConversion && currentProduct.conversionRate > 0
+  ? currentProduct.basePrice / currentProduct.conversionRate
+  : 0;
+
   const ProductItem = ({ product }: { product: Product }) => (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -408,6 +435,11 @@ if (result.success) {
         </div>
         <div className="flex items-center gap-3">
           {product.image && <Image src={product.image} alt={product.name} width={32} height={32} className="rounded object-cover" />}
+          {product.hasUnitConversion && (
+          <p className="text-blue-600 text-xs">
+            {product.quantity} {product.baseUnit}s = {(product.quantity * (product.conversionRate || 0)).toFixed(0)} {product.secondaryUnit}s
+          </p>
+           )}
           <div>
             <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
             <p className="text-gray-600 text-xs">{product.make} {product.model}</p>
@@ -540,6 +572,147 @@ if (result.success) {
                 {currentProduct.image && <Image src={currentProduct.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
               </div>
             </div>
+
+            {/* NEW: Unit Conversion Toggle */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="enableConversion"
+                    checked={currentProduct.hasUnitConversion}
+                    onChange={(e) => handleInputChange('hasUnitConversion', e.target.checked)}
+                    className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="enableConversion" className="font-inter font-medium text-sm text-gray-900 cursor-pointer">
+                      Enable unit conversion (Sell in multiple units)
+                    </label>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Perfect for hoses, cables, fabrics, or any product sold both in bulk and by smaller units
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {currentProduct.hasUnitConversion && (
+                <div className="space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 mb-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Package className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold text-gray-900 text-sm">Unit Conversion Settings</h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                        Base Unit (Inventory)
+                      </label>
+                      <input
+                        type="text"
+                        value={currentProduct.baseUnit}
+                        onChange={(e) => handleInputChange('baseUnit', e.target.value)}
+                        placeholder="e.g., Roll, Box, Bundle"
+                        className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">How you count stock</p>
+                    </div>
+
+                    <div>
+                      <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                        Secondary Unit (Retail)
+                      </label>
+                      <input
+                        type="text"
+                        value={currentProduct.secondaryUnit}
+                        onChange={(e) => handleInputChange('secondaryUnit', e.target.value)}
+                        placeholder="e.g., Yard, Meter, Piece"
+                        className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">How you also sell</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                      Conversion Rate
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-600">1 {currentProduct.baseUnit} =</span>
+                      <input
+                        type="number"
+                        value={currentProduct.conversionRate}
+                        onChange={(e) => handleInputChange('conversionRate', Number(e.target.value))}
+                        min="1"
+                        className="w-32 h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-600">{currentProduct.secondaryUnit}s</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 bg-white rounded-lg p-3 border border-blue-200">
+                      <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span className="text-xs text-gray-700">
+                        Example: If 1 roll of hose = 100 yards, enter "100"
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Ruler className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-sm text-gray-900">Conversion Preview</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-blue-600">1</div>
+                        <div className="text-xs text-gray-600">{currentProduct.baseUnit}</div>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="text-xl text-gray-400">=</div>
+                      </div>
+                      <div className="bg-indigo-50 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-indigo-600">{currentProduct.conversionRate}</div>
+                        <div className="text-xs text-gray-600">{currentProduct.secondaryUnit}s</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Enhanced Inventory Summary */}
+            {currentProduct.hasUnitConversion && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 mb-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Package className="w-5 h-5 text-green-600" />
+                  Inventory Summary with Unit Conversion
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4 border border-green-300">
+                    <div className="text-sm text-gray-600 mb-1">Total Stock ({currentProduct.baseUnit}s)</div>
+                    <div className="text-3xl font-bold text-gray-900">{currentProduct.quantity}</div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-green-300">
+                    <div className="text-sm text-gray-600 mb-1">Total Stock ({currentProduct.secondaryUnit}s)</div>
+                    <div className="text-3xl font-bold text-green-600">{totalSecondaryUnits}</div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border border-green-300 mt-4">
+                  <div className="text-sm font-medium text-gray-900 mb-3">Pricing Breakdown</div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Price per {currentProduct.baseUnit}:</span>
+                      <span className="font-semibold text-gray-900">{formatCurrency(currentProduct.basePrice)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Price per {currentProduct.secondaryUnit}:</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(pricePerSecondaryUnit)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Unit Cost */}
             <div>
