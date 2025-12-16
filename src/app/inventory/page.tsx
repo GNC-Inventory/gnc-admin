@@ -869,6 +869,147 @@ const Inventory: React.FC = () => {
                   />
                 </div>
 
+                {/* NEW: Unit Conversion Toggle */}
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="enableConversionEdit"
+                        checked={state.productToEdit?.hasUnitConversion || false}
+                        onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, hasUnitConversion: e.target.checked } })}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="enableConversionEdit" className="font-inter font-medium text-sm text-gray-900 cursor-pointer">
+                          Enable unit conversion (Sell in multiple units)
+                        </label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Perfect for hoses, cables, fabrics, or any product sold both in bulk and by smaller units
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {state.productToEdit?.hasUnitConversion && (
+                    <div className="space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 mb-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Package className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-semibold text-gray-900 text-sm">Unit Conversion Settings</h3>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                            Base Unit (Inventory)
+                          </label>
+                          <input
+                            type="text"
+                            value={state.productToEdit.baseUnit || 'Roll'}
+                            onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, baseUnit: e.target.value } })}
+                            placeholder="e.g., Roll, Box, Bundle"
+                            className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <p className="text-xs text-gray-600 mt-1">How you count stock</p>
+                        </div>
+
+                        <div>
+                          <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                            Secondary Unit (Retail)
+                          </label>
+                          <input
+                            type="text"
+                            value={state.productToEdit.secondaryUnit || 'Yard'}
+                            onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, secondaryUnit: e.target.value } })}
+                            placeholder="e.g., Yard, Meter, Piece"
+                            className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <p className="text-xs text-gray-600 mt-1">How you also sell</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                          Conversion Rate
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-gray-600">1 {state.productToEdit.baseUnit || 'Roll'} =</span>
+                          <input
+                            type="number"
+                            value={state.productToEdit.conversionRate || 100}
+                            onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, conversionRate: Number(e.target.value) } })}
+                            min="1"
+                            className="w-32 h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-600">{state.productToEdit.secondaryUnit || 'Yard'}s</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 bg-white rounded-lg p-3 border border-blue-200">
+                          <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                          <span className="text-xs text-gray-700">
+                            Example: If 1 roll of hose = 100 yards, enter "100"
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Ruler className="w-4 h-4 text-blue-600" />
+                          <span className="font-medium text-sm text-gray-900">Conversion Preview</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3 text-center">
+                          <div className="bg-blue-50 rounded-lg p-3">
+                            <div className="text-2xl font-bold text-blue-600">1</div>
+                            <div className="text-xs text-gray-600">{state.productToEdit.baseUnit || 'Roll'}</div>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <div className="text-xl text-gray-400">=</div>
+                          </div>
+                          <div className="bg-indigo-50 rounded-lg p-3">
+                            <div className="text-2xl font-bold text-indigo-600">{state.productToEdit.conversionRate || 100}</div>
+                            <div className="text-xs text-gray-600">{state.productToEdit.secondaryUnit || 'Yard'}s</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Enhanced Inventory Summary for Edit Modal */}
+                {state.productToEdit?.hasUnitConversion && (
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Package className="w-5 h-5 text-green-600" />
+                      Inventory Summary with Unit Conversion
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-green-300">
+                        <div className="text-sm text-gray-600 mb-1">Total Stock ({state.productToEdit.baseUnit}s)</div>
+                        <div className="text-3xl font-bold text-gray-900">{state.productToEdit.quantity}</div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-4 border border-green-300">
+                        <div className="text-sm text-gray-600 mb-1">Total Stock ({state.productToEdit.secondaryUnit}s)</div>
+                        <div className="text-3xl font-bold text-green-600">{totalSecondaryUnits.toFixed(0)}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-green-300 mt-4">
+                      <div className="text-sm font-medium text-gray-900 mb-3">Pricing Breakdown</div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Price per {state.productToEdit.baseUnit}:</span>
+                          <span className="font-semibold text-gray-900">{formatCurrency(state.productToEdit.basePrice || 0)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Price per {state.productToEdit.secondaryUnit}:</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(pricePerSecondaryUnit)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Product image */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
