@@ -789,7 +789,14 @@ const Inventory: React.FC = () => {
       </div>
 
       {/* Edit Modal */}
-      {state.showEditModal && state.productToEdit && (
+      {state.showEditModal && state.productToEdit && (() => {
+        const totalSecondaryUnits = state.productToEdit?.hasUnitConversion 
+          ? (state.productToEdit.quantity || 0) * (state.productToEdit.conversionRate || 0)
+          : 0;
+        const pricePerSecondaryUnit = state.productToEdit?.hasUnitConversion && (state.productToEdit.conversionRate || 0) > 0
+          ? (state.productToEdit.basePrice || 0) / (state.productToEdit.conversionRate || 0)
+          : 0;
+        return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
             <div 
@@ -977,7 +984,8 @@ const Inventory: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Delete Modal */}
       {state.showDeleteModal && state.productToDelete && (
