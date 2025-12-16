@@ -195,6 +195,10 @@ const Inventory: React.FC = () => {
           size: item.product?.size || '',
           capacity: item.product?.capacity || '',
           description: item.product?.description || '',
+          hasUnitConversion: item.product?.hasUnitConversion || false,
+          baseUnit: item.product?.baseUnit || '',
+          secondaryUnit: item.product?.secondaryUnit || '',
+          conversionRate: parseFloat(item.product?.conversionRate) || 0,
         };
       });
 
