@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Search, Trash2, Edit, Info, ChevronUp } from 'lucide-react';
+import { ChevronDown, Search, Trash2, Edit, Info, ChevronUp, Package, Ruler } from 'lucide-react';
 import Image from 'next/image';
 import InCard from '@/components/products/InCard';
 import OutCard from '@/components/products/OutCard';
