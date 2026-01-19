@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { authService } from '@/services/authService';
-import { Eye, EyeOff, User, Lock, Save } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Save, AlertTriangle, Trash2, X } from 'lucide-react';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'danger'>('profile');
   const [isLoading, setIsLoading] = useState(false);
 
   // Profile form state
@@ -31,6 +31,11 @@ export default function SettingsPage() {
     new: false,
     confirm: false,
   });
+
+  // Reset Sales State
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [confirmationText, setConfirmationText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   // Handle profile update
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -144,8 +149,53 @@ export default function SettingsPage() {
     }
   };
 
+  // Handle Reset Sales Data
+  const handleResetSales = async () => {
+    if (confirmationText !== 'RESET') {
+      showErrorToast('Please type RESET to confirm');
+      return;
+    }
+
+    setIsResetting(true);
+    const loadingToastId = showLoadingToast('Resetting sales data...');
+
+    try {
+      const response = await fetch('https://gnc-inventory-backend.onrender.com/api/sales/reset', {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Clear local storage transaction data
+        localStorage.removeItem('transactionData');
+        
+        setShowResetModal(false);
+        setConfirmationText('');
+        dismissToast(loadingToastId);
+        showSuccessToast(`Sales data has been reset successfully. ${result.data?.recordsArchived || 0} records archived.`);
+        
+        // Reload page after 2 seconds to refresh data
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        throw new Error(result.error || 'Failed to reset sales data');
+      }
+    } catch (error) {
+      dismissToast(loadingToastId);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showErrorToast(`Failed to reset sales data: ${errorMessage}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   // Handle tab switching with unsaved changes warning
-  const handleTabSwitch = (tab: 'profile' | 'password') => {
+  const handleTabSwitch = (tab: 'profile' | 'password' | 'danger') => {
     if (tab === activeTab) return;
     
     // Check for unsaved changes in profile tab
@@ -225,6 +275,17 @@ export default function SettingsPage() {
               >
                 <Lock className="w-4 h-4 inline mr-2" />
                 Password
+              </button>
+              <button
+                onClick={() => handleTabSwitch('danger')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'danger'
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <AlertTriangle className="w-4 h-4 inline mr-2" />
+                Danger Zone
               </button>
             </nav>
           </div>
@@ -431,8 +492,126 @@ export default function SettingsPage() {
                 </div>
               </form>
             )}
+
+            {/* Danger Zone Tab */}
+            {activeTab === 'danger' && (
+              <div className="space-y-6">
+                <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Reset Sales Data</h3>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-2">
+                        This will permanently delete all sales transaction records and reset &quot;Stock Out&quot; and &quot;Gross Total Sales Value&quot; to zero.
+                      </p>
+                      <p className="text-xs text-red-600 font-medium">
+                        ⚠️ This action cannot be undone. Use only for clearing testing data.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowResetModal(true)}
+                      className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Reset Sales
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Reset Confirmation Modal */}
+        {showResetModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                  <h3 className="text-xl font-bold text-gray-900">Confirm Sales Data Reset</h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowResetModal(false);
+                    setConfirmationText('');
+                  }}
+                  disabled={isResetting}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-red-900 font-medium mb-2">
+                  ⚠️ WARNING: This action will permanently:
+                </p>
+                <ul className="text-sm text-red-800 ml-4 space-y-1">
+                  <li>• Delete all sales transaction records</li>
+                  <li>• Reset &quot;Total Stock Out&quot; to 0 items</li>
+                  <li>• Reset &quot;Gross Total Sales Value&quot; to ₦ 0.00</li>
+                  <li>• Clear all testing phase sales data</li>
+                </ul>
+                <p className="text-sm text-red-900 font-medium mt-3">
+                  This action CANNOT be undone!
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-xs text-blue-900">
+                  ℹ️ Note: All data will be archived before deletion for audit purposes.
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Type <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">RESET</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={confirmationText}
+                  onChange={(e) => setConfirmationText(e.target.value.toUpperCase())}
+                  placeholder="Type RESET"
+                  disabled={isResetting}
+                  className="w-full h-10 rounded-lg px-3 border border-gray-300 text-center font-mono text-base focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowResetModal(false);
+                    setConfirmationText('');
+                  }}
+                  disabled={isResetting}
+                  className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleResetSales}
+                  disabled={isResetting || confirmationText !== 'RESET'}
+                  className="px-6 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                >
+                  {isResetting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Resetting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Reset All Sales Data
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );
