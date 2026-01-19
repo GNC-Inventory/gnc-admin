@@ -4,7 +4,6 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { usePathname } from 'next/navigation'
-import Head from 'next/head'
 import { Toaster } from 'react-hot-toast'
 import Sidebar from '@/components/Sidebar'
 import Navbar from '@/components/Navbar'
@@ -19,15 +18,9 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
-  const title = 'GNC Manager';
-  const description = 'GNC Manager Dashboard';
 
   return (
     <html lang="en">
-      <Head>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-      </Head>
       <body className={inter.className}>
         <AuthProvider>
           {/* Side background images - fills white spaces on left and right of max-width container */}
