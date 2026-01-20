@@ -6,11 +6,6 @@ import LayoutContent from '@/components/LayoutContent'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'GNC Manager',
-  description: 'GNC Manager Dashboard',
-}
-
 export default function RootLayout({
   children,
 }: {
@@ -18,6 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <title>GNC Manager</title>
+        <meta name="description" content="GNC Manager Dashboard" />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           <LayoutContent>{children}</LayoutContent>
