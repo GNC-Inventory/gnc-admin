@@ -1,67 +1,71 @@
 .
-├── netlify
-│   └── functions
-│       └── inventory.js
-├── public
-│   ├── bg.png
-│   ├── glob.jpg
-│   └── logo.png
-├── src
-│   ├── app
-│   │   ├── dashboard
-│   │   │   └── page.tsx
-│   │   ├── inventory
-│   │   │   ├── add-product
-│   │   │   │   └── page.tsx
-│   │   │   └── page.tsx
-│   │   ├── settings
-│   │   │   └── page.tsx
-│   │   ├── user-management
-│   │   │   ├── CreateUserModal.tsx
-│   │   │   ├── UserList.tsx
-│   │   │   └── page.tsx
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components
-│   │   ├── dashboard
-│   │   │   ├── AverageSalesCard.tsx
-│   │   │   ├── LowInStock.tsx
-│   │   │   ├── SalesByProduct.tsx
-│   │   │   ├── SalesCard.tsx
-│   │   │   ├── SalesGraph.tsx
-│   │   │   ├── TaxDueCard.tsx
-│   │   │   ├── TopPerformingStaff.tsx
-│   │   │   ├── TotalAmountReturned.tsx
-│   │   │   ├── TotalReturnedItems.tsx
-│   │   │   └── TransactionsCard.tsx
-│   │   ├── products
-│   │   │   ├── InCard.tsx
-│   │   │   ├── InventoryValueCard.tsx
-│   │   │   ├── LowInStockCard.tsx
-│   │   │   └── OutCard.tsx
-│   │   ├── Dashboard.tsx
-│   │   ├── LoginPage.tsx
-│   │   ├── Navbar.tsx
-│   │   ├── ProtectedRoute.tsx
-│   │   └── Sidebar.tsx
-│   ├── contexts
-│   │   └── AuthContext.tsx
-│   ├── services
-│   │   ├── authService.ts
-│   │   └── userService.ts
-│   ├── types
-│   │   └── user.ts
-│   └── utils
-│       └── toast.ts
-├── README.md
-├── eslint.config.mjs
-├── netlify.toml
-├── next.config.ts
-├── package-lock.json
-├── package.json
-├── postcss.config.mjs
-├── project-structure.txt
-└── tsconfig.json
+|-- README.md
+|-- eslint.config.mjs
+|-- netlify
+|   `-- functions
+|       `-- inventory.js
+|-- netlify.toml
+|-- next-env.d.ts
+|-- next.config.ts
+|-- package-lock.json
+|-- package.json
+|-- postcss.config.mjs
+|-- project-structure.txt
+|-- public
+|   |-- bg.png
+|   |-- glob.jpg
+|   `-- logo.png
+|-- src
+|   |-- app
+|   |   |-- dashboard
+|   |   |   `-- page.tsx
+|   |   |-- globals.css
+|   |   |-- inventory
+|   |   |   |-- add-product
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- layout.tsx
+|   |   |-- login
+|   |   |   |-- Page.tsx
+|   |   |   `-- layout.tsx
+|   |   |-- page.tsx
+|   |   |-- settings
+|   |   |   `-- page.tsx
+|   |   `-- user-management
+|   |       |-- CreateUserModal.tsx
+|   |       |-- UserList.tsx
+|   |       `-- page.tsx
+|   |-- components
+|   |   |-- Dashboard.tsx
+|   |   |-- LayoutContent.tsx
+|   |   |-- Navbar.tsx
+|   |   |-- ProtectedRoute.tsx
+|   |   |-- Sidebar.tsx
+|   |   |-- dashboard
+|   |   |   |-- AverageSalesCard.tsx
+|   |   |   |-- LowInStock.tsx
+|   |   |   |-- SalesByProduct.tsx
+|   |   |   |-- SalesCard.tsx
+|   |   |   |-- SalesGraph.tsx
+|   |   |   |-- TaxDueCard.tsx
+|   |   |   |-- TopPerformingStaff.tsx
+|   |   |   |-- TotalAmountReturned.tsx
+|   |   |   |-- TotalReturnedItems.tsx
+|   |   |   `-- TransactionsCard.tsx
+|   |   `-- products
+|   |       |-- InCard.tsx
+|   |       |-- InventoryValueCard.tsx
+|   |       |-- LowInStockCard.tsx
+|   |       `-- OutCard.tsx
+|   |-- contexts
+|   |   `-- AuthContext.tsx
+|   |-- services
+|   |   |-- authService.ts
+|   |   `-- userService.ts
+|   |-- types
+|   |   `-- user.ts
+|   `-- utils
+|       `-- toast.ts
+`-- tsconfig.json
 
-18 directories, 47 files
+19 directories, 50 files
