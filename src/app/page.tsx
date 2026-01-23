@@ -3,18 +3,15 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import LoginPage from '@/app/login/LoginPage';
 
 export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.push('/dashboard');
-      } else {
-        router.push('/login');
-      }
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -30,6 +27,6 @@ export default function HomePage() {
     );
   }
 
-  // Show nothing during redirect
-  return null;
+  // Show login page if not authenticated
+  return <LoginPage />;
 }

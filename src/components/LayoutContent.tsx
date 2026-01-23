@@ -10,7 +10,7 @@ export default function LayoutContent({
   children: React.ReactNode
 }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const isLoginPage = pathname === '/login' || pathname === '/';
 
   return (
     <>

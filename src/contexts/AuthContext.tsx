@@ -173,7 +173,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     setIsLoading(false);
 
-    // Redirect to login page (root path since login is at components/loginpage.tsx)
+    // Redirect to root (login page)
     router.push('/');
   };
 
@@ -223,7 +223,7 @@ export const withAuth = <P extends object>(
 
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
-        router.push('/login');
+        router.push('/');
       }
     }, [isAuthenticated, isLoading, router]);
 
