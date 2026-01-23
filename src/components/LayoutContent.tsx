@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import Sidebar from '@/components/Sidebar'
 import Navbar from '@/components/Navbar'
 
@@ -11,18 +10,7 @@ export default function LayoutContent({
   children: React.ReactNode
 }) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const isLoginPage = pathname === '/login';
-
-  // Render nothing on server, wait for client mount
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <>
