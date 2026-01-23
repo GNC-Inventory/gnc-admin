@@ -1,13 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export', // Enable static export
-  trailingSlash: true, // Required for static export
-  images: {
-    unoptimized: true, // Required for static export
-  },
+  // Remove output: 'export' completely
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  images: {
+    unoptimized: true,
   },
 };
 
