@@ -27,7 +27,6 @@
 |   |   |-- layout.tsx
 |   |   |-- login
 |   |   |   |-- LoginPage.tsx
-|   |   |   |-- layout.tsx
 |   |   |   `-- page.tsx
 |   |   |-- page.tsx
 |   |   |-- settings
@@ -69,4 +68,4 @@
 |       `-- toast.ts
 `-- tsconfig.json
 
-19 directories, 51 files
+19 directories, 50 files
