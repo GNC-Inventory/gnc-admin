@@ -14,7 +14,7 @@ import {
   BarChart3,
   Users,
   Settings,
-  HelpCircle,
+  HelpCircle, // Keep for Support (currently commented out)
   LogOut
 } from 'lucide-react';
 
@@ -61,11 +61,13 @@ const Sidebar: React.FC = () => {
       icon: Settings,
       href: '/settings'
     },
-    {
-      name: 'Support',
-      icon: HelpCircle,
-      href: '/support'
-    }
+    // Support temporarily disabled - available in sales dashboard
+    // Uncomment to reactivate:
+    // {
+    //   name: 'Support',
+    //   icon: HelpCircle,
+    //   href: '/support'
+    // }
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -74,13 +76,11 @@ const Sidebar: React.FC = () => {
     logout();
   };
 
-  // Get user initials
   const getUserInitials = () => {
     if (!user) return 'AD';
     return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
   };
 
-  // Get full name
   const getFullName = () => {
     if (!user) return 'Admin User';
     return `${user.firstName} ${user.lastName}`;
@@ -88,7 +88,6 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="w-[272px] min-h-screen max-w-[272px] 2xl:w-[320px] 2xl:max-w-[320px] bg-white border-r border-[#E2E4E9] flex flex-col" style={{ opacity: 1 }}>
-      {/* Header */}
       <div className="flex items-center gap-3 px-8 py-6">
         <div className="w-8 h-8 relative">
           <Image
@@ -102,10 +101,8 @@ const Sidebar: React.FC = () => {
         <h1 className="text-lg font-semibold text-gray-900">GNC Manager</h1>
       </div>
 
-      {/* Horizontal line */}
       <div className="border-b border-[#E2E4E9] mx-8"></div>
 
-      {/* Main Section */}
       <div className="flex-1 px-6 py-8">
         <div className="mb-6">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 px-2">
@@ -132,7 +129,6 @@ const Sidebar: React.FC = () => {
           </nav>
         </div>
 
-        {/* Other Section */}
         <div className="mb-6">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 px-2">
             OTHER
@@ -159,7 +155,6 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* User Profile Section */}
       <div className="border-t border-[#E2E4E9] p-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
