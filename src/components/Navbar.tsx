@@ -14,8 +14,8 @@ const pageConfigs = {
     buttonText: '+ Add Product'
   },
   '/inventory': {
-    title: 'Inventory Management', // Updated title
-    subtitle: 'Full control of stock and item-level data.', // Updated subtitle
+    title: 'Inventory Management',
+    subtitle: 'Full control of stock and item-level data.',
     showNewSaleButton: true,
     buttonText: '+ Add Product'
   },
@@ -45,8 +45,8 @@ const pageConfigs = {
   },
   '/user-management': {
     title: 'User Management',
-    subtitle: 'Manage users and permissions.',
-    showNewSaleButton: true,
+    subtitle: 'Manage users and their access',
+    showNewSaleButton: true,  // ✅ CHANGED TO TRUE - Show Add User button in Navbar
     buttonText: '+ Add User'
   },
   '/settings': {
@@ -84,6 +84,11 @@ const Navbar: React.FC = () => {
         break;
       case '/transactions':
         // Add transaction functionality here
+        break;
+      case '/user-management':
+        // Trigger Add User modal
+        // This will be handled via a custom event
+        window.dispatchEvent(new Event('openCreateUserModal'));
         break;
       default:
         router.push('/inventory/add-product');
@@ -124,11 +129,11 @@ const Navbar: React.FC = () => {
         }}
       >
         <h4 
-          className="text-[#0A0D14] font-medium"
+          className="text-[#0A0D14] font-semibold"
           style={{
             height: '24px',
             fontFamily: 'Geist, sans-serif',
-            fontWeight: 500,
+            fontWeight: 600,  // ✅ CHANGED FROM 500 TO 600 - Bolder text
             fontSize: '18px',
             lineHeight: '24px',
             letterSpacing: '-1.5%'
@@ -220,4 +225,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar;
+export default Navbar; 
