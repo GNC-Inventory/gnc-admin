@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { authService } from '@/services/authService';
-import { Eye, EyeOff, User, Lock, Save, AlertTriangle, Trash2, X } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Save, AlertTriangle, Trash2, X, ShieldCheck } from 'lucide-react';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
 export default function SettingsPage() {
@@ -32,22 +32,122 @@ export default function SettingsPage() {
     confirm: false,
   });
 
-  // Reset Sales State
+  // Reset Sales State with Admin Auth
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [confirmationText, setConfirmationText] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [authCredentials, setAuthCredentials] = useState({
+    email: '',
+    password: ''
+  });
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  // Handle Admin Authentication
+  const handleAdminAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!authCredentials.email || !authCredentials.password) {
+      showErrorToast('Please enter both email and password');
+      return;
+    }
+
+    setIsAuthenticating(true);
+    const loadingToastId = showLoadingToast('Verifying admin credentials...');
+
+    try {
+      // Validate admin credentials
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: authCredentials.email,
+          password: authCredentials.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      dismissToast(loadingToastId);
+
+      if (data.success && data.data.user.role === 'ADMIN') {
+        // Admin authenticated successfully
+        showSuccessToast('Admin verified successfully');
+        setShowAuthModal(false);
+        setShowResetModal(true);
+        // Clear credentials for security
+        setAuthCredentials({ email: '', password: '' });
+        setShowAuthPassword(false);
+      } else if (data.success && data.data.user.role !== 'ADMIN') {
+        showErrorToast('Only administrators can perform this action');
+      } else {
+        showErrorToast('Invalid credentials. Please try again.');
+      }
+    } catch (error) {
+      dismissToast(loadingToastId);
+      console.error('Auth error:', error);
+      showErrorToast('Authentication failed. Please try again.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Handle Reset Sales Data
+  const handleResetSales = async () => {
+    if (confirmationText !== 'RESET') {
+      showErrorToast('Please type RESET to confirm');
+      return;
+    }
+
+    setIsResetting(true);
+    const loadingToastId = showLoadingToast('Resetting sales data...');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales/reset`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        localStorage.removeItem('transactionData');
+        
+        setShowResetModal(false);
+        setConfirmationText('');
+        dismissToast(loadingToastId);
+        showSuccessToast(`Sales data reset successfully. ${result.data?.archivedCount || 0} records archived.`);
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        throw new Error(result.error || 'Failed to reset sales data');
+      }
+    } catch (error) {
+      dismissToast(loadingToastId);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showErrorToast(`Failed to reset sales data: ${errorMessage}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   // Handle profile update
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!profileData.firstName.trim() || !profileData.lastName.trim()) {
       showErrorToast('First name and last name are required');
       return;
     }
 
-    // Check if any changes were made
     const hasChanges = profileData.firstName !== user?.firstName || 
                       profileData.lastName !== user?.lastName || 
                       profileData.phone !== user?.phone;
@@ -86,7 +186,6 @@ export default function SettingsPage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!passwordData.currentPassword) {
       showErrorToast('Current password is required');
       return;
@@ -136,7 +235,6 @@ export default function SettingsPage() {
       dismissToast(loadingToastId);
       console.error('Password change error:', error);
       
-      // Handle specific error cases
       if (error.message.includes('current password')) {
         showErrorToast('Current password is incorrect');
       } else if (error.message.includes('weak')) {
@@ -149,56 +247,10 @@ export default function SettingsPage() {
     }
   };
 
-  // Handle Reset Sales Data
-  const handleResetSales = async () => {
-    if (confirmationText !== 'RESET') {
-      showErrorToast('Please type RESET to confirm');
-      return;
-    }
-
-    setIsResetting(true);
-    const loadingToastId = showLoadingToast('Resetting sales data...');
-
-    try {
-      const response = await fetch('https://gnc-inventory-backend.onrender.com/api/sales/reset', {
-        method: 'DELETE',
-        headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
-        }
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Clear local storage transaction data
-        localStorage.removeItem('transactionData');
-        
-        setShowResetModal(false);
-        setConfirmationText('');
-        dismissToast(loadingToastId);
-        showSuccessToast(`Sales data has been reset successfully. ${result.data?.recordsArchived || 0} records archived.`);
-        
-        // Reload page after 2 seconds to refresh data
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        throw new Error(result.error || 'Failed to reset sales data');
-      }
-    } catch (error) {
-      dismissToast(loadingToastId);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      showErrorToast(`Failed to reset sales data: ${errorMessage}`);
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  // Handle tab switching with unsaved changes warning
+  // Handle tab switching
   const handleTabSwitch = (tab: 'profile' | 'password' | 'danger') => {
     if (tab === activeTab) return;
     
-    // Check for unsaved changes in profile tab
     if (activeTab === 'profile') {
       const hasUnsavedChanges = profileData.firstName !== user?.firstName || 
                                profileData.lastName !== user?.lastName || 
@@ -210,7 +262,6 @@ export default function SettingsPage() {
       }
     }
     
-    // Check for unsaved changes in password tab
     if (activeTab === 'password') {
       const hasUnsavedChanges = passwordData.currentPassword || 
                                passwordData.newPassword || 
@@ -225,13 +276,11 @@ export default function SettingsPage() {
     setActiveTab(tab);
   };
 
-  // Phone number formatting
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^\d+\s-()]/g, ''); // Allow only digits, +, spaces, hyphens, parentheses
+    let value = e.target.value.replace(/[^\d+\s-()]/g, '');
     setProfileData({...profileData, phone: value});
   };
 
-  // Password strength indicator
   const getPasswordStrength = (password: string) => {
     if (password.length < 6) return { level: 'weak', text: 'Too short' };
     if (password.length < 8) return { level: 'fair', text: 'Fair' };
@@ -244,13 +293,11 @@ export default function SettingsPage() {
   return (
     <ProtectedRoute allowedRoles={['ADMIN']}>
       <div className="p-6 max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600">Manage your account settings and preferences</p>
         </div>
 
-        {/* Tabs */}
         <div className="bg-white rounded-lg shadow">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
@@ -511,7 +558,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => setShowResetModal(true)}
+                      onClick={() => setShowAuthModal(true)}
                       className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm flex items-center gap-2 whitespace-nowrap transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -523,6 +570,113 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+        {/* Admin Authentication Modal */}
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-6 h-6 text-blue-600" />
+                  <h3 className="text-xl font-bold text-gray-900">Admin Verification Required</h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAuthModal(false);
+                    setAuthCredentials({ email: '', password: '' });
+                    setShowAuthPassword(false);
+                  }}
+                  disabled={isAuthenticating}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-900">
+                  🔒 For security, please verify your admin credentials before proceeding with this critical action.
+                </p>
+              </div>
+
+              <form onSubmit={handleAdminAuth} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Admin Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={authCredentials.email}
+                    onChange={(e) => setAuthCredentials({...authCredentials, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="admin@example.com"
+                    required
+                    disabled={isAuthenticating}
+                    autoComplete="username"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Admin Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showAuthPassword ? 'text' : 'password'}
+                      value={authCredentials.password}
+                      onChange={(e) => setAuthCredentials({...authCredentials, password: e.target.value})}
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter your password"
+                      required
+                      disabled={isAuthenticating}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthPassword(!showAuthPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      disabled={isAuthenticating}
+                    >
+                      {showAuthPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAuthModal(false);
+                      setAuthCredentials({ email: '', password: '' });
+                      setShowAuthPassword(false);
+                    }}
+                    disabled={isAuthenticating}
+                    className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isAuthenticating}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  >
+                    {isAuthenticating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        Verify & Continue
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Reset Confirmation Modal */}
         {showResetModal && (
