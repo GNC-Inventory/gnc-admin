@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import CreateUserModal from './CreateUserModal';
-import { Plus, Search, MoreVertical, Trash2, LogOut } from 'lucide-react';
+import { Search, MoreVertical, Trash2, LogOut } from 'lucide-react';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast } from '@/utils/toast';
 
 interface User {
@@ -63,6 +63,13 @@ export default function UserManagementPage() {
   useEffect(() => {
     fetchUsers();
   }, [token]);
+
+  // Listen for modal open event from Navbar
+  useEffect(() => {
+    const handleOpenModal = () => setShowCreateModal(true);
+    window.addEventListener('openCreateUserModal', handleOpenModal);
+    return () => window.removeEventListener('openCreateUserModal', handleOpenModal);
+  }, []);
 
   // Filter users
   const filteredUsers = users.filter(user =>
@@ -195,22 +202,7 @@ export default function UserManagementPage() {
   return (
     <ProtectedRoute allowedRoles={['ADMIN']}>
       <div className="p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="text-gray-600">Manage users and their access</p>
-          </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add User
-          </button>
-        </div>
-
-        {/* Search */}
+        {/* Search - No header, just search bar */}
         <div className="mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
