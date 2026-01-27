@@ -15,6 +15,7 @@ interface User {
   role: string;
   isActive: boolean;
   isOnline: boolean;
+  lastActivity?: string;
   createdAt: string;
   lastLoginAt: string | null;
 }
@@ -27,7 +28,7 @@ export default function UserManagementPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionUserId, setActionUserId] = useState<number | null>(null);
 
-  // Fetch users
+  // Fetch users with online status
   const fetchUsers = async () => {
     if (!token) {
       setLoading(false);
@@ -35,7 +36,8 @@ export default function UserManagementPage() {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
+      // UPDATED: Use /api/admin/users endpoint that returns online status
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
@@ -62,6 +64,13 @@ export default function UserManagementPage() {
 
   useEffect(() => {
     fetchUsers();
+    
+    // Auto-refresh every 30 seconds to update online status
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [token]);
 
   // Listen for modal open event from Navbar
@@ -131,7 +140,8 @@ export default function UserManagementPage() {
     const loadingToastId = showLoadingToast(`Deleting ${user.firstName} ${user.lastName}...`);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
+      // UPDATED: Use /api/admin/users/:userId endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -164,7 +174,8 @@ export default function UserManagementPage() {
     const loadingToastId = showLoadingToast(`Logging out ${user.firstName} ${user.lastName}...`);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/logout`, {
+      // UPDATED: Use /api/admin/users/:userId/logout endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${userId}/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
