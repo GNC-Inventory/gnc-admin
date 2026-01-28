@@ -16,6 +16,8 @@ interface Product {
   size: string;
   capacity: string;
   description: string;
+  colour: string;             // ✅ FIX 3: ADDED
+  wattage: string;            // ✅ FIX 3: ADDED
   image: string;
   imageFile?: File;
   unitCost: number;
@@ -23,7 +25,6 @@ interface Product {
   basePrice: number;
   quantity: number;
   lowStock: number;
-  // ADD THESE THREE NEW LINES:
   hasUnitConversion?: boolean;
   baseUnit?: string;
   secondaryUnit?: string;
@@ -51,6 +52,8 @@ const AddProductPage: React.FC = () => {
     size: '',
     capacity: '',
     description: '',
+    colour: '',              // ✅ FIX 3: ADDED
+    wattage: '',             // ✅ FIX 3: ADDED
     image: '',
     unitCost: 0,
     profitPercentage: 0,
@@ -65,10 +68,12 @@ const AddProductPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingInventory, setExistingInventory] = useState<Product[]>([]);
 
+  // ✅ FIX 1: ADDED "Generators"
   const categoryOptions = [
     'Building Materials',
     'Electricals',
-    'Electronics'
+    'Electronics',
+    'Generators'
   ];
 
   // ENHANCED: Load existing inventory for duplicate checking
@@ -94,6 +99,8 @@ const AddProductPage: React.FC = () => {
               size: item.product?.size || '',
               capacity: item.product?.capacity || '',
               description: item.product?.description || '',
+              colour: item.product?.colour || '',        // ✅ FIX 3: ADDED
+              wattage: item.product?.wattage || '',      // ✅ FIX 3: ADDED
               image: item.product?.imageUrl || '',
               unitCost: parseFloat(item.product?.unitCost) || 0,
               profitPercentage: parseFloat(item.profitPercentage) || 0,
@@ -220,6 +227,8 @@ const AddProductPage: React.FC = () => {
       size: currentProduct.size,
       capacity: currentProduct.capacity,
       description: currentProduct.description,
+      colour: currentProduct.colour,              // ✅ FIX 3: ADDED
+      wattage: currentProduct.wattage,            // ✅ FIX 3: ADDED
       image: currentProduct.image,
       unitCost: currentProduct.unitCost,
       profitPercentage: currentProduct.profitPercentage,
@@ -242,6 +251,8 @@ const AddProductPage: React.FC = () => {
       size: '',
       capacity: '',
       description: '',
+      colour: '',              // ✅ FIX 3: ADDED
+      wattage: '',             // ✅ FIX 3: ADDED
       image: '',
       unitCost: 0,
       profitPercentage: 0,
@@ -271,75 +282,79 @@ const AddProductPage: React.FC = () => {
       
       for (const product of selectedProducts) {
         try {
-        console.log('=== ADD PRODUCT API DEBUG ===');
-console.log('API Key check:', process.env.NEXT_PUBLIC_API_KEY ? 'EXISTS' : 'MISSING');
-console.log('API Key value:', process.env.NEXT_PUBLIC_API_KEY ? 'SET' : 'EMPTY');
-console.log('Request headers:', {
-  'Content-Type': 'application/json',
-  'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'EMPTY'
-});
+          console.log('=== ADD PRODUCT API DEBUG ===');
+          console.log('API Key check:', process.env.NEXT_PUBLIC_API_KEY ? 'EXISTS' : 'MISSING');
+          console.log('API Key value:', process.env.NEXT_PUBLIC_API_KEY ? 'SET' : 'EMPTY');
+          console.log('Request headers:', {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'EMPTY'
+          });
 
-const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
-  },
-  body: JSON.stringify({
-    name: product.name,
-    category: product.category,
-    make: product.make,
-    model: product.model,
-    type: product.type,
-    size: product.size,
-    capacity: product.capacity,
-    description: product.description,
-    image: product.image, // This sends the base64 string
-    unit_cost: product.unitCost,
-    base_price: product.basePrice,
-    stock_quantity: product.quantity,
-    low_stock_threshold: product.lowStock,
-    has_unit_conversion: product.hasUnitConversion || false,
-    base_unit: product.baseUnit || null,
-    secondary_unit: product.secondaryUnit || null,
-    conversion_rate: product.conversionRate || null,
-    locationId: 1
-  })
-});
+          const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+            },
+            body: JSON.stringify({
+              name: product.name,
+              category: product.category,
+              make: product.make,
+              model: product.model,
+              type: product.type,
+              size: product.size,
+              capacity: product.capacity,
+              description: product.description,
+              colour: product.colour,                   // ✅ FIX 3: ADDED
+              wattage: product.wattage,                 // ✅ FIX 3: ADDED
+              image: product.image,
+              unit_cost: product.unitCost,
+              base_price: product.basePrice,
+              stock_quantity: product.quantity,
+              low_stock_threshold: product.lowStock,
+              has_unit_conversion: product.hasUnitConversion || false,
+              base_unit: product.baseUnit || null,
+              secondary_unit: product.secondaryUnit || null,
+              conversion_rate: product.conversionRate || null,
+              locationId: 1
+            })
+          });
 
-console.log('Response status:', response.status);
-console.log('Response URL:', response.url);
+          console.log('Response status:', response.status);
+          console.log('Response URL:', response.url);
 
-if (!response.ok) {
-  const errorText = await response.text();
-  console.error('API Error Details:', errorText);
-  console.error('Request body sent:', JSON.stringify({
-    name: product.name,
-    category: product.category,
-    make: product.make,
-    model: product.model,
-    type: product.type,
-    size: product.size,
-    capacity: product.capacity,
-    description: product.description,
-    unit_cost: product.unitCost,
-    base_price: product.basePrice,
-    stock_quantity: product.quantity,
-    low_stock_threshold: product.lowStock,
-    locationId: 1
-  }, null, 2));
-  throw new Error(`API returned ${response.status}: ${errorText}`);
-}
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Details:', errorText);
+            console.error('Request body sent:', JSON.stringify({
+              name: product.name,
+              category: product.category,
+              make: product.make,
+              model: product.model,
+              type: product.type,
+              size: product.size,
+              capacity: product.capacity,
+              description: product.description,
+              colour: product.colour,
+              wattage: product.wattage,
+              unit_cost: product.unitCost,
+              base_price: product.basePrice,
+              stock_quantity: product.quantity,
+              low_stock_threshold: product.lowStock,
+              locationId: 1
+            }, null, 2));
+            throw new Error(`API returned ${response.status}: ${errorText}`);
+          }
 
-const result = await response.json();
-console.log('API Success Response:', result);
+          const result = await response.json();
+          console.log('API Success Response:', result);
 
-if (result.success) {
-  addedProducts.push(product);
-  console.log(`Successfully added: ${product.name}`);
-} else {
-  throw new Error(result.error || 'Failed to add product');
-}
+          if (result.success) {
+            addedProducts.push(product);
+            console.log(`Successfully added: ${product.name}`);
+          } else {
+            throw new Error(result.error || 'Failed to add product');
+          }
 
         } catch (error) {
           console.error(`Failed to add ${product.name}:`, error);
@@ -375,26 +390,23 @@ if (result.success) {
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    // For now, store the file object instead of base64
-    // We'll send the actual file to the backend
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCurrentProduct(prev => ({ 
+          ...prev, 
+          image: e.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+      
       setCurrentProduct(prev => ({ 
         ...prev, 
-        image: e.target?.result as string // Keep base64 for preview
+        imageFile: file
       }));
-    };
-    reader.readAsDataURL(file);
-    
-    // Also store the file object for upload
-    setCurrentProduct(prev => ({ 
-      ...prev, 
-      imageFile: file // Add this new field
-    }));
-  }
-};
+    }
+  };
 
   const handleNumericInput = (field: 'unitCost' | 'profitPercentage', e: React.ChangeEvent<HTMLInputElement>) => {
     if (field === 'unitCost') {
@@ -418,11 +430,11 @@ if (result.success) {
   const total = selectedProducts.reduce((sum, product) => sum + (product.basePrice * product.quantity), 0);
 
   const totalSecondaryUnits = currentProduct.hasUnitConversion 
-  ? currentProduct.quantity * currentProduct.conversionRate 
-  : 0;
+    ? currentProduct.quantity * currentProduct.conversionRate 
+    : 0;
   const pricePerSecondaryUnit = currentProduct.hasUnitConversion && currentProduct.conversionRate > 0
-  ? currentProduct.basePrice / currentProduct.conversionRate
-  : 0;
+    ? currentProduct.basePrice / currentProduct.conversionRate
+    : 0;
 
   const ProductItem = ({ product }: { product: Product }) => (
     <div className="flex items-center justify-between">
@@ -436,10 +448,10 @@ if (result.success) {
         <div className="flex items-center gap-3">
           {product.image && <Image src={product.image} alt={product.name} width={32} height={32} className="rounded object-cover" />}
           {product.hasUnitConversion && (
-          <p className="text-blue-600 text-xs">
-            {product.quantity} {product.baseUnit}s = {(product.quantity * (product.conversionRate || 0)).toFixed(0)} {product.secondaryUnit}s
-          </p>
-           )}
+            <p className="text-blue-600 text-xs">
+              {product.quantity} {product.baseUnit}s = {(product.quantity * (product.conversionRate || 0)).toFixed(0)} {product.secondaryUnit}s
+            </p>
+          )}
           <div>
             <p className="text-[#0A0D14] text-sm font-medium">{product.name}</p>
             <p className="text-gray-600 text-xs">{product.make} {product.model}</p>
@@ -508,14 +520,16 @@ if (result.success) {
               </select>
             </div>
 
-            {/* Text Fields - All accepting any characters including decimals */}
+            {/* Text Fields - Including Colour and Wattage */}
             {[
               { label: 'Product name', field: 'name', placeholder: 'Enter product name...', required: true },
               { label: 'Brand', field: 'make', placeholder: 'Enter Brand (e.g., Samsung, Dangote)...', required: false },
               { label: 'Model', field: 'model', placeholder: 'Enter model (e.g., S21, X500)...', required: false },
               { label: 'Type', field: 'type', placeholder: 'Enter type (e.g., LED, Concrete)...', required: false },
               { label: 'Size', field: 'size', placeholder: 'Enter size (e.g., 2.5 inches, 10mm)...', required: false },
-              { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity (e.g., 1.5L, 50kg)...', required: false }
+              { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity (e.g., 1.5L, 50kg)...', required: false },
+              { label: 'Colour', field: 'colour', placeholder: 'Enter colour (e.g., Red, Blue)...', required: false },     // ✅ FIX 3: ADDED
+              { label: 'Wattage', field: 'wattage', placeholder: 'Enter wattage (e.g., 1000W, 2.5kW)...', required: false }  // ✅ FIX 3: ADDED
             ].map(({ label, field, placeholder, required }) => (
               <div key={field}>
                 <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
