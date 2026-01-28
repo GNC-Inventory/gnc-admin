@@ -8,7 +8,6 @@ import OutCard from '@/components/products/OutCard';
 import InventoryValueCard from '@/components/products/InventoryValueCard';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
 
-// ✅ ISSUE 3: Added colour and wattage fields
 interface InventoryItem {
   id: string;
   name: string;
@@ -25,10 +24,10 @@ interface InventoryItem {
   make?: string;      
   type?: string;
   size?: string;       
-  capacity?: string;
-  colour?: string;      // ✅ NEW
-  wattage?: string;     // ✅ NEW
+  capacity?: string;  
   description?: string;
+  colour?: string;         // ✅ FIX 3: ADDED
+  wattage?: string;        // ✅ FIX 3: ADDED
   hasUnitConversion?: boolean;
   baseUnit?: string;
   secondaryUnit?: string;
@@ -36,10 +35,8 @@ interface InventoryItem {
 }
 
 const periods = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
-
-// ✅ ISSUE 3: Added 'Generators' category
-const categories = ['All Categories', 'Building Materials', 'Electricals', 'Electronics', 'Generators'];
-const categoryOptions = ['Building Materials', 'Electricals', 'Electronics', 'Generators'];
+const categories = ['All Categories', 'Building Materials', 'Electricals', 'Electronics', 'Generators']; // ✅ FIX 1: ADDED Generators
+const categoryOptions = ['Building Materials', 'Electricals', 'Electronics', 'Generators']; // ✅ FIX 1: ADDED Generators
 
 const Inventory: React.FC = () => {
   const [state, setState] = useState({
@@ -64,6 +61,7 @@ const Inventory: React.FC = () => {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
+  // UPDATED: formatCurrency now handles both strings and numbers
   const formatCurrency = (value: number | string) => {
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
     if (!numValue || numValue === 0 || isNaN(numValue)) return '₦ 0';
@@ -106,6 +104,7 @@ const Inventory: React.FC = () => {
 
   const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }));
 
+  // ENHANCED: Comprehensive duplicate check - ALL fields must match 100%
   const checkForDuplicate = (
     name: string,
     category: string,
@@ -120,7 +119,7 @@ const Inventory: React.FC = () => {
     const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
     
     const existingProduct = state.inventoryData.find(item => 
-      item.id !== currentId &&
+      item.id !== currentId && // Exclude current item when editing
       normalizeString(item.name) === normalizeString(name) &&
       normalizeString(item.category) === normalizeString(category) &&
       normalizeString(item.make) === normalizeString(brand) &&
@@ -177,8 +176,9 @@ const Inventory: React.FC = () => {
         if (localTransactions) transactionData = JSON.parse(localTransactions);
       }
 
-      // ✅ ISSUE 3: Added colour and wattage to transformation
       const transformedInventoryData = inventoryData.map((item: any) => {
+        console.log('Transforming item:', item);
+        console.log('Item image data:', item.product?.imageUrl);
         return {
           id: item.id?.toString() || '',
           name: item.product?.name || '',                    
@@ -196,9 +196,9 @@ const Inventory: React.FC = () => {
           type: item.product?.type || '',
           size: item.product?.size || '',
           capacity: item.product?.capacity || '',
-          colour: item.product?.colour || '',        // ✅ NEW
-          wattage: item.product?.wattage || '',      // ✅ NEW
           description: item.product?.description || '',
+          colour: item.product?.colour || '',        // ✅ FIX 3: ADDED
+          wattage: item.product?.wattage || '',      // ✅ FIX 3: ADDED
           hasUnitConversion: item.product?.hasUnitConversion || false,
           baseUnit: item.product?.baseUnit || '',
           secondaryUnit: item.product?.secondaryUnit || '',
@@ -206,7 +206,12 @@ const Inventory: React.FC = () => {
         };
       });
 
+      console.log('Transformed data:', transformedInventoryData);
+
       updateState({ inventoryData: transformedInventoryData, transactionData });
+      console.log('Inventory data:', inventoryData);
+      console.log('First item:', inventoryData[0]);
+      console.log('Total items loaded:', inventoryData.length);
 
     } catch (err) {
       updateState({ error: 'Failed to load data' });
@@ -223,16 +228,21 @@ const Inventory: React.FC = () => {
     loadInventoryData();
   }, []);
 
+  // ADVANCED SEARCH FUNCTIONALITY
   const filteredInventoryData = state.inventoryData.filter(item => {
+    // Category filter
     const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
     
+    // If no search query, return based on category only
     if (!state.searchQuery.trim()) {
       return matchesCategory;
     }
 
+    // Advanced search: Split search query into terms and match ANY term against ANY field
     const searchLower = state.searchQuery.toLowerCase().trim();
     const searchTerms = searchLower.split(' ').filter(term => term.length > 0);
     
+    // Check if ANY search term matches ANY field
     const matchesSearch = searchTerms.some(term => 
       (item.name && item.name.toLowerCase().includes(term)) ||
       (item.make && item.make.toLowerCase().includes(term)) ||
@@ -242,13 +252,17 @@ const Inventory: React.FC = () => {
       (item.description && item.description.toLowerCase().includes(term)) ||
       (item.size && item.size.toLowerCase().includes(term)) ||
       (item.capacity && item.capacity.toLowerCase().includes(term)) ||
-      (item.colour && item.colour.toLowerCase().includes(term)) ||      // ✅ NEW
-      (item.wattage && item.wattage.toLowerCase().includes(term)) ||    // ✅ NEW
       (item.id && item.id.toLowerCase().includes(term))
     );
 
     return matchesSearch && matchesCategory;
   });
+
+  console.log('Raw inventory data:', state.inventoryData);
+  console.log('Filtered inventory data:', filteredInventoryData);
+  console.log('Search query:', state.searchQuery);
+  console.log('Selected category:', state.selectedCategory);
+  console.log('First filtered item:', filteredInventoryData[0]);
 
   const categoryFilteredData = state.inventoryData.filter(item => 
     state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
@@ -304,6 +318,7 @@ const Inventory: React.FC = () => {
     const product = action === 'delete' ? state.productToDelete : state.productToEdit;
     if (!product) return;
     
+    // ENHANCED: Comprehensive duplicate check with ALL fields
     if (action === 'update' && state.productToEdit) {
       const isDuplicate = checkForDuplicate(
         state.productToEdit.name,
@@ -323,6 +338,7 @@ const Inventory: React.FC = () => {
       }
     }
 
+    // Check for zero/empty quantity and show warning
     if (action === 'update' && state.productToEdit && (!state.productToEdit.quantity || state.productToEdit.quantity === 0)) {
       showWarningToast('⚠️ Warning: Product Quantity Is Empty');
     }
@@ -333,11 +349,16 @@ const Inventory: React.FC = () => {
     const loadingToastId = showLoadingToast(isDelete ? 'Deleting product...' : 'Updating product...');
     
     try {
+      console.log('API Key:', process.env.NEXT_PUBLIC_API_KEY);
+      console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`);
+         
       let updatedItems;
       let response;
       
       if (isDelete) {
         const productId = parseInt(product.id);
+        console.log('Original product ID:', product.id, 'Type:', typeof product.id);
+        console.log('Converted product ID:', productId, 'Type:', typeof productId);
         
         response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${productId}`, {
           method: 'DELETE',
@@ -388,7 +409,7 @@ const Inventory: React.FC = () => {
     }
   };
 
-  // ✅ ISSUE 1: Auto-calculate base price when profit percentage OR unit cost changes
+  // ✅ FIX 2: AUTO-CALCULATE BASE PRICE when profit percentage or unit cost changes
   const handleNumericInput = (field: 'unitCost' | 'profitPercentage' | 'basePrice', e: React.ChangeEvent<HTMLInputElement>) => {
     if (!state.productToEdit) return;
     
@@ -397,28 +418,28 @@ const Inventory: React.FC = () => {
       const numericValue = parseFormattedNumber(formattedValue);
       e.target.value = formattedValue;
       
-      // ✅ Auto-calculate base price when unit cost changes
+      // ✅ FIX 2: If unit cost changes, recalculate base price
       if (field === 'unitCost') {
         const newBasePrice = numericValue * (1 + (state.productToEdit.profitPercentage || 0) / 100);
         updateState({ 
           productToEdit: { 
             ...state.productToEdit, 
             unitCost: numericValue,
-            basePrice: newBasePrice
+            basePrice: newBasePrice 
           } 
         });
       } else {
         updateState({ productToEdit: { ...state.productToEdit, [field]: numericValue } });
       }
     } else if (field === 'profitPercentage') {
-      const profitValue = parseFloat(e.target.value) || 0;
-      // ✅ Auto-calculate base price when profit percentage changes
-      const newBasePrice = (state.productToEdit.unitCost || 0) * (1 + profitValue / 100);
+      const newProfitPercentage = parseFloat(e.target.value) || 0;
+      // ✅ FIX 2: When profit percentage changes, recalculate base price
+      const newBasePrice = (state.productToEdit.unitCost || 0) * (1 + newProfitPercentage / 100);
       updateState({ 
         productToEdit: { 
           ...state.productToEdit, 
-          profitPercentage: profitValue,
-          basePrice: newBasePrice
+          profitPercentage: newProfitPercentage,
+          basePrice: newBasePrice 
         } 
       });
     }
@@ -570,6 +591,7 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-full p-8">
+      {/* Custom CSS for description scrollbar */}
       <style jsx>{`
         .description-scroll::-webkit-scrollbar {
           height: 4px;
@@ -596,6 +618,7 @@ const Inventory: React.FC = () => {
         </div>
       )}
 
+      {/* Header with Filters */}
       <div className="mb-6 flex items-center gap-4">
         <p className="text-gray-600">Showing</p>
         
@@ -620,6 +643,7 @@ const Inventory: React.FC = () => {
         </button>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
           <InCard itemCount={stats.totalItems} totalValue={stats.totalValue} />
@@ -635,6 +659,7 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
+      {/* Inventory Table */}
       <div className="w-[1104px] h-[612px] bg-white rounded-[32px] p-6">
         <div className="mb-6">
           <div className="relative w-[540px] h-9 rounded-[20px] p-2 border border-gray-200">
@@ -651,9 +676,10 @@ const Inventory: React.FC = () => {
 
         <h2 className="font-medium text-lg text-[#0A0D14] mb-4">Inventory</h2>
 
+        {/* ✅ FIX 3: ADDED Colour and Wattage columns to table */}
         <div className="overflow-x-auto">
           <div className="min-w-max">
-            {/* ✅ ISSUE 3: Added Colour and Wattage columns - gridTemplateColumns updated from 16 to 18 columns */}
+            {/* Table Header */}
             <div className="h-11 rounded-[20px] bg-[#F6F8FA] mb-2 flex items-center">
               <div className="grid items-center h-full w-full" style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 100px 100px 120px 150px 120px 110px 120px 100px 110px 110px 120px 116px' }}>
                 <div className="text-sm font-medium text-gray-600 pl-8">Product</div>
@@ -662,8 +688,8 @@ const Inventory: React.FC = () => {
                 <div className="text-sm font-medium text-gray-600 px-2">Type</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Size</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
-                <div className="text-sm font-medium text-gray-600 px-2">Colour</div>          {/* ✅ NEW */}
-                <div className="text-sm font-medium text-gray-600 px-2">Wattage</div>         {/* ✅ NEW */}
+                <div className="text-sm font-medium text-gray-600 px-2">Colour</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Wattage</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Description</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Category</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Last Date Modified</div>
@@ -677,6 +703,7 @@ const Inventory: React.FC = () => {
               </div>
             </div>
 
+            {/* Table Rows */}
             <div 
               ref={tableContainerRef}
               className="space-y-1 max-h-[400px] overflow-y-auto"
@@ -729,17 +756,18 @@ const Inventory: React.FC = () => {
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
                       {item.capacity || '-'}
                     </div>
-                    
-                    {/* ✅ ISSUE 3: New Colour column */}
+
+                    {/* ✅ FIX 3: ADDED Colour column */}
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.colour || '-'}>
                       {item.colour || '-'}
                     </div>
-                    
-                    {/* ✅ ISSUE 3: New Wattage column */}
+
+                    {/* ✅ FIX 3: ADDED Wattage column */}
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.wattage || '-'}>
                       {item.wattage || '-'}
                     </div>
                     
+                    {/* ENHANCED: Description with horizontal scroll AND hover tooltip */}
                     <div className="px-2 text-sm text-gray-600 relative group">
                       <div 
                         className="description-scroll overflow-x-auto whitespace-nowrap cursor-pointer"
@@ -749,9 +777,11 @@ const Inventory: React.FC = () => {
                         {item.description || '-'}
                       </div>
                       
+                      {/* Hover Tooltip - Shows full description */}
                       {item.description && item.description.length > 20 && (
                         <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl pointer-events-none" style={{ maxWidth: '300px', width: 'max-content' }}>
                           <p className="whitespace-normal leading-relaxed">{item.description}</p>
+                          {/* Tooltip arrow */}
                           <div className="absolute top-full left-8 w-2 h-2 bg-gray-900 transform rotate-45"></div>
                         </div>
                       )}
@@ -797,7 +827,7 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Modal - CONTAINS ISSUE 1 and ISSUE 3 CHANGES */}
+      {/* Edit Modal */}
       {state.showEditModal && state.productToEdit && (() => {
         const totalSecondaryUnits = state.productToEdit?.hasUnitConversion 
           ? (state.productToEdit.quantity || 0) * (state.productToEdit.conversionRate || 0)
@@ -818,6 +848,7 @@ const Inventory: React.FC = () => {
               <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
               
               <div className="space-y-6">
+                {/* Product Name with paste */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product name</label>
                   <input
@@ -831,6 +862,7 @@ const Inventory: React.FC = () => {
                   <p className="text-xs text-gray-500 mt-1">💡 Tip: Paste copied row from CSV/Excel to auto-fill fields</p>
                 </div>
 
+                {/* Category */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product category</label>
                   <select
@@ -844,12 +876,15 @@ const Inventory: React.FC = () => {
                   </select>
                 </div>
 
+                {/* Optional Fields - INCLUDES Colour and Wattage */}
                 {[
                   { label: 'Brand', field: 'make', placeholder: 'Enter brand...' },
                   { label: 'Model', field: 'model', placeholder: 'Enter model...' },
                   { label: 'Type', field: 'type', placeholder: 'Enter type...' },
                   { label: 'Size', field: 'size', placeholder: 'Enter size...' },
-                  { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' }
+                  { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' },
+                  { label: 'Colour', field: 'colour', placeholder: 'Enter colour...' },     // ✅ FIX 3: ADDED
+                  { label: 'Wattage', field: 'wattage', placeholder: 'Enter wattage...' }   // ✅ FIX 3: ADDED
                 ].map(({ label, field, placeholder }) => (
                   <div key={field}>
                     <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label} (Optional)</label>
@@ -863,30 +898,7 @@ const Inventory: React.FC = () => {
                   </div>
                 ))}
 
-                {/* ✅ ISSUE 3: New Colour field */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Colour (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="Enter colour..."
-                    value={(state.productToEdit as any)['colour'] || ''}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, colour: e.target.value } })}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* ✅ ISSUE 3: New Wattage field */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Wattage (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="Enter wattage (e.g., 5000W, 10kW)..."
-                    value={(state.productToEdit as any)['wattage'] || ''}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, wattage: e.target.value } })}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
+                {/* Description */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description (Optional)</label>
                   <textarea
@@ -898,6 +910,7 @@ const Inventory: React.FC = () => {
                   />
                 </div>
 
+                {/* NEW: Unit Conversion Toggle */}
                 <div className="border-t border-gray-200 pt-6">
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
                     <div className="flex items-start gap-3">
@@ -1002,6 +1015,7 @@ const Inventory: React.FC = () => {
                   )}
                 </div>
 
+                {/* Enhanced Inventory Summary for Edit Modal */}
                 {state.productToEdit?.hasUnitConversion && (
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 mb-6">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -1037,6 +1051,7 @@ const Inventory: React.FC = () => {
                   </div>
                 )}
 
+                {/* Product image */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
                   <div className="flex flex-col gap-3">
@@ -1050,6 +1065,7 @@ const Inventory: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Unit Cost */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Unit Cost</label>
                   <div className="relative">
@@ -1068,7 +1084,7 @@ const Inventory: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ✅ ISSUE 1: This field triggers auto-calculation */}
+                {/* Profit Percentage */}
                 <div>
                   <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Profit Percentage</label>
                   <div className="relative">
@@ -1086,31 +1102,21 @@ const Inventory: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ✅ ISSUE 1: This field auto-updates when profit % changes */}
+                {/* Base Price (Read-only display showing auto-calculated value) */}
                 <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
-                    <input
-                      type="text"
-                      placeholder="0.00"
-                      value={state.productToEdit.basePrice ? formatNumberWithCommas(state.productToEdit.basePrice.toString()) : ''}
-                      onChange={(e) => handleNumericInput('basePrice', e)}
-                      onKeyDown={(e) => {
-                        if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
-                        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
-                      }}
-                      className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price (Auto-calculated)</label>
+                  <div className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-gray-50 flex items-center">
+                    <span className="text-gray-700 font-medium">{formatCurrency(state.productToEdit.basePrice || 0)}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-2">
                     <Info className="w-4 h-4 text-gray-400" />
                     <span className="font-sora text-xs leading-4 text-[#525866]">
-                      Auto-calculated: {formatCurrency((state.productToEdit.unitCost || 0) * (1 + (state.productToEdit.profitPercentage || 0) / 100))}
+                      Updates automatically when unit cost or profit % changes
                     </span>
                   </div>
                 </div>
 
+                {/* Quantity and Low Stock */}
                 {[
                   { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
                   { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
@@ -1152,6 +1158,7 @@ const Inventory: React.FC = () => {
         );
       })()}
 
+      {/* Delete Modal */}
       {state.showDeleteModal && state.productToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
@@ -1205,34 +1212,3 @@ const Inventory: React.FC = () => {
 };
 
 export default Inventory;
-
-/*
-✅ CHANGES MADE:
-
-ISSUE 1 - Base Price Auto-calculation:
-- Line ~365-385: handleNumericInput function now auto-calculates basePrice 
-  when profit percentage OR unit cost changes
-
-ISSUE 3 - Generators + Colour/Wattage:
-- Line 29-30: Added colour and wattage to InventoryItem interface
-- Line 36: Added 'Generators' to categories array
-- Line 37: Added 'Generators' to categoryOptions array
-- Line 156: Added colour extraction from API data
-- Line 157: Added wattage extraction from API data
-- Line 247-248: Added colour and wattage to search functionality
-- Line 656: Updated gridTemplateColumns to include 2 new columns (18 total)
-- Line 665-666: Added Colour and Wattage column headers
-- Line 693: Updated row gridTemplateColumns to match header
-- Line 716-722: Added Colour and Wattage cells in table rows
-- Line 874-890: Added Colour and Wattage input fields in edit modal
-
-FILE LOCATION: admin-dashboard/src/app/inventory/page.tsx
-
-TESTING:
-1. Edit any product and change profit percentage - base price updates automatically ✅
-2. "Generators" appears in category dropdowns ✅
-3. Colour and Wattage columns visible in table ✅
-4. Can edit colour and wattage values in edit modal ✅
-
-NO BREAKING CHANGES - 100% backward compatible!
-*/
