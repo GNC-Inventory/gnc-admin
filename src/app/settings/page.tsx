@@ -118,17 +118,17 @@ export default function SettingsPage() {
 
       if (result.success) {
         localStorage.removeItem('transactionData');
-        
+
         setShowResetModal(false);
         setConfirmationText('');
         dismissToast(loadingToastId);
         showSuccessToast(`Sales data reset successfully. ${result.data?.archivedCount || 0} records archived.`);
-        
+
         setTimeout(() => {
           window.location.reload();
         }, 2000);
       } else {
-        throw new Error(result.error || 'Failed to reset sales data');
+        throw new Error(result.error?.message || 'Failed to reset sales data');
       }
     } catch (error) {
       dismissToast(loadingToastId);
@@ -142,16 +142,16 @@ export default function SettingsPage() {
   // Handle profile update
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!profileData.firstName.trim() || !profileData.lastName.trim()) {
       showErrorToast('First name and last name are required');
       return;
     }
 
-    const hasChanges = profileData.firstName !== user?.firstName || 
-                      profileData.lastName !== user?.lastName || 
-                      profileData.phone !== user?.phone;
-    
+    const hasChanges = profileData.firstName !== user?.firstName ||
+      profileData.lastName !== user?.lastName ||
+      profileData.phone !== user?.phone;
+
     if (!hasChanges) {
       showWarningToast('No changes detected to save');
       return;
@@ -228,13 +228,13 @@ export default function SettingsPage() {
         newPassword: '',
         confirmPassword: '',
       });
-      
+
       dismissToast(loadingToastId);
       showSuccessToast('Password changed successfully');
     } catch (error: any) {
       dismissToast(loadingToastId);
       console.error('Password change error:', error);
-      
+
       if (error.message.includes('current password')) {
         showErrorToast('Current password is incorrect');
       } else if (error.message.includes('weak')) {
@@ -250,35 +250,35 @@ export default function SettingsPage() {
   // Handle tab switching
   const handleTabSwitch = (tab: 'profile' | 'password' | 'danger') => {
     if (tab === activeTab) return;
-    
+
     if (activeTab === 'profile') {
-      const hasUnsavedChanges = profileData.firstName !== user?.firstName || 
-                               profileData.lastName !== user?.lastName || 
-                               profileData.phone !== user?.phone;
-      
+      const hasUnsavedChanges = profileData.firstName !== user?.firstName ||
+        profileData.lastName !== user?.lastName ||
+        profileData.phone !== user?.phone;
+
       if (hasUnsavedChanges) {
         const confirmSwitch = window.confirm('You have unsaved changes in your profile. Are you sure you want to switch tabs?');
         if (!confirmSwitch) return;
       }
     }
-    
+
     if (activeTab === 'password') {
-      const hasUnsavedChanges = passwordData.currentPassword || 
-                               passwordData.newPassword || 
-                               passwordData.confirmPassword;
-      
+      const hasUnsavedChanges = passwordData.currentPassword ||
+        passwordData.newPassword ||
+        passwordData.confirmPassword;
+
       if (hasUnsavedChanges) {
         const confirmSwitch = window.confirm('You have unsaved changes in your password form. Are you sure you want to switch tabs?');
         if (!confirmSwitch) return;
       }
     }
-    
+
     setActiveTab(tab);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/[^\d+\s-()]/g, '');
-    setProfileData({...profileData, phone: value});
+    setProfileData({ ...profileData, phone: value });
   };
 
   const getPasswordStrength = (password: string) => {
@@ -303,33 +303,30 @@ export default function SettingsPage() {
             <nav className="flex space-x-8 px-6">
               <button
                 onClick={() => handleTabSwitch('profile')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'profile'
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'profile'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 <User className="w-4 h-4 inline mr-2" />
                 Profile
               </button>
               <button
                 onClick={() => handleTabSwitch('password')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'password'
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'password'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 <Lock className="w-4 h-4 inline mr-2" />
                 Password
               </button>
               <button
                 onClick={() => handleTabSwitch('danger')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'danger'
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'danger'
                     ? 'border-red-500 text-red-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 <AlertTriangle className="w-4 h-4 inline mr-2" />
                 Danger Zone
@@ -349,7 +346,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={profileData.firstName}
-                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                      onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       required
                       disabled={isLoading}
@@ -363,7 +360,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={profileData.lastName}
-                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                      onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       required
                       disabled={isLoading}
@@ -425,14 +422,14 @@ export default function SettingsPage() {
                     <input
                       type={showPasswords.current ? 'text' : 'password'}
                       value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       required
                       disabled={isLoading}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords({...showPasswords, current: !showPasswords.current})}
+                      onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       disabled={isLoading}
                     >
@@ -449,7 +446,7 @@ export default function SettingsPage() {
                     <input
                       type={showPasswords.new ? 'text' : 'password'}
                       value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       required
                       disabled={isLoading}
@@ -457,7 +454,7 @@ export default function SettingsPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
+                      onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       disabled={isLoading}
                     >
@@ -468,20 +465,18 @@ export default function SettingsPage() {
                     <div className="mt-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">Strength:</span>
-                        <span className={`text-xs font-medium ${
-                          passwordStrength.level === 'weak' ? 'text-red-600' :
-                          passwordStrength.level === 'fair' ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
+                        <span className={`text-xs font-medium ${passwordStrength.level === 'weak' ? 'text-red-600' :
+                            passwordStrength.level === 'fair' ? 'text-yellow-600' :
+                              'text-green-600'
+                          }`}>
                           {passwordStrength.text}
                         </span>
                       </div>
                       <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
-                        <div className={`h-1 rounded-full transition-all ${
-                          passwordStrength.level === 'weak' ? 'w-1/3 bg-red-500' :
-                          passwordStrength.level === 'fair' ? 'w-2/3 bg-yellow-500' :
-                          'w-full bg-green-500'
-                        }`}></div>
+                        <div className={`h-1 rounded-full transition-all ${passwordStrength.level === 'weak' ? 'w-1/3 bg-red-500' :
+                            passwordStrength.level === 'fair' ? 'w-2/3 bg-yellow-500' :
+                              'w-full bg-green-500'
+                          }`}></div>
                       </div>
                     </div>
                   )}
@@ -495,18 +490,17 @@ export default function SettingsPage() {
                     <input
                       type={showPasswords.confirm ? 'text' : 'password'}
                       value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                        passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword
                           ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                           : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                      }`}
+                        }`}
                       required
                       disabled={isLoading}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
+                      onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       disabled={isLoading}
                     >
@@ -607,7 +601,7 @@ export default function SettingsPage() {
                   <input
                     type="email"
                     value={authCredentials.email}
-                    onChange={(e) => setAuthCredentials({...authCredentials, email: e.target.value})}
+                    onChange={(e) => setAuthCredentials({ ...authCredentials, email: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="admin@example.com"
                     required
@@ -624,7 +618,7 @@ export default function SettingsPage() {
                     <input
                       type={showAuthPassword ? 'text' : 'password'}
                       value={authCredentials.password}
-                      onChange={(e) => setAuthCredentials({...authCredentials, password: e.target.value})}
+                      onChange={(e) => setAuthCredentials({ ...authCredentials, password: e.target.value })}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter your password"
                       required
