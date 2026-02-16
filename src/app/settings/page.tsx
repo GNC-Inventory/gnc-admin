@@ -106,7 +106,7 @@ export default function SettingsPage() {
     const loadingToastId = showLoadingToast('Resetting sales data...');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales/reset`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/sales/reset`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -304,8 +304,8 @@ export default function SettingsPage() {
               <button
                 onClick={() => handleTabSwitch('profile')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
                 <User className="w-4 h-4 inline mr-2" />
@@ -314,8 +314,8 @@ export default function SettingsPage() {
               <button
                 onClick={() => handleTabSwitch('password')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'password'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
                 <Lock className="w-4 h-4 inline mr-2" />
@@ -324,8 +324,8 @@ export default function SettingsPage() {
               <button
                 onClick={() => handleTabSwitch('danger')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'danger'
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
                 <AlertTriangle className="w-4 h-4 inline mr-2" />
@@ -466,16 +466,16 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">Strength:</span>
                         <span className={`text-xs font-medium ${passwordStrength.level === 'weak' ? 'text-red-600' :
-                            passwordStrength.level === 'fair' ? 'text-yellow-600' :
-                              'text-green-600'
+                          passwordStrength.level === 'fair' ? 'text-yellow-600' :
+                            'text-green-600'
                           }`}>
                           {passwordStrength.text}
                         </span>
                       </div>
                       <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
                         <div className={`h-1 rounded-full transition-all ${passwordStrength.level === 'weak' ? 'w-1/3 bg-red-500' :
-                            passwordStrength.level === 'fair' ? 'w-2/3 bg-yellow-500' :
-                              'w-full bg-green-500'
+                          passwordStrength.level === 'fair' ? 'w-2/3 bg-yellow-500' :
+                            'w-full bg-green-500'
                           }`}></div>
                       </div>
                     </div>
@@ -492,8 +492,8 @@ export default function SettingsPage() {
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword
-                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                         }`}
                       required
                       disabled={isLoading}
