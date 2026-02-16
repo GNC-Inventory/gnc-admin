@@ -21,17 +21,17 @@ interface InventoryItem {
   image?: string;
   model?: string;
   lowStockThreshold?: number;
-  make?: string;      
+  make?: string;
   type?: string;
-  size?: string;       
-  capacity?: string;  
+  size?: string;
+  capacity?: string;
   description?: string;
   colour?: string;         // ✅ FIX 3: ADDED
   wattage?: string;        // ✅ FIX 3: ADDED
   hasUnitConversion?: boolean;
   baseUnit?: string;
   secondaryUnit?: string;
-  conversionRate?: number; 
+  conversionRate?: number;
 }
 
 const periods = ['Today', 'Yesterday', 'Previous days', 'Last week', 'Last month', 'Last year'];
@@ -81,21 +81,21 @@ const Inventory: React.FC = () => {
     const formatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return parts[1] !== undefined ? `${formatted}.${parts[1]}` : formatted;
   };
-  
+
   const parseFormattedNumber = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
 
   const scrollToItem = (itemId: string) => {
     updateState({ highlightedItemId: itemId, lowStockDropdownOpen: false });
-    
+
     setTimeout(() => {
       const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
       if (itemElement && tableContainerRef.current) {
-        itemElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
+        itemElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
         });
       }
-      
+
       setTimeout(() => {
         updateState({ highlightedItemId: null });
       }, 3000);
@@ -114,11 +114,13 @@ const Inventory: React.FC = () => {
     size: string,
     capacity: string,
     description: string,
+    colour: string,
+    wattage: string,
     currentId?: string
   ): boolean => {
     const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
-    
-    const existingProduct = state.inventoryData.find(item => 
+
+    const existingProduct = state.inventoryData.find(item =>
       item.id !== currentId && // Exclude current item when editing
       normalizeString(item.name) === normalizeString(name) &&
       normalizeString(item.category) === normalizeString(category) &&
@@ -127,9 +129,11 @@ const Inventory: React.FC = () => {
       normalizeString(item.type) === normalizeString(type) &&
       normalizeString(item.size) === normalizeString(size) &&
       normalizeString(item.capacity) === normalizeString(capacity) &&
-      normalizeString(item.description) === normalizeString(description)
+      normalizeString(item.description) === normalizeString(description) &&
+      normalizeString(item.colour) === normalizeString(colour) &&
+      normalizeString(item.wattage) === normalizeString(wattage)
     );
-    
+
     return !!existingProduct;
   };
 
@@ -139,12 +143,12 @@ const Inventory: React.FC = () => {
 
       const [inventoryResponse, transactionResponse] = await Promise.all([
         fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
-          headers: { 
+          headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
         }),
         fetch('https://gnc-inventory-backend.onrender.com/api/sales', {
-          headers: { 
+          headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
         })
@@ -181,16 +185,16 @@ const Inventory: React.FC = () => {
         console.log('Item image data:', item.product?.imageUrl);
         return {
           id: item.id?.toString() || '',
-          name: item.product?.name || '',                    
-          category: item.product?.category || '',            
-          lastUpdated: item.lastUpdated || '',        
-          quantity: parseInt(item.quantity) || 0,              
+          name: item.product?.name || '',
+          category: item.product?.category || '',
+          lastUpdated: item.lastUpdated || '',
+          quantity: parseInt(item.quantity) || 0,
           unitCost: parseFloat(item.product?.unitCost) || 0,
           basePrice: parseFloat(item.product?.basePrice) || 0,
           profitPercentage: parseFloat(item.profitPercentage) || 0,
           amount: (parseFloat(item.product?.unitCost) || 0) * (parseInt(item.quantity) || 0),
           image: item.product?.imageUrl || '',
-          model: item.product?.model || '',                  
+          model: item.product?.model || '',
           lowStockThreshold: parseInt(item.lowStockThreshold) || 5,
           make: item.product?.make || '',
           type: item.product?.type || '',
@@ -232,7 +236,7 @@ const Inventory: React.FC = () => {
   const filteredInventoryData = state.inventoryData.filter(item => {
     // Category filter
     const matchesCategory = state.selectedCategory === 'All Categories' || item.category === state.selectedCategory;
-    
+
     // If no search query, return based on category only
     if (!state.searchQuery.trim()) {
       return matchesCategory;
@@ -241,9 +245,9 @@ const Inventory: React.FC = () => {
     // Advanced search: Split search query into terms and match ANY term against ANY field
     const searchLower = state.searchQuery.toLowerCase().trim();
     const searchTerms = searchLower.split(' ').filter(term => term.length > 0);
-    
+
     // Check if ANY search term matches ANY field
-    const matchesSearch = searchTerms.some(term => 
+    const matchesSearch = searchTerms.some(term =>
       (item.name && item.name.toLowerCase().includes(term)) ||
       (item.make && item.make.toLowerCase().includes(term)) ||
       (item.model && item.model.toLowerCase().includes(term)) ||
@@ -264,21 +268,21 @@ const Inventory: React.FC = () => {
   console.log('Selected category:', state.selectedCategory);
   console.log('First filtered item:', filteredInventoryData[0]);
 
-  const categoryFilteredData = state.inventoryData.filter(item => 
+  const categoryFilteredData = state.inventoryData.filter(item =>
     state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
   );
 
   const categoryFilteredTransactions = state.transactionData.filter(transaction =>
-    transaction.items.some((item: any) => 
+    transaction.items.some((item: any) =>
       state.selectedCategory === 'All Categories' || item.category === state.selectedCategory
     )
   );
-  
+
   const stats = {
     totalItems: categoryFilteredData.length,
     totalValue: categoryFilteredData.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0),
     lowStockItems: categoryFilteredData.filter(item => item.quantity <= 5).length,
-    totalItemsSold: categoryFilteredTransactions.reduce((sum, transaction) => 
+    totalItemsSold: categoryFilteredTransactions.reduce((sum, transaction) =>
       sum + transaction.items.reduce((itemSum: number, item: any) => {
         if (state.selectedCategory === 'All Categories' || item.category === state.selectedCategory) {
           return itemSum + item.quantity;
@@ -306,18 +310,18 @@ const Inventory: React.FC = () => {
   };
 
   const closeModals = () => {
-    updateState({ 
-      showDeleteModal: false, 
-      showEditModal: false, 
-      productToDelete: null, 
-      productToEdit: null 
+    updateState({
+      showDeleteModal: false,
+      showEditModal: false,
+      productToDelete: null,
+      productToEdit: null
     });
   };
 
   const processAction = async (action: 'delete' | 'update') => {
     const product = action === 'delete' ? state.productToDelete : state.productToEdit;
     if (!product) return;
-    
+
     // ENHANCED: Comprehensive duplicate check with ALL fields
     if (action === 'update' && state.productToEdit) {
       const isDuplicate = checkForDuplicate(
@@ -329,9 +333,11 @@ const Inventory: React.FC = () => {
         state.productToEdit.size || '',
         state.productToEdit.capacity || '',
         state.productToEdit.description || '',
+        state.productToEdit.colour || '',
+        state.productToEdit.wattage || '',
         state.productToEdit.id
       );
-      
+
       if (isDuplicate) {
         showErrorToast('⚠️ Duplicate detected: A product with identical name, category, brand, model, type, size, capacity, and description already exists');
         return;
@@ -342,47 +348,47 @@ const Inventory: React.FC = () => {
     if (action === 'update' && state.productToEdit && (!state.productToEdit.quantity || state.productToEdit.quantity === 0)) {
       showWarningToast('⚠️ Warning: Product Quantity Is Empty');
     }
-    
+
     const isDelete = action === 'delete';
     updateState({ [isDelete ? 'isDeleting' : 'isUpdating']: true });
-    
+
     const loadingToastId = showLoadingToast(isDelete ? 'Deleting product...' : 'Updating product...');
-    
+
     try {
       console.log('API Key:', process.env.NEXT_PUBLIC_API_KEY);
       console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`);
-         
+
       let updatedItems;
       let response;
-      
+
       if (isDelete) {
         const productId = parseInt(product.id);
         console.log('Original product ID:', product.id, 'Type:', typeof product.id);
         console.log('Converted product ID:', productId, 'Type:', typeof productId);
-        
+
         response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${productId}`, {
           method: 'DELETE',
-          headers: { 
+          headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
         });
         updatedItems = state.inventoryData.filter(item => item.id !== product.id);
       } else {
         const basePrice = product.basePrice || (product.unitCost * (1 + (product.profitPercentage || 0) / 100));
-        
+
         const updatedProduct = {
           ...product,
           basePrice: basePrice,
           amount: product.unitCost * product.quantity
         };
-        
-        updatedItems = state.inventoryData.map(item => 
+
+        updatedItems = state.inventoryData.map(item =>
           item.id === product.id ? updatedProduct : item
         );
-        
+
         response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`, {
           method: 'PUT',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           },
@@ -392,7 +398,7 @@ const Inventory: React.FC = () => {
 
       const result = await response.json();
       dismissToast(loadingToastId);
-      
+
       if (result.success) {
         updateState({ inventoryData: updatedItems });
         localStorage.setItem('inventoryData', JSON.stringify(updatedItems));
@@ -412,21 +418,21 @@ const Inventory: React.FC = () => {
   // ✅ FIX 2: AUTO-CALCULATE BASE PRICE when profit percentage or unit cost changes
   const handleNumericInput = (field: 'unitCost' | 'profitPercentage' | 'basePrice', e: React.ChangeEvent<HTMLInputElement>) => {
     if (!state.productToEdit) return;
-    
+
     if (field === 'unitCost' || field === 'basePrice') {
       const formattedValue = formatNumberWithCommas(e.target.value);
       const numericValue = parseFormattedNumber(formattedValue);
       e.target.value = formattedValue;
-      
+
       // ✅ FIX 2: If unit cost changes, recalculate base price
       if (field === 'unitCost') {
         const newBasePrice = numericValue * (1 + (state.productToEdit.profitPercentage || 0) / 100);
-        updateState({ 
-          productToEdit: { 
-            ...state.productToEdit, 
+        updateState({
+          productToEdit: {
+            ...state.productToEdit,
             unitCost: numericValue,
-            basePrice: newBasePrice 
-          } 
+            basePrice: newBasePrice
+          }
         });
       } else {
         updateState({ productToEdit: { ...state.productToEdit, [field]: numericValue } });
@@ -435,24 +441,24 @@ const Inventory: React.FC = () => {
       const newProfitPercentage = parseFloat(e.target.value) || 0;
       // ✅ FIX 2: When profit percentage changes, recalculate base price
       const newBasePrice = (state.productToEdit.unitCost || 0) * (1 + newProfitPercentage / 100);
-      updateState({ 
-        productToEdit: { 
-          ...state.productToEdit, 
+      updateState({
+        productToEdit: {
+          ...state.productToEdit,
           profitPercentage: newProfitPercentage,
-          basePrice: newBasePrice 
-        } 
+          basePrice: newBasePrice
+        }
       });
     }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!state.productToEdit) return;
-    
+
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => updateState({ 
-        productToEdit: state.productToEdit ? ({ ...state.productToEdit, image: e.target?.result as string }) : null 
+      reader.onload = (e) => updateState({
+        productToEdit: state.productToEdit ? ({ ...state.productToEdit, image: e.target?.result as string }) : null
       });
       reader.readAsDataURL(file);
     }
@@ -462,10 +468,10 @@ const Inventory: React.FC = () => {
     const pasteData = e.clipboardData.getData('text');
     const delimiter = pasteData.includes('\t') ? '\t' : ',';
     const values = pasteData.split(delimiter).map(v => v.trim());
-    
+
     if (values.length > 1) {
       e.preventDefault();
-      
+
       updateState({
         productToEdit: state.productToEdit ? {
           ...state.productToEdit,
@@ -479,17 +485,17 @@ const Inventory: React.FC = () => {
           description: values[7] || state.productToEdit.description,
         } : null
       });
-      
+
       showSuccessToast('Data pasted successfully! Please review and fill in pricing details.');
     }
   };
 
-  const Dropdown = ({ 
-    options, 
-    selected, 
-    onSelect, 
-    isOpen, 
-    onToggle 
+  const Dropdown = ({
+    options,
+    selected,
+    onSelect,
+    isOpen,
+    onToggle
   }: {
     options: string[];
     selected: string;
@@ -505,7 +511,7 @@ const Inventory: React.FC = () => {
         <span className="text-gray-700 text-sm">{selected}</span>
         <ChevronDown className="w-4 h-4 text-gray-500" />
       </button>
-      
+
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-[10px] shadow-lg z-10">
           {options.map((option) => (
@@ -535,7 +541,7 @@ const Inventory: React.FC = () => {
           <div className="w-2 h-2 bg-red-500 rounded-full"></div>
           <span className="text-sm text-gray-600">Low in stock</span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-gray-900">{lowStockItems.length}</span>
           <span className="text-sm text-gray-600">items</span>
@@ -552,7 +558,7 @@ const Inventory: React.FC = () => {
           <div className="p-3 border-b border-gray-100">
             <span className="text-sm font-medium text-gray-900">Low Stock Items</span>
           </div>
-          
+
           <div className="p-2">
             {lowStockItems.map((item) => (
               <button
@@ -568,7 +574,7 @@ const Inventory: React.FC = () => {
                   )}
                   <span className="text-sm font-medium text-gray-900">{item.name}</span>
                 </div>
-                
+
                 <span className="text-sm text-red-600 font-medium">{item.quantity} left</span>
               </button>
             ))}
@@ -621,7 +627,7 @@ const Inventory: React.FC = () => {
       {/* Header with Filters */}
       <div className="mb-6 flex items-center gap-4">
         <p className="text-gray-600">Showing</p>
-        
+
         <Dropdown
           options={periods}
           selected={state.selectedPeriod}
@@ -704,7 +710,7 @@ const Inventory: React.FC = () => {
             </div>
 
             {/* Table Rows */}
-            <div 
+            <div
               ref={tableContainerRef}
               className="space-y-1 max-h-[400px] overflow-y-auto"
               style={{
@@ -714,18 +720,17 @@ const Inventory: React.FC = () => {
             >
               {filteredInventoryData.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  {state.searchQuery || state.selectedCategory !== 'All Categories' 
-                    ? 'No items found matching your filters.' 
+                  {state.searchQuery || state.selectedCategory !== 'All Categories'
+                    ? 'No items found matching your filters.'
                     : 'No inventory items found. Add products to get started.'}
                 </div>
               ) : (
                 filteredInventoryData.map((item) => (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     data-item-id={item.id}
-                    className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                      state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
-                    }`} 
+                    className={`grid items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${state.highlightedItemId === item.id ? 'bg-blue-50 border-blue-200' : ''
+                      }`}
                     style={{ gridTemplateColumns: '200px 120px 120px 100px 100px 100px 100px 100px 120px 150px 120px 110px 120px 100px 110px 110px 120px 116px' }}
                   >
                     <div className="pl-6 flex items-center gap-3">
@@ -736,15 +741,15 @@ const Inventory: React.FC = () => {
                       )}
                       <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.make || '-'}>
                       {item.make || '-'}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.model || '-'}>
                       {item.model || '-'}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.type || '-'}>
                       {item.type || '-'}
                     </div>
@@ -752,7 +757,7 @@ const Inventory: React.FC = () => {
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.size || '-'}>
                       {item.size || '-'}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.capacity || '-'}>
                       {item.capacity || '-'}
                     </div>
@@ -766,17 +771,17 @@ const Inventory: React.FC = () => {
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.wattage || '-'}>
                       {item.wattage || '-'}
                     </div>
-                    
+
                     {/* ENHANCED: Description with horizontal scroll AND hover tooltip */}
                     <div className="px-2 text-sm text-gray-600 relative group">
-                      <div 
+                      <div
                         className="description-scroll overflow-x-auto whitespace-nowrap cursor-pointer"
                         style={{ maxWidth: '120px' }}
                         title="Scroll horizontally or hover to see full text"
                       >
                         {item.description || '-'}
                       </div>
-                      
+
                       {/* Hover Tooltip - Shows full description */}
                       {item.description && item.description.length > 20 && (
                         <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-xl pointer-events-none" style={{ maxWidth: '300px', width: 'max-content' }}>
@@ -786,31 +791,31 @@ const Inventory: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-600 truncate">{item.category}</div>
-                    
+
                     <div className="px-2 text-sm text-gray-600 truncate">{item.lastUpdated}</div>
-                    
+
                     <div className="px-2 text-sm text-gray-900 text-center">{item.quantity}</div>
-                    
+
                     <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
-                    
+
                     <div className="px-2 text-sm text-gray-600">
                       {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-900">
                       {item.basePrice ? formatCurrency(item.basePrice) : '-'}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-600">
                       {item.lowStockThreshold || '-'}
                     </div>
-                    
+
                     <div className="px-2 text-sm text-gray-900">
                       {formatCurrency(typeof item.amount === 'number' ? item.amount : parseFloat(item.amount.toString()))}
                     </div>
-                    
+
                     <div className="px-3 flex gap-2">
                       <button onClick={() => openModal('edit', item)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md">
                         <Edit className="w-4 h-4" />
@@ -829,332 +834,332 @@ const Inventory: React.FC = () => {
 
       {/* Edit Modal */}
       {state.showEditModal && state.productToEdit && (() => {
-        const totalSecondaryUnits = state.productToEdit?.hasUnitConversion 
+        const totalSecondaryUnits = state.productToEdit?.hasUnitConversion
           ? (state.productToEdit.quantity || 0) * (state.productToEdit.conversionRate || 0)
           : 0;
         const pricePerSecondaryUnit = state.productToEdit?.hasUnitConversion && (state.productToEdit.conversionRate || 0) > 0
           ? (state.productToEdit.basePrice || 0) / (state.productToEdit.conversionRate || 0)
           : 0;
         return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
-            <div 
-              className="p-6 h-full overflow-y-auto"
-              style={{
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#d1d5db #f3f4f6'
-              }}
-            >
-              <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
-              
-              <div className="space-y-6">
-                {/* Product Name with paste */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter product name..."
-                    value={state.productToEdit.name}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, name: e.target.value } })}
-                    onPaste={handlePasteInEditModal}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">💡 Tip: Paste copied row from CSV/Excel to auto-fill fields</p>
-                </div>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-[32px] w-[727px] h-[700px] max-h-[90vh] overflow-hidden">
+              <div
+                className="p-6 h-full overflow-y-auto"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#d1d5db #f3f4f6'
+                }}
+              >
+                <h3 className="mb-6 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Edit Product</h3>
 
-                {/* Category */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product category</label>
-                  <select
-                    value={state.productToEdit.category}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, category: e.target.value } })}
-                    className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {categoryOptions.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Optional Fields - INCLUDES Colour and Wattage */}
-                {[
-                  { label: 'Brand', field: 'make', placeholder: 'Enter brand...' },
-                  { label: 'Model', field: 'model', placeholder: 'Enter model...' },
-                  { label: 'Type', field: 'type', placeholder: 'Enter type...' },
-                  { label: 'Size', field: 'size', placeholder: 'Enter size...' },
-                  { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' },
-                  { label: 'Colour', field: 'colour', placeholder: 'Enter colour...' },     // ✅ FIX 3: ADDED
-                  { label: 'Wattage', field: 'wattage', placeholder: 'Enter wattage...' }   // ✅ FIX 3: ADDED
-                ].map(({ label, field, placeholder }) => (
-                  <div key={field}>
-                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label} (Optional)</label>
+                <div className="space-y-6">
+                  {/* Product Name with paste */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product name</label>
                     <input
                       type="text"
-                      placeholder={placeholder}
-                      value={(state.productToEdit as any)[field] || ''}
-                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
+                      placeholder="Enter product name..."
+                      value={state.productToEdit.name}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, name: e.target.value } })}
+                      onPaste={handlePasteInEditModal}
                       className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <p className="text-xs text-gray-500 mt-1">💡 Tip: Paste copied row from CSV/Excel to auto-fill fields</p>
                   </div>
-                ))}
 
-                {/* Description */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description (Optional)</label>
-                  <textarea
-                    placeholder="Enter description..."
-                    value={state.productToEdit.description || ''}
-                    onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, description: e.target.value } })}
-                    rows={4}
-                    className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
-                  />
-                </div>
+                  {/* Category */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product category</label>
+                    <select
+                      value={state.productToEdit.category}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, category: e.target.value } })}
+                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {categoryOptions.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                {/* NEW: Unit Conversion Toggle */}
-                <div className="border-t border-gray-200 pt-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-start gap-3">
+                  {/* Optional Fields - INCLUDES Colour and Wattage */}
+                  {[
+                    { label: 'Brand', field: 'make', placeholder: 'Enter brand...' },
+                    { label: 'Model', field: 'model', placeholder: 'Enter model...' },
+                    { label: 'Type', field: 'type', placeholder: 'Enter type...' },
+                    { label: 'Size', field: 'size', placeholder: 'Enter size...' },
+                    { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' },
+                    { label: 'Colour', field: 'colour', placeholder: 'Enter colour...' },     // ✅ FIX 3: ADDED
+                    { label: 'Wattage', field: 'wattage', placeholder: 'Enter wattage...' }   // ✅ FIX 3: ADDED
+                  ].map(({ label, field, placeholder }) => (
+                    <div key={field}>
+                      <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label} (Optional)</label>
                       <input
-                        type="checkbox"
-                        id="enableConversionEdit"
-                        checked={state.productToEdit?.hasUnitConversion || false}
-                        onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, hasUnitConversion: e.target.checked } })}
-                        className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        type="text"
+                        placeholder={placeholder}
+                        value={(state.productToEdit as any)[field] || ''}
+                        onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: e.target.value } })}
+                        className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <div className="flex-1">
-                        <label htmlFor="enableConversionEdit" className="font-inter font-medium text-sm text-gray-900 cursor-pointer">
-                          Enable unit conversion (Sell in multiple units)
-                        </label>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Perfect for hoses, cables, fabrics, or any product sold both in bulk and by smaller units
-                        </p>
+                    </div>
+                  ))}
+
+                  {/* Description */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Description (Optional)</label>
+                    <textarea
+                      placeholder="Enter description..."
+                      value={state.productToEdit.description || ''}
+                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, description: e.target.value } })}
+                      rows={4}
+                      className="w-[342px] rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                    />
+                  </div>
+
+                  {/* NEW: Unit Conversion Toggle */}
+                  <div className="border-t border-gray-200 pt-6">
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          id="enableConversionEdit"
+                          checked={state.productToEdit?.hasUnitConversion || false}
+                          onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, hasUnitConversion: e.target.checked } })}
+                          className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="enableConversionEdit" className="font-inter font-medium text-sm text-gray-900 cursor-pointer">
+                            Enable unit conversion (Sell in multiple units)
+                          </label>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Perfect for hoses, cables, fabrics, or any product sold both in bulk and by smaller units
+                          </p>
+                        </div>
                       </div>
                     </div>
+
+                    {state.productToEdit?.hasUnitConversion && (
+                      <div className="space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 mb-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Package className="w-5 h-5 text-blue-600" />
+                          <h3 className="font-semibold text-gray-900 text-sm">Unit Conversion Settings</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                              Base Unit (Inventory)
+                            </label>
+                            <input
+                              type="text"
+                              value={state.productToEdit.baseUnit || 'Roll'}
+                              onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, baseUnit: e.target.value } })}
+                              placeholder="e.g., Roll, Box, Bundle"
+                              className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-gray-600 mt-1">How you count stock</p>
+                          </div>
+
+                          <div>
+                            <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                              Secondary Unit (Retail)
+                            </label>
+                            <input
+                              type="text"
+                              value={state.productToEdit.secondaryUnit || 'Yard'}
+                              onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, secondaryUnit: e.target.value } })}
+                              placeholder="e.g., Yard, Meter, Piece"
+                              className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-gray-600 mt-1">How you also sell</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
+                            Conversion Rate
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-gray-600">1 {state.productToEdit.baseUnit || 'Roll'} =</span>
+                            <input
+                              type="number"
+                              value={state.productToEdit.conversionRate || 100}
+                              onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, conversionRate: Number(e.target.value) } })}
+                              min="1"
+                              className="w-32 h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-600">{state.productToEdit.secondaryUnit || 'Yard'}s</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 bg-white rounded-lg p-3 border border-blue-200">
+                            <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                            <span className="text-xs text-gray-700">
+                              Example: If 1 roll of hose = 100 yards, enter "100"
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Ruler className="w-4 h-4 text-blue-600" />
+                            <span className="font-medium text-sm text-gray-900">Conversion Preview</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3 text-center">
+                            <div className="bg-blue-50 rounded-lg p-3">
+                              <div className="text-2xl font-bold text-blue-600">1</div>
+                              <div className="text-xs text-gray-600">{state.productToEdit.baseUnit || 'Roll'}</div>
+                            </div>
+                            <div className="flex items-center justify-center">
+                              <div className="text-xl text-gray-400">=</div>
+                            </div>
+                            <div className="bg-indigo-50 rounded-lg p-3">
+                              <div className="text-2xl font-bold text-indigo-600">{state.productToEdit.conversionRate || 100}</div>
+                              <div className="text-xs text-gray-600">{state.productToEdit.secondaryUnit || 'Yard'}s</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
+                  {/* Enhanced Inventory Summary for Edit Modal */}
                   {state.productToEdit?.hasUnitConversion && (
-                    <div className="space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 mb-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Package className="w-5 h-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900 text-sm">Unit Conversion Settings</h3>
-                      </div>
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 mb-6">
+                      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-green-600" />
+                        Inventory Summary with Unit Conversion
+                      </h3>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
-                            Base Unit (Inventory)
-                          </label>
-                          <input
-                            type="text"
-                            value={state.productToEdit.baseUnit || 'Roll'}
-                            onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, baseUnit: e.target.value } })}
-                            placeholder="e.g., Roll, Box, Bundle"
-                            className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <p className="text-xs text-gray-600 mt-1">How you count stock</p>
+                        <div className="bg-white rounded-lg p-4 border border-green-300">
+                          <div className="text-sm text-gray-600 mb-1">Total Stock ({state.productToEdit.baseUnit}s)</div>
+                          <div className="text-3xl font-bold text-gray-900">{state.productToEdit.quantity}</div>
                         </div>
 
-                        <div>
-                          <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
-                            Secondary Unit (Retail)
-                          </label>
-                          <input
-                            type="text"
-                            value={state.productToEdit.secondaryUnit || 'Yard'}
-                            onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, secondaryUnit: e.target.value } })}
-                            placeholder="e.g., Yard, Meter, Piece"
-                            className="w-full h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <p className="text-xs text-gray-600 mt-1">How you also sell</p>
+                        <div className="bg-white rounded-lg p-4 border border-green-300">
+                          <div className="text-sm text-gray-600 mb-1">Total Stock ({state.productToEdit.secondaryUnit}s)</div>
+                          <div className="text-3xl font-bold text-green-600">{totalSecondaryUnits.toFixed(0)}</div>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block mb-2 font-inter font-medium text-sm text-gray-900">
-                          Conversion Rate
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-600">1 {state.productToEdit.baseUnit || 'Roll'} =</span>
-                          <input
-                            type="number"
-                            value={state.productToEdit.conversionRate || 100}
-                            onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, conversionRate: Number(e.target.value) } })}
-                            min="1"
-                            className="w-32 h-10 rounded-lg px-3 py-2.5 border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-600">{state.productToEdit.secondaryUnit || 'Yard'}s</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-2 bg-white rounded-lg p-3 border border-blue-200">
-                          <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                          <span className="text-xs text-gray-700">
-                            Example: If 1 roll of hose = 100 yards, enter "100"
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Ruler className="w-4 h-4 text-blue-600" />
-                          <span className="font-medium text-sm text-gray-900">Conversion Preview</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3 text-center">
-                          <div className="bg-blue-50 rounded-lg p-3">
-                            <div className="text-2xl font-bold text-blue-600">1</div>
-                            <div className="text-xs text-gray-600">{state.productToEdit.baseUnit || 'Roll'}</div>
+                      <div className="bg-white rounded-lg p-4 border border-green-300 mt-4">
+                        <div className="text-sm font-medium text-gray-900 mb-3">Pricing Breakdown</div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Price per {state.productToEdit.baseUnit}:</span>
+                            <span className="font-semibold text-gray-900">{formatCurrency(state.productToEdit.basePrice || 0)}</span>
                           </div>
-                          <div className="flex items-center justify-center">
-                            <div className="text-xl text-gray-400">=</div>
-                          </div>
-                          <div className="bg-indigo-50 rounded-lg p-3">
-                            <div className="text-2xl font-bold text-indigo-600">{state.productToEdit.conversionRate || 100}</div>
-                            <div className="text-xs text-gray-600">{state.productToEdit.secondaryUnit || 'Yard'}s</div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Price per {state.productToEdit.secondaryUnit}:</span>
+                            <span className="font-semibold text-green-600">{formatCurrency(pricePerSecondaryUnit)}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Enhanced Inventory Summary for Edit Modal */}
-                {state.productToEdit?.hasUnitConversion && (
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <Package className="w-5 h-5 text-green-600" />
-                      Inventory Summary with Unit Conversion
-                    </h3>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-green-300">
-                        <div className="text-sm text-gray-600 mb-1">Total Stock ({state.productToEdit.baseUnit}s)</div>
-                        <div className="text-3xl font-bold text-gray-900">{state.productToEdit.quantity}</div>
-                      </div>
-                      
-                      <div className="bg-white rounded-lg p-4 border border-green-300">
-                        <div className="text-sm text-gray-600 mb-1">Total Stock ({state.productToEdit.secondaryUnit}s)</div>
-                        <div className="text-3xl font-bold text-green-600">{totalSecondaryUnits.toFixed(0)}</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-4 border border-green-300 mt-4">
-                      <div className="text-sm font-medium text-gray-900 mb-3">Pricing Breakdown</div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Price per {state.productToEdit.baseUnit}:</span>
-                          <span className="font-semibold text-gray-900">{formatCurrency(state.productToEdit.basePrice || 0)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Price per {state.productToEdit.secondaryUnit}:</span>
-                          <span className="font-semibold text-green-600">{formatCurrency(pricePerSecondaryUnit)}</span>
-                        </div>
-                      </div>
+                  {/* Product image */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
+                    <div className="flex flex-col gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {state.productToEdit.image && <Image src={state.productToEdit.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
                     </div>
                   </div>
-                )}
 
-                {/* Product image */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Product image</label>
-                  <div className="flex flex-col gap-3">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                    {state.productToEdit.image && <Image src={state.productToEdit.image} alt="Preview" width={100} height={100} className="border border-[#E2E4E9] rounded-[10px] object-cover" />}
+                  {/* Unit Cost */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Unit Cost</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
+                      <input
+                        type="text"
+                        placeholder="0.00"
+                        value={state.productToEdit.unitCost ? formatNumberWithCommas(state.productToEdit.unitCost.toString()) : ''}
+                        onChange={(e) => handleNumericInput('unitCost', e)}
+                        onKeyDown={(e) => {
+                          if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
+                          if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
+                        }}
+                        className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
+
+                  {/* Profit Percentage */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Profit Percentage</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        placeholder="0"
+                        min="0"
+                        max="1000"
+                        step="0.1"
+                        value={state.productToEdit.profitPercentage || ''}
+                        onChange={(e) => handleNumericInput('profitPercentage', e)}
+                        className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
+                    </div>
+                  </div>
+
+                  {/* Base Price (Read-only display showing auto-calculated value) */}
+                  <div>
+                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price (Auto-calculated)</label>
+                    <div className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-gray-50 flex items-center">
+                      <span className="text-gray-700 font-medium">{formatCurrency(state.productToEdit.basePrice || 0)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Info className="w-4 h-4 text-gray-400" />
+                      <span className="font-sora text-xs leading-4 text-[#525866]">
+                        Updates automatically when unit cost or profit % changes
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quantity and Low Stock */}
+                  {[
+                    { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
+                    { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
+                  ].map(({ label, value, field }) => (
+                    <div key={field}>
+                      <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: parseInt(e.target.value) || 0 } })}
+                        className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  ))}
                 </div>
 
-                {/* Unit Cost */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Unit Cost</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">₦</span>
-                    <input
-                      type="text"
-                      placeholder="0.00"
-                      value={state.productToEdit.unitCost ? formatNumberWithCommas(state.productToEdit.unitCost.toString()) : ''}
-                      onChange={(e) => handleNumericInput('unitCost', e)}
-                      onKeyDown={(e) => {
-                        if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 || (e.keyCode === 65 && e.ctrlKey)) return;
-                        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190 && e.keyCode !== 110) e.preventDefault();
-                      }}
-                      className="w-[342px] h-10 rounded-[10px] pl-8 pr-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                <div className="flex gap-3 justify-end mt-8">
+                  <button onClick={closeModals} disabled={state.isUpdating} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => processAction('update')}
+                    disabled={state.isUpdating}
+                    className="w-[347px] h-9 rounded-lg p-2 bg-[#375DFB] text-white flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    {state.isUpdating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Updating...
+                      </>
+                    ) : (
+                      <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center">Update Product</span>
+                    )}
+                  </button>
                 </div>
-
-                {/* Profit Percentage */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Profit Percentage</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      placeholder="0"
-                      min="0"
-                      max="1000"
-                      step="0.1"
-                      value={state.productToEdit.profitPercentage || ''}
-                      onChange={(e) => handleNumericInput('profitPercentage', e)}
-                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">%</span>
-                  </div>
-                </div>
-
-                {/* Base Price (Read-only display showing auto-calculated value) */}
-                <div>
-                  <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">Base Price (Auto-calculated)</label>
-                  <div className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-gray-50 flex items-center">
-                    <span className="text-gray-700 font-medium">{formatCurrency(state.productToEdit.basePrice || 0)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="font-sora text-xs leading-4 text-[#525866]">
-                      Updates automatically when unit cost or profit % changes
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quantity and Low Stock */}
-                {[
-                  { label: 'Quantity', value: state.productToEdit.quantity, field: 'quantity' },
-                  { label: 'Indicate low-stock', value: state.productToEdit.lowStockThreshold || 8, field: 'lowStockThreshold' }
-                ].map(({ label, value, field }) => (
-                  <div key={field}>
-                    <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label}</label>
-                    <input
-                      type="number"
-                      value={value}
-                      onChange={(e) => updateState({ productToEdit: { ...state.productToEdit!, [field]: parseInt(e.target.value) || 0 } })}
-                      className="w-[342px] h-10 rounded-[10px] px-3 py-2.5 border border-[#E2E4E9] bg-white shadow-[0px_1px_2px_0px_rgba(228,229,231,0.24)] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3 justify-end mt-8">
-                <button onClick={closeModals} disabled={state.isUpdating} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                  Cancel
-                </button>
-                <button
-                  onClick={() => processAction('update')}
-                  disabled={state.isUpdating}
-                  className="w-[347px] h-9 rounded-lg p-2 bg-[#375DFB] text-white flex items-center justify-center hover:bg-blue-700 transition-colors disabled:opacity-50"
-                >
-                  {state.isUpdating ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Updating...
-                    </>
-                  ) : (
-                    <span className="font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-center">Update Product</span>
-                  )}
-                </button>
               </div>
             </div>
           </div>
-        </div>
         );
       })()}
 
@@ -1163,7 +1168,7 @@ const Inventory: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Product</h3>
-            
+
             <div className="mb-6 bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 {state.productToDelete.image ? (
@@ -1179,7 +1184,7 @@ const Inventory: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               {state.productToDelete.quantity > 0 && (
                 <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
                   <p className="text-sm text-orange-800">
