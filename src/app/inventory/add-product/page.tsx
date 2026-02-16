@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Info, Package, Ruler} from 'lucide-react';
+import { Info, Package, Ruler } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { showSuccessToast, showErrorToast, showLoadingToast, dismissToast, showWarningToast } from '@/utils/toast';
@@ -81,7 +81,7 @@ const AddProductPage: React.FC = () => {
     const loadExistingInventory = async () => {
       try {
         const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
-          headers: { 
+          headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
         });
@@ -152,12 +152,14 @@ const AddProductPage: React.FC = () => {
     type: string,
     size: string,
     capacity: string,
-    description: string
+    description: string,
+    colour: string,
+    wattage: string
   ): { isDuplicate: boolean; location: 'inventory' | 'selection' | null } => {
     const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
-    
+
     // Check against existing inventory
-    const existsInInventory = existingInventory.find(item => 
+    const existsInInventory = existingInventory.find(item =>
       normalizeString(item.name) === normalizeString(name) &&
       normalizeString(item.category) === normalizeString(category) &&
       normalizeString(item.make) === normalizeString(brand) &&
@@ -165,7 +167,9 @@ const AddProductPage: React.FC = () => {
       normalizeString(item.type) === normalizeString(type) &&
       normalizeString(item.size) === normalizeString(size) &&
       normalizeString(item.capacity) === normalizeString(capacity) &&
-      normalizeString(item.description) === normalizeString(description)
+      normalizeString(item.description) === normalizeString(description) &&
+      normalizeString(item.colour) === normalizeString(colour) &&
+      normalizeString(item.wattage) === normalizeString(wattage)
     );
 
     if (existsInInventory) {
@@ -173,7 +177,7 @@ const AddProductPage: React.FC = () => {
     }
 
     // Check against currently selected products
-    const existsInSelection = selectedProducts.find(item => 
+    const existsInSelection = selectedProducts.find(item =>
       normalizeString(item.name) === normalizeString(name) &&
       normalizeString(item.category) === normalizeString(category) &&
       normalizeString(item.make) === normalizeString(brand) &&
@@ -181,7 +185,9 @@ const AddProductPage: React.FC = () => {
       normalizeString(item.type) === normalizeString(type) &&
       normalizeString(item.size) === normalizeString(size) &&
       normalizeString(item.capacity) === normalizeString(capacity) &&
-      normalizeString(item.description) === normalizeString(description)
+      normalizeString(item.description) === normalizeString(description) &&
+      normalizeString(item.colour) === normalizeString(colour) &&
+      normalizeString(item.wattage) === normalizeString(wattage)
     );
 
     if (existsInSelection) {
@@ -206,12 +212,14 @@ const AddProductPage: React.FC = () => {
       currentProduct.type,
       currentProduct.size,
       currentProduct.capacity,
-      currentProduct.description
+      currentProduct.description,
+      currentProduct.colour,
+      currentProduct.wattage
     );
 
     if (duplicateCheck.isDuplicate) {
-      const locationText = duplicateCheck.location === 'inventory' 
-        ? 'already exists in inventory' 
+      const locationText = duplicateCheck.location === 'inventory'
+        ? 'already exists in inventory'
         : 'is already in your current selection';
       showErrorToast(`⚠️ Duplicate detected: A product with identical name, category, brand, model, type, size, capacity, and description ${locationText}`);
       return;
@@ -275,11 +283,11 @@ const AddProductPage: React.FC = () => {
 
     setIsSubmitting(true);
     const loadingToastId = showLoadingToast(`Adding ${selectedProducts.length} product(s) to inventory...`);
-    
+
     try {
       // Add each product to backend
       const addedProducts = [];
-      
+
       for (const product of selectedProducts) {
         try {
           console.log('=== ADD PRODUCT API DEBUG ===');
@@ -394,15 +402,15 @@ const AddProductPage: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCurrentProduct(prev => ({ 
-          ...prev, 
+        setCurrentProduct(prev => ({
+          ...prev,
           image: e.target?.result as string
         }));
       };
       reader.readAsDataURL(file);
-      
-      setCurrentProduct(prev => ({ 
-        ...prev, 
+
+      setCurrentProduct(prev => ({
+        ...prev,
         imageFile: file
       }));
     }
@@ -429,8 +437,8 @@ const AddProductPage: React.FC = () => {
 
   const total = selectedProducts.reduce((sum, product) => sum + (product.basePrice * product.quantity), 0);
 
-  const totalSecondaryUnits = currentProduct.hasUnitConversion 
-    ? currentProduct.quantity * currentProduct.conversionRate 
+  const totalSecondaryUnits = currentProduct.hasUnitConversion
+    ? currentProduct.quantity * currentProduct.conversionRate
     : 0;
   const pricePerSecondaryUnit = currentProduct.hasUnitConversion && currentProduct.conversionRate > 0
     ? currentProduct.basePrice / currentProduct.conversionRate
@@ -461,7 +469,7 @@ const AddProductPage: React.FC = () => {
       </div>
       <button onClick={() => removeProduct(product.id)} className="text-gray-400 hover:text-red-500">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M6 2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12.5C11 13.3284 10.3284 14 9.5 14H6.5C5.67157 14 5 13.3284 5 12.5V4H4.5C4.22386 4 4 3.77614 4 3.5C4 3.22386 4.22386 3 4.5 3H6V2.5Z" fill="currentColor"/>
+          <path d="M6 2.5C6 2.22386 6.22386 2 6.5 2H9.5C9.77614 2 10 2.22386 10 2.5V3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12.5C11 13.3284 10.3284 14 9.5 14H6.5C5.67157 14 5 13.3284 5 12.5V4H4.5C4.22386 4 4 3.77614 4 3.5C4 3.22386 4.22386 3 4.5 3H6V2.5Z" fill="currentColor" />
         </svg>
       </button>
     </div>
@@ -475,7 +483,7 @@ const AddProductPage: React.FC = () => {
           <h3 className="text-[#0A0D14] font-medium text-sm leading-5 mb-6 font-inter tracking-[-0.6%]">
             Save newly added products
           </h3>
-          
+
           <div className="space-y-4 mb-6">
             {selectedProducts.map((product) => <ProductItem key={product.id} product={product} />)}
           </div>
@@ -487,7 +495,7 @@ const AddProductPage: React.FC = () => {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={handleAddToInventory}
             disabled={isSubmitting || selectedProducts.length === 0}
             className="w-full bg-[#375DFB] text-white py-3 rounded-[10px] font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -699,13 +707,13 @@ const AddProductPage: React.FC = () => {
                   <Package className="w-5 h-5 text-green-600" />
                   Inventory Summary with Unit Conversion
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white rounded-lg p-4 border border-green-300">
                     <div className="text-sm text-gray-600 mb-1">Total Stock ({currentProduct.baseUnit}s)</div>
                     <div className="text-3xl font-bold text-gray-900">{currentProduct.quantity}</div>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 border border-green-300">
                     <div className="text-sm text-gray-600 mb-1">Total Stock ({currentProduct.secondaryUnit}s)</div>
                     <div className="text-3xl font-bold text-green-600">{totalSecondaryUnits}</div>
@@ -805,7 +813,7 @@ const AddProductPage: React.FC = () => {
 
             {/* Select product button */}
             <div className="pt-4">
-              <button 
+              <button
                 onClick={handleSelectProduct}
                 className="w-[347px] h-9 rounded-lg p-2 bg-[#EBF1FF] flex items-center justify-center hover:bg-[#DDE7FF] transition-colors"
               >
