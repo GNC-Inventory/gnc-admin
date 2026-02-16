@@ -652,7 +652,7 @@ const Inventory: React.FC = () => {
           <OutCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px] p-6">
-          <InventoryValueCard itemCount={stats.totalItems} totalValue={stats.currentInventoryValue} />
+          <InventoryValueCard itemCount={stats.totalItemsSold} totalValue={stats.totalSalesRevenue} />
         </div>
         <div className="w-[258px] h-[172px] bg-white rounded-[32px]">
           <LowStockDropdown lowStockItems={categoryFilteredData.filter(item => item.quantity <= 5)} />
