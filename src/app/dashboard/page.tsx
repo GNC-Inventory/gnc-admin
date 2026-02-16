@@ -7,6 +7,7 @@ import SalesCard from '@/components/dashboard/SalesCard';
 import TransactionsCard from '@/components/dashboard/TransactionsCard';
 import AverageSalesCard from '@/components/dashboard/AverageSalesCard';
 import TaxDueCard from '@/components/dashboard/TaxDueCard';
+import ProfitCard from '@/components/dashboard/ProfitCard';
 import SalesGraph from '@/components/dashboard/SalesGraph';
 import SalesByProduct from '@/components/dashboard/SalesByProduct';
 import TopPerformingStaff from '@/components/dashboard/TopPerformingStaff';
@@ -18,13 +19,13 @@ import { useAuth } from '@/contexts/AuthContext';
 const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
+
   const { user } = useAuth();
   const userName = user?.firstName || "User";
-  
+
   const dropdownOptions = [
     'Today',
-    'Yesterday', 
+    'Yesterday',
     'Previous days',
     'Last week',
     'Last month',
@@ -35,7 +36,7 @@ const Dashboard: React.FC = () => {
     <div className="bg-gray-50 min-h-full pl-8 pr-1 py-4 w-full overflow-x-hidden">
       {/* Welcome Section */}
       <div className="mb-6">
-        <h1 
+        <h1
           className="text-[#0A0D14] mb-4"
           style={{
             fontFamily: 'Geist, sans-serif',
@@ -47,10 +48,10 @@ const Dashboard: React.FC = () => {
         >
           Welcome, {userName}
         </h1>
-        
+
         {/* Showing and Dropdown */}
         <div className="flex items-center gap-4">
-          <p 
+          <p
             className="text-gray-600"
             style={{
               width: '57px',
@@ -59,7 +60,7 @@ const Dashboard: React.FC = () => {
           >
             Showing
           </p>
-          
+
           {/* Dropdown */}
           <div className="relative">
             <button
@@ -75,7 +76,7 @@ const Dashboard: React.FC = () => {
               <span className="text-gray-700 text-sm">{selectedPeriod}</span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
-            
+
             {dropdownOpen && (
               <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-[10px] shadow-lg z-10">
                 {dropdownOptions.map((option) => (
@@ -97,11 +98,11 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-4 mb-8" style={{ gap: '16px' }}>
+      <div className="grid grid-cols-5 mb-8" style={{ gap: '16px' }}>
         {/* Sales Card */}
-        <div 
+        <div
           style={{
-            width: '258px',
+            width: '208px',
             height: '128px',
             borderRadius: '32px',
             padding: '24px',
@@ -109,15 +110,15 @@ const Dashboard: React.FC = () => {
             opacity: 1,
             boxSizing: 'border-box'
           }}
-          className="xl:w-[300px] xl:h-[150px] 2xl:w-[350px] 2xl:h-[170px]"
+          className="xl:w-[208px] xl:h-[128px]"
         >
           <SalesCard period="today" />
         </div>
 
         {/* Transactions Card */}
-        <div 
+        <div
           style={{
-            width: '258px',
+            width: '208px',
             height: '128px',
             borderRadius: '32px',
             padding: '24px',
@@ -130,9 +131,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Average Sales Card */}
-        <div 
+        <div
           style={{
-            width: '258px',
+            width: '208px',
             height: '128px',
             borderRadius: '32px',
             padding: '24px',
@@ -145,9 +146,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Tax Due Card */}
-        <div 
+        <div
           style={{
-            width: '258px',
+            width: '208px',
             height: '128px',
             borderRadius: '32px',
             padding: '24px',
@@ -158,10 +159,25 @@ const Dashboard: React.FC = () => {
         >
           <TaxDueCard period="today" />
         </div>
+
+        {/* Profit Card */}
+        <div
+          style={{
+            width: '208px',
+            height: '128px',
+            borderRadius: '32px',
+            padding: '24px',
+            background: '#FFFFFF',
+            opacity: 1,
+            boxSizing: 'border-box'
+          }}
+        >
+          <ProfitCard period="today" />
+        </div>
       </div>
 
       {/* Sales Graph */}
-      <div 
+      <div
         className="mb-8"
         style={{
           width: '1104px',
@@ -181,7 +197,7 @@ const Dashboard: React.FC = () => {
       {/* Sales by Product and Bottom Stats Row */}
       <div className="flex gap-4 mb-8">
         {/* Sales by Product */}
-        <div 
+        <div
           className="bg-white rounded-[32px] p-6"
           style={{
             width: '540px',
@@ -195,7 +211,7 @@ const Dashboard: React.FC = () => {
         {/* Bottom Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
           {/* Top Performing Staff */}
-          <div 
+          <div
             className="bg-white rounded-[32px] p-6"
             style={{
               width: '258px',
@@ -207,7 +223,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Low in Stock */}
-          <div 
+          <div
             className="bg-white rounded-[32px] p-6"
             style={{
               width: '258px',
@@ -219,7 +235,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Total Amount Returned */}
-          <div 
+          <div
             className="bg-white rounded-[32px] p-6"
             style={{
               width: '258px',
@@ -231,7 +247,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Total Returned Items */}
-          <div 
+          <div
             className="bg-white rounded-[32px] p-6"
             style={{
               width: '258px',
