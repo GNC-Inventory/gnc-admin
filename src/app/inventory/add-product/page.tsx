@@ -80,7 +80,8 @@ const AddProductPage: React.FC = () => {
   useEffect(() => {
     const loadExistingInventory = async () => {
       try {
-        const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${API_URL}/api/admin/inventory`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
@@ -298,7 +299,8 @@ const AddProductPage: React.FC = () => {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'EMPTY'
           });
 
-          const response = await fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+          const response = await fetch(`${API_URL}/api/admin/inventory`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

@@ -1,5 +1,9 @@
 [build]
   command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_PUBLIC_API_URL = "https://gnc-inventory-backend-production.up.railway.app"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

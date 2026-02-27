@@ -141,13 +141,14 @@ const Inventory: React.FC = () => {
     try {
       updateState({ loading: true, error: null });
 
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const [inventoryResponse, transactionResponse] = await Promise.all([
-        fetch('https://gnc-inventory-backend.onrender.com/api/admin/inventory', {
+        fetch(`${API_URL}/api/admin/inventory`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
         }),
-        fetch('https://gnc-inventory-backend.onrender.com/api/sales', {
+        fetch(`${API_URL}/api/sales`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
           }
@@ -355,8 +356,9 @@ const Inventory: React.FC = () => {
     const loadingToastId = showLoadingToast(isDelete ? 'Deleting product...' : 'Updating product...');
 
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       console.log('API Key:', process.env.NEXT_PUBLIC_API_KEY);
-      console.log('Making request to:', `https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`);
+      console.log('Making request to:', `${API_URL}/api/admin/inventory/${product.id}`);
 
       let updatedItems;
       let response;
@@ -366,7 +368,7 @@ const Inventory: React.FC = () => {
         console.log('Original product ID:', product.id, 'Type:', typeof product.id);
         console.log('Converted product ID:', productId, 'Type:', typeof productId);
 
-        response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${productId}`, {
+        response = await fetch(`${API_URL}/api/admin/inventory/${productId}`, {
           method: 'DELETE',
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!
@@ -386,7 +388,7 @@ const Inventory: React.FC = () => {
           item.id === product.id ? updatedProduct : item
         );
 
-        response = await fetch(`https://gnc-inventory-backend.onrender.com/api/admin/inventory/${product.id}`, {
+        response = await fetch(`${API_URL}/api/admin/inventory/${product.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
