@@ -41,18 +41,22 @@ const ProfitCard: React.FC<ProfitCardProps> = ({
             setLoading(true);
             setError(null);
 
-            // Get JWT token from localStorage
+            // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
             const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('Authentication token not found');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (process.env.NEXT_PUBLIC_API_KEY) {
+                headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+            } else if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            } else {
+                throw new Error('No authentication credentials available');
             }
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/stats`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
+                headers,
             });
 
             if (!response.ok) {

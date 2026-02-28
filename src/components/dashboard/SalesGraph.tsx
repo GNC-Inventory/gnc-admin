@@ -12,9 +12,9 @@ interface SalesDataPoint {
   value: number;
 }
 
-const SalesGraph: React.FC<SalesGraphProps> = ({ 
+const SalesGraph: React.FC<SalesGraphProps> = ({
   period = 'today',
-  days = 7 
+  days = 7
 }) => {
   const [salesData, setSalesData] = useState<SalesDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,17 +47,17 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
   // Calculate dynamic Y-axis domain based on data
   const calculateYAxisDomain = (data: SalesDataPoint[]) => {
     if (data.length === 0) return [0, 100000];
-    
+
     const maxValue = Math.max(...data.map(d => d.value));
     const minValue = Math.min(...data.map(d => d.value));
-    
+
     // Add some padding
     const padding = (maxValue - minValue) * 0.1;
     const domain = [
       Math.max(0, Math.floor((minValue - padding) / 10000) * 10000),
       Math.ceil((maxValue + padding) / 10000) * 10000
     ];
-    
+
     return domain;
   };
 
@@ -67,18 +67,22 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
       setLoading(true);
       setError(null);
 
-      // Get JWT token from localStorage
+      // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        throw new Error('No authentication credentials available');
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/sales-chart?days=${days}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -86,7 +90,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         // Check if we have actual data
         if (Array.isArray(result.data) && result.data.length > 0) {
@@ -130,7 +134,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
     return (
       <div className="flex flex-col h-full">
         <div className="mb-6">
-          <h3 
+          <h3
             className="text-[#0A0D14] font-medium mb-1"
             style={{
               fontFamily: 'Geist, sans-serif',
@@ -145,7 +149,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
             Sales performance over time
           </p>
         </div>
-        
+
         <div className="flex-1 flex items-center justify-center" style={{ minHeight: '180px' }}>
           <div className="animate-pulse space-y-4 w-full">
             <div className="h-4 bg-gray-200 rounded w-1/4"></div>
@@ -165,7 +169,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
     return (
       <div className="flex flex-col h-full">
         <div className="mb-6">
-          <h3 
+          <h3
             className="text-[#0A0D14] font-medium mb-1"
             style={{
               fontFamily: 'Geist, sans-serif',
@@ -180,7 +184,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
             Sales performance over time
           </p>
         </div>
-        
+
         <div className="flex-1 flex items-center justify-center" style={{ minHeight: '180px' }}>
           <div className="text-center">
             <p className="text-red-500 text-sm mb-2">Unable to load chart data</p>
@@ -195,7 +199,7 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
     <div className="flex flex-col h-full">
       {/* Title */}
       <div className="mb-6">
-        <h3 
+        <h3
           className="text-[#0A0D14] font-medium mb-1"
           style={{
             fontFamily: 'Geist, sans-serif',
@@ -226,22 +230,22 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
               bottom: 25,
             }}
           >
-            <XAxis 
+            <XAxis
               dataKey="time"
               axisLine={false}
               tickLine={false}
-              tick={{ 
-                fontSize: 12, 
+              tick={{
+                fontSize: 12,
                 fill: '#9CA3AF',
                 fontFamily: 'Inter, sans-serif'
               }}
               dy={10}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ 
-                fontSize: 12, 
+              tick={{
+                fontSize: 12,
                 fill: '#9CA3AF',
                 fontFamily: 'Inter, sans-serif'
               }}
@@ -249,14 +253,14 @@ const SalesGraph: React.FC<SalesGraphProps> = ({
               domain={yAxisDomain}
               ticks={yAxisTicks}
             />
-            <Line 
-              type="monotone" 
-              dataKey="value" 
+            <Line
+              type="monotone"
+              dataKey="value"
               stroke="#3B82F6"
               strokeWidth={3}
               dot={false}
-              activeDot={{ 
-                r: 4, 
+              activeDot={{
+                r: 4,
                 stroke: '#3B82F6',
                 strokeWidth: 2,
                 fill: '#FFFFFF'

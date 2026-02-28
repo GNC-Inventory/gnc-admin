@@ -63,18 +63,22 @@ const SalesByProduct: React.FC<SalesByProductProps> = ({ period = 'today' }) => 
       setLoading(true);
       setError(null);
 
-      // Get JWT token from localStorage
+      // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        throw new Error('No authentication credentials available');
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/sales-by-product`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -82,10 +86,10 @@ const SalesByProduct: React.FC<SalesByProductProps> = ({ period = 'today' }) => 
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         const apiData: ApiResponse = result.data;
-        
+
         // Check if we have actual product data
         if (apiData.products && apiData.products.length > 0) {
           const transformedData = transformApiData(apiData);
@@ -124,7 +128,7 @@ const SalesByProduct: React.FC<SalesByProductProps> = ({ period = 'today' }) => 
     return (
       <div className="flex flex-col h-full">
         <div className="mb-4">
-          <h3 
+          <h3
             className="text-[#0A0D14] font-medium"
             style={{
               fontFamily: 'Geist, sans-serif',
@@ -166,7 +170,7 @@ const SalesByProduct: React.FC<SalesByProductProps> = ({ period = 'today' }) => 
     <div className="flex flex-col h-full">
       {/* Title */}
       <div className="mb-4">
-        <h3 
+        <h3
           className="text-[#0A0D14] font-medium"
           style={{
             fontFamily: 'Geist, sans-serif',
@@ -197,12 +201,12 @@ const SalesByProduct: React.FC<SalesByProductProps> = ({ period = 'today' }) => 
             {productData.map((product, index) => (
               <div key={index} className="flex items-center gap-2">
                 {/* Color Indicator */}
-                <div 
+                <div
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: product.color }}
                 />
                 {/* Product Name */}
-                <span 
+                <span
                   className="text-gray-700 text-sm"
                   style={{
                     fontFamily: 'Inter, sans-serif',

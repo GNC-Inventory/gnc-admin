@@ -1,8 +1,9 @@
 // app/dashboard/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import SalesCard from '@/components/dashboard/SalesCard';
 import TransactionsCard from '@/components/dashboard/TransactionsCard';
 import AverageSalesCard from '@/components/dashboard/AverageSalesCard';
@@ -20,8 +21,25 @@ const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('Today');
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const { user } = useAuth();
+  const { user, token, isLoading } = useAuth();
+  const router = useRouter();
   const userName = user?.firstName || "User";
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !token) {
+      router.push('/');
+    }
+  }, [isLoading, token, router]);
+
+  // Show nothing while checking auth or redirecting
+  if (isLoading || !token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const dropdownOptions = [
     'Today',

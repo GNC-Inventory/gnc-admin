@@ -50,18 +50,22 @@ const TotalAmountReturned: React.FC<TotalAmountReturnedProps> = ({ period = 'tod
       setLoading(true);
       setError(null);
 
-      // Get JWT token from localStorage
+      // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        throw new Error('No authentication credentials available');
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/returns`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -69,10 +73,10 @@ const TotalAmountReturned: React.FC<TotalAmountReturnedProps> = ({ period = 'tod
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         const returns: ReturnItem[] = result.data;
-        
+
         // Calculate total refund amount
         const totalRefunds = calculateTotalRefunds(returns);
         setReturnedAmount(totalRefunds);
@@ -103,13 +107,13 @@ const TotalAmountReturned: React.FC<TotalAmountReturnedProps> = ({ period = 'tod
         <h3 className="text-gray-600 text-sm font-medium mb-3">
           Total amount returned
         </h3>
-        
+
         <div className="flex-1 flex items-center">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-32"></div>
           </div>
         </div>
-        
+
         <div className="text-xs text-gray-500 mt-2">
           Loading...
         </div>
@@ -129,11 +133,11 @@ const TotalAmountReturned: React.FC<TotalAmountReturnedProps> = ({ period = 'tod
           <span className="text-blue-500 text-xs ml-1">(Sample)</span>
         )}
       </h3>
-      
+
       {/* Amount */}
       <div className="flex-1 flex items-center">
         <div className="flex flex-col">
-          <p 
+          <p
             className="text-[#0A0D14] font-semibold"
             style={{
               fontFamily: 'Geist, sans-serif',
@@ -144,14 +148,14 @@ const TotalAmountReturned: React.FC<TotalAmountReturnedProps> = ({ period = 'tod
           >
             {formatCurrency(returnedAmount)}
           </p>
-          
+
           {/* Additional info for live data */}
           {!isUsingFallbackData && returnCount > 0 && (
             <div className="text-xs text-blue-600 mt-1">
               From {returnCount} return{returnCount !== 1 ? 's' : ''}
             </div>
           )}
-          
+
           {/* No returns message */}
           {!isUsingFallbackData && returnedAmount === 0 && (
             <div className="text-xs text-green-600 mt-1">
@@ -160,7 +164,7 @@ const TotalAmountReturned: React.FC<TotalAmountReturnedProps> = ({ period = 'tod
           )}
         </div>
       </div>
-      
+
       {/* Period info and status */}
       <div className="text-xs text-gray-500 mt-2">
         {period}

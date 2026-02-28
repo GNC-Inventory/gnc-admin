@@ -19,9 +19,9 @@ interface DashboardStats {
   };
 }
 
-const AverageSalesCard: React.FC<AverageSalesCardProps> = ({ 
+const AverageSalesCard: React.FC<AverageSalesCardProps> = ({
   amount,
-  period = 'today' 
+  period = 'today'
 }) => {
   const [averageSales, setAverageSales] = useState<number>(amount || 0);
   const [loading, setLoading] = useState(!amount); // Only load if no amount provided
@@ -44,18 +44,22 @@ const AverageSalesCard: React.FC<AverageSalesCardProps> = ({
       setLoading(true);
       setError(null);
 
-      // Get JWT token from localStorage
+      // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        throw new Error('No authentication credentials available');
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/stats`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -63,7 +67,7 @@ const AverageSalesCard: React.FC<AverageSalesCardProps> = ({
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         const data: DashboardStats = result.data;
         const avgSales = calculateAverageSales(data.totalSales, data.totalTransactions);
@@ -132,11 +136,11 @@ const AverageSalesCard: React.FC<AverageSalesCardProps> = ({
       <h3 className="text-gray-600 text-sm font-medium mb-3">
         Average sales
       </h3>
-      
+
       {/* Amount */}
       <div className="flex-1 flex items-center">
         <div className="flex flex-col">
-          <p 
+          <p
             className="text-[#0A0D14] font-semibold"
             style={{
               fontFamily: 'Geist, sans-serif',
@@ -147,7 +151,7 @@ const AverageSalesCard: React.FC<AverageSalesCardProps> = ({
           >
             {formatCurrency(averageSales)}
           </p>
-          
+
           {/* Info indicator for calculated value */}
           {!amount && (
             <div className="text-xs text-blue-600 mt-1">
@@ -156,7 +160,7 @@ const AverageSalesCard: React.FC<AverageSalesCardProps> = ({
           )}
         </div>
       </div>
-      
+
       {/* Period info */}
       <div className="text-xs text-gray-500 mt-2">
         {period}

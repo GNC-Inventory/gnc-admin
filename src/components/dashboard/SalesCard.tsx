@@ -19,9 +19,9 @@ interface DashboardStats {
   };
 }
 
-const SalesCard: React.FC<SalesCardProps> = ({ 
+const SalesCard: React.FC<SalesCardProps> = ({
   amount,
-  period = 'today' 
+  period = 'today'
 }) => {
   const [salesData, setSalesData] = useState<number>(amount || 0);
   const [loading, setLoading] = useState(!amount); // Only load if no amount provided
@@ -39,18 +39,22 @@ const SalesCard: React.FC<SalesCardProps> = ({
       setLoading(true);
       setError(null);
 
-      // Get JWT token from localStorage
+      // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        throw new Error('No authentication credentials available');
       }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/stats`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -58,7 +62,7 @@ const SalesCard: React.FC<SalesCardProps> = ({
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         const data: DashboardStats = result.data;
         setSalesData(data.totalSales);
@@ -127,11 +131,11 @@ const SalesCard: React.FC<SalesCardProps> = ({
       <h3 className="text-gray-600 text-sm font-medium mb-3">
         Sales
       </h3>
-      
+
       {/* Amount */}
       <div className="flex-1 flex items-center">
         <div className="flex flex-col">
-          <p 
+          <p
             className="text-[#0A0D14] font-semibold"
             style={{
               fontFamily: 'Geist, sans-serif',
@@ -142,12 +146,11 @@ const SalesCard: React.FC<SalesCardProps> = ({
           >
             {formatCurrency(salesData)}
           </p>
-          
+
           {/* Growth indicator (only show if we have growth data) */}
           {!amount && growthPercentage !== 0 && (
-            <div className={`text-xs mt-1 flex items-center ${
-              growthPercentage > 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
+            <div className={`text-xs mt-1 flex items-center ${growthPercentage > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
               <span className="mr-1">
                 {growthPercentage > 0 ? '↗' : '↘'}
               </span>
@@ -156,7 +159,7 @@ const SalesCard: React.FC<SalesCardProps> = ({
           )}
         </div>
       </div>
-      
+
       {/* Period info */}
       <div className="text-xs text-gray-500 mt-2">
         {period}

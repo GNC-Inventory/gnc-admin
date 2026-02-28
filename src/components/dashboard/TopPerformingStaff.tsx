@@ -14,7 +14,7 @@ interface TopPerformingStaffProps {
   period?: string;
 }
 
-const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({ 
+const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({
   period = 'today'
 }) => {
   const [staffData, setStaffData] = useState<StaffData | null>(null);
@@ -44,19 +44,22 @@ const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({
       setLoading(true);
       setError(null);
 
+      // Prefer API key auth (bypasses JWT expiry issues); fall back to JWT
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        headers['x-api-key'] = process.env.NEXT_PUBLIC_API_KEY;
+      } else if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        throw new Error('No authentication credentials available');
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/top-performing-staff?limit=1`, 
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/top-performing-staff?limit=1`,
+        { method: 'GET', headers }
       );
 
       if (!response.ok) {
@@ -64,7 +67,7 @@ const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data && result.data.length > 0) {
         const staff = result.data[0];
         setStaffData({
@@ -133,18 +136,18 @@ const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({
       <h3 className="text-gray-600 text-sm font-medium mb-3">
         Top performing staff
       </h3>
-      
+
       {/* Staff Info */}
       <div className="flex-1 flex flex-col justify-center">
         <div className="flex items-center gap-3 mb-3">
           {/* Avatar */}
-          <div 
+          <div
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: avatarColor }}
           >
             {staffData.avatar ? (
-              <img 
-                src={staffData.avatar} 
+              <img
+                src={staffData.avatar}
                 alt={staffData.name}
                 className="w-full h-full rounded-full object-cover"
               />
@@ -154,10 +157,10 @@ const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({
               </span>
             )}
           </div>
-          
+
           {/* Name and Role */}
           <div className="flex-1 min-w-0">
-            <p 
+            <p
               className="text-[#0A0D14] font-medium truncate"
               style={{
                 fontFamily: 'Geist, sans-serif',
@@ -175,10 +178,10 @@ const TopPerformingStaff: React.FC<TopPerformingStaffProps> = ({
             )}
           </div>
         </div>
-        
+
         {/* Stats */}
         <div className="space-y-1">
-          <p 
+          <p
             className="text-[#0A0D14] font-semibold"
             style={{
               fontFamily: 'Geist, sans-serif',
