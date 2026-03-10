@@ -16,8 +16,8 @@ interface Product {
   size: string;
   capacity: string;
   description: string;
-  colour: string;             // ✅ FIX 3: ADDED
-  wattage: string;            // ✅ FIX 3: ADDED
+  colour: string;
+  powerRating: string;
   image: string;
   imageFile?: File;
   unitCost: number;
@@ -53,7 +53,7 @@ const AddProductPage: React.FC = () => {
     capacity: '',
     description: '',
     colour: '',              // ✅ FIX 3: ADDED
-    wattage: '',             // ✅ FIX 3: ADDED
+    powerRating: '',             // ✅ FIX 3: ADDED
     image: '',
     unitCost: 0,
     profitPercentage: 0,
@@ -100,8 +100,8 @@ const AddProductPage: React.FC = () => {
               size: item.product?.size || '',
               capacity: item.product?.capacity || '',
               description: item.product?.description || '',
-              colour: item.product?.colour || '',        // ✅ FIX 3: ADDED
-              wattage: item.product?.wattage || '',      // ✅ FIX 3: ADDED
+              colour: item.product?.colour || '',
+              powerRating: item.product?.powerRating || '',
               image: item.product?.imageUrl || '',
               unitCost: parseFloat(item.product?.unitCost) || 0,
               profitPercentage: parseFloat(item.profitPercentage) || 0,
@@ -155,7 +155,7 @@ const AddProductPage: React.FC = () => {
     capacity: string,
     description: string,
     colour: string,
-    wattage: string
+    powerRating: string
   ): { isDuplicate: boolean; location: 'inventory' | 'selection' | null } => {
     const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
 
@@ -170,7 +170,7 @@ const AddProductPage: React.FC = () => {
       normalizeString(item.capacity) === normalizeString(capacity) &&
       normalizeString(item.description) === normalizeString(description) &&
       normalizeString(item.colour) === normalizeString(colour) &&
-      normalizeString(item.wattage) === normalizeString(wattage)
+      normalizeString(item.powerRating) === normalizeString(powerRating)
     );
 
     if (existsInInventory) {
@@ -188,7 +188,7 @@ const AddProductPage: React.FC = () => {
       normalizeString(item.capacity) === normalizeString(capacity) &&
       normalizeString(item.description) === normalizeString(description) &&
       normalizeString(item.colour) === normalizeString(colour) &&
-      normalizeString(item.wattage) === normalizeString(wattage)
+      normalizeString(item.powerRating) === normalizeString(powerRating)
     );
 
     if (existsInSelection) {
@@ -215,7 +215,7 @@ const AddProductPage: React.FC = () => {
       currentProduct.capacity,
       currentProduct.description,
       currentProduct.colour,
-      currentProduct.wattage
+      currentProduct.powerRating
     );
 
     if (duplicateCheck.isDuplicate) {
@@ -236,8 +236,8 @@ const AddProductPage: React.FC = () => {
       size: currentProduct.size,
       capacity: currentProduct.capacity,
       description: currentProduct.description,
-      colour: currentProduct.colour,              // ✅ FIX 3: ADDED
-      wattage: currentProduct.wattage,            // ✅ FIX 3: ADDED
+      colour: currentProduct.colour,
+      powerRating: currentProduct.powerRating,
       image: currentProduct.image,
       unitCost: currentProduct.unitCost,
       profitPercentage: currentProduct.profitPercentage,
@@ -260,8 +260,8 @@ const AddProductPage: React.FC = () => {
       size: '',
       capacity: '',
       description: '',
-      colour: '',              // ✅ FIX 3: ADDED
-      wattage: '',             // ✅ FIX 3: ADDED
+      colour: '',
+      powerRating: '',
       image: '',
       unitCost: 0,
       profitPercentage: 0,
@@ -315,8 +315,8 @@ const AddProductPage: React.FC = () => {
               size: product.size,
               capacity: product.capacity,
               description: product.description,
-              colour: product.colour,                   // ✅ FIX 3: ADDED
-              wattage: product.wattage,                 // ✅ FIX 3: ADDED
+              colour: product.colour,
+              powerRating: product.powerRating,
               image: product.image,
               unit_cost: product.unitCost,
               base_price: product.basePrice,
@@ -538,8 +538,8 @@ const AddProductPage: React.FC = () => {
               { label: 'Type', field: 'type', placeholder: 'Enter type (e.g., LED, Concrete)...', required: false },
               { label: 'Size', field: 'size', placeholder: 'Enter size (e.g., 2.5 inches, 10mm)...', required: false },
               { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity (e.g., 1.5L, 50kg)...', required: false },
-              { label: 'Colour', field: 'colour', placeholder: 'Enter colour (e.g., Red, Blue)...', required: false },     // ✅ FIX 3: ADDED
-              { label: 'Wattage', field: 'wattage', placeholder: 'Enter wattage (e.g., 1000W, 2.5kW)...', required: false }  // ✅ FIX 3: ADDED
+              { label: 'Colour', field: 'colour', placeholder: 'Enter colour (e.g., Red, Blue)...', required: false },
+              { label: 'Power Rating', field: 'powerRating', placeholder: 'Enter power rating (e.g., 1000W, 2.5kW)...', required: false }
             ].map(({ label, field, placeholder, required }) => (
               <div key={field}>
                 <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">
