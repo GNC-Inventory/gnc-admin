@@ -684,7 +684,7 @@ const Inventory: React.FC = () => {
 
         <h2 className="font-medium text-lg text-[#0A0D14] mb-4">Inventory</h2>
 
-        {/* ✅ FIX 3: ADDED Colour and Wattage columns to table */}
+        {/* ✅ FIX 3: ADDED Colour and Power Rating columns to table */}
         <div className="overflow-x-auto">
           <div className="min-w-max">
             {/* Table Header */}
@@ -889,7 +889,7 @@ const Inventory: React.FC = () => {
                     { label: 'Size', field: 'size', placeholder: 'Enter size...' },
                     { label: 'Capacity', field: 'capacity', placeholder: 'Enter capacity...' },
                     { label: 'Colour', field: 'colour', placeholder: 'Enter colour...' },     // ✅ FIX 3: ADDED
-                    { label: 'Wattage', field: 'wattage', placeholder: 'Enter wattage...' }   // ✅ FIX 3: ADDED
+                    { label: 'Power Rating', field: 'powerRating', placeholder: 'Enter power rating...' }
                   ].map(({ label, field, placeholder }) => (
                     <div key={field}>
                       <label className="block mb-2 font-inter font-medium text-sm leading-5 tracking-[-0.6%] text-[#0A0D14]">{label} (Optional)</label>

@@ -346,7 +346,7 @@ const AddProductPage: React.FC = () => {
               capacity: product.capacity,
               description: product.description,
               colour: product.colour,
-              wattage: product.wattage,
+              powerRating: product.powerRating,
               unit_cost: product.unitCost,
               base_price: product.basePrice,
               stock_quantity: product.quantity,
@@ -530,7 +530,7 @@ const AddProductPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Text Fields - Including Colour and Wattage */}
+            {/* Text Fields - Including Colour and Power Rating */}
             {[
               { label: 'Product name', field: 'name', placeholder: 'Enter product name...', required: true },
               { label: 'Brand', field: 'make', placeholder: 'Enter Brand (e.g., Samsung, Dangote)...', required: false },
