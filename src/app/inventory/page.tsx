@@ -182,18 +182,25 @@ const Inventory: React.FC = () => {
       }
 
       const transformedInventoryData = inventoryData.map((item: any) => {
-        console.log('Transforming item:', item);
-        console.log('Item image data:', item.product?.imageUrl);
+        const costVal = parseFloat(item.product?.unitCost) || 0;
+        const priceVal = parseFloat(item.product?.basePrice) || 0;
+
+        let profitPercentage = 0;
+        if (costVal > 0) {
+          profitPercentage = ((priceVal - costVal) / costVal) * 100;
+          profitPercentage = Math.round(profitPercentage * 100) / 100;
+        }
+
         return {
           id: item.id?.toString() || '',
           name: item.product?.name || '',
           category: item.product?.category || '',
           lastUpdated: item.lastUpdated || '',
           quantity: parseInt(item.quantity) || 0,
-          unitCost: parseFloat(item.product?.unitCost) || 0,
-          basePrice: parseFloat(item.product?.basePrice) || 0,
-          profitPercentage: parseFloat(item.profitPercentage) || 0,
-          amount: (parseFloat(item.product?.unitCost) || 0) * (parseInt(item.quantity) || 0),
+          unitCost: costVal,
+          basePrice: priceVal,
+          profitPercentage: profitPercentage,
+          amount: costVal * (parseInt(item.quantity) || 0),
           image: item.product?.imageUrl || '',
           model: item.product?.model || '',
           lowStockThreshold: parseInt(item.lowStockThreshold) || 5,
@@ -801,7 +808,7 @@ const Inventory: React.FC = () => {
                     <div className="px-2 text-sm text-gray-900">{formatCurrency(item.unitCost)}</div>
 
                     <div className="px-2 text-sm text-gray-600">
-                      {item.profitPercentage ? `${item.profitPercentage}%` : '-'}
+                      {typeof item.profitPercentage === 'number' ? `${item.profitPercentage}%` : '-'}
                     </div>
 
                     <div className="px-2 text-sm text-gray-900">
