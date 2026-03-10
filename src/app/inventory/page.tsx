@@ -26,8 +26,8 @@ interface InventoryItem {
   size?: string;
   capacity?: string;
   description?: string;
-  colour?: string;         // ✅ FIX 3: ADDED
-  wattage?: string;        // ✅ FIX 3: ADDED
+  colour?: string;
+  powerRating?: string;
   hasUnitConversion?: boolean;
   baseUnit?: string;
   secondaryUnit?: string;
@@ -115,7 +115,7 @@ const Inventory: React.FC = () => {
     capacity: string,
     description: string,
     colour: string,
-    wattage: string,
+    powerRating: string,
     currentId?: string
   ): boolean => {
     const normalizeString = (str: string | undefined) => (str || '').toLowerCase().trim();
@@ -131,7 +131,7 @@ const Inventory: React.FC = () => {
       normalizeString(item.capacity) === normalizeString(capacity) &&
       normalizeString(item.description) === normalizeString(description) &&
       normalizeString(item.colour) === normalizeString(colour) &&
-      normalizeString(item.wattage) === normalizeString(wattage)
+      normalizeString(item.powerRating) === normalizeString(powerRating)
     );
 
     return !!existingProduct;
@@ -202,8 +202,8 @@ const Inventory: React.FC = () => {
           size: item.product?.size || '',
           capacity: item.product?.capacity || '',
           description: item.product?.description || '',
-          colour: item.product?.colour || '',        // ✅ FIX 3: ADDED
-          wattage: item.product?.wattage || '',      // ✅ FIX 3: ADDED
+          colour: item.product?.colour || '',
+          powerRating: item.product?.powerRating || '',
           hasUnitConversion: item.product?.hasUnitConversion || false,
           baseUnit: item.product?.baseUnit || '',
           secondaryUnit: item.product?.secondaryUnit || '',
@@ -335,7 +335,7 @@ const Inventory: React.FC = () => {
         state.productToEdit.capacity || '',
         state.productToEdit.description || '',
         state.productToEdit.colour || '',
-        state.productToEdit.wattage || '',
+        state.productToEdit.powerRating || '',
         state.productToEdit.id
       );
 
@@ -697,7 +697,7 @@ const Inventory: React.FC = () => {
                 <div className="text-sm font-medium text-gray-600 px-2">Size</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Capacity</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Colour</div>
-                <div className="text-sm font-medium text-gray-600 px-2">Wattage</div>
+                <div className="text-sm font-medium text-gray-600 px-2">Power Rating</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Description</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Category</div>
                 <div className="text-sm font-medium text-gray-600 px-2">Last Date Modified</div>
@@ -764,14 +764,12 @@ const Inventory: React.FC = () => {
                       {item.capacity || '-'}
                     </div>
 
-                    {/* ✅ FIX 3: ADDED Colour column */}
                     <div className="px-2 text-sm text-gray-600 truncate" title={item.colour || '-'}>
                       {item.colour || '-'}
                     </div>
 
-                    {/* ✅ FIX 3: ADDED Wattage column */}
-                    <div className="px-2 text-sm text-gray-600 truncate" title={item.wattage || '-'}>
-                      {item.wattage || '-'}
+                    <div className="px-2 text-sm text-gray-600 truncate" title={item.powerRating || '-'}>
+                      {item.powerRating || '-'}
                     </div>
 
                     {/* ENHANCED: Description with horizontal scroll AND hover tooltip */}
