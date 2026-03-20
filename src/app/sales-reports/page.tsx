@@ -63,24 +63,33 @@ const SalesReportsPage = () => {
       const query = `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
 
       if (activeTab === 'sales') {
-        const response = await fetch(`/api/reports/sales${query}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/sales${query}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+          }
         });
         if (response.ok) {
           const data = await response.json();
           setSalesReport(data.success ? data.data : null);
         }
       } else if (activeTab === 'inventory') {
-        const response = await fetch('/api/reports/inventory', {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/inventory`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+          }
         });
         if (response.ok) {
           const data = await response.json();
           setInventoryReport(data.success ? data.data : null);
         }
       } else if (activeTab === 'performance') {
-        const response = await fetch(`/api/reports/performance${query}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/performance${query}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
+          }
         });
         if (response.ok) {
           const data = await response.json();
@@ -97,11 +106,12 @@ const SalesReportsPage = () => {
   const handleExport = async (format: 'csv' | 'pdf') => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/reports/export', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/export`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || ''
         },
         body: JSON.stringify({
           reportType: activeTab,
