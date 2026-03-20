@@ -31,9 +31,10 @@ const TransactionsPage = () => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/sales`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
         }
       });
       
