@@ -224,6 +224,7 @@ export const withAuth = <P extends object>(
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
         router.push('/');
+        return;
       }
     }, [isAuthenticated, isLoading, router]);
 
